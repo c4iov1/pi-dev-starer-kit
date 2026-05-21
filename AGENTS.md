@@ -49,9 +49,9 @@ pi-dev-starter-kit/
 │   ├── web-research/
 │   ├── browser-testing/
 │   ├── subagent-delegation/
-│   └── mcp-orchestration/
+│   ├── mcp-orchestration/
+│   └── agent-memory/
 │   # + 14 skills from mattpocock/skills
-│   # + 1 optional skill: agent-memory (agentmemory MCP)
 │
 ├── prompts/                     # Prompt templates
 │   ├── plan.md

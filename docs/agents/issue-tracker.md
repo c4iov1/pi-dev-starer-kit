@@ -23,4 +23,4 @@ Each issue file:
 
 ## Current feature
 
-- **pi-dev-starter-kit**: 14 issues in `.scratch/pi-dev-starter-kit/`. Dependency graph in `docs/architecture.md` §7.
+- **pi-dev-starter-kit**: 17 issues in `.scratch/pi-dev-starter-kit/`. Dependency graph in `docs/architecture.md` §7.

@@ -1,6 +1,6 @@
 ---
 name: web-research
-description: Activates web_search, code_search, fetch_content, and get_search_content tools (from pi-web-access). Teaches the model research patterns: search → filter → fetch → synthesize. Use when the model needs current documentation, library versions, API references, or any information beyond its training cutoff.
+description: "Activates web_search, code_search, fetch_content, and get_search_content tools (from pi-web-access). Teaches the model research patterns: search → filter → fetch → synthesize. Use when the model needs current documentation, library versions, API references, or any information beyond its training cutoff."
 ---
 
 # Web Research

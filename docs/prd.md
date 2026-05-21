@@ -2,7 +2,7 @@
 
 > **Status**: Draft
 > **Data**: 2026-05-15
-> **Fonte**: Síntese da arquitetura definida em `docs/plans/pi-dev-starter-kit-architecture.md`
+> **Fonte**: Síntese da arquitetura definida em `docs/architecture.md`
 > **Referências**: docs/references/1 a 8
 
 ---
@@ -122,19 +122,21 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 8. **auto-memory**: Session hooks + custom tools. Persists agent learnings to `MEMORY.md` as a lightweight index. Tools: `memory_save`, `memory_search`. Limits context injection to last N entries.
 
-**Skills (6 modules, built in-house):**
+**Skills (7 modules, built in-house):**
 
-7. **plan-mode**: Structured planning skill. Creates `plan.md` with checklist, registers TODOs via task-tracker, updates progress at each milestone.
+9. **plan-mode**: Structured planning skill. Creates `plan.md` with checklist, registers TODOs via task-tracker, updates progress at each milestone.
 
-8. **self-verify**: Build→test→fix verification cycle. Runs tests, compares output against spec (not own code), checks happy path + edge cases.
+10. **self-verify**: Build→test→fix verification cycle. Runs tests, compares output against spec (not own code), checks happy path + edge cases.
 
-9. **web-research**: Activates `web_search` and `web_fetch` tools. Teaches the model research patterns: search → filter → fetch → synthesize.
+11. **web-research**: Activates `web_search` and `web_fetch` tools. Teaches the model research patterns: search → filter → fetch → synthesize.
 
-10. **browser-testing**: Activates browser automation tools. For visual testing, form interaction, screenshot verification.
+12. **browser-testing**: Activates browser automation tools. For visual testing, form interaction, screenshot verification.
 
-11. **subagent-delegation**: Teaches when and how to delegate to sub-agents. Covers: exploration, parallel investigation, isolated experiments.
+13. **subagent-delegation**: Teaches when and how to delegate to sub-agents. Covers: exploration, parallel investigation, isolated experiments.
 
-12. **mcp-orchestration**: Teaches MCP server usage patterns. Database queries, API integration, external tool interaction.
+14. **mcp-orchestration**: Teaches MCP server usage patterns. Database queries, API integration, external tool interaction.
+
+15. **agent-memory**: Skill that teaches the agent to use agentmemory MCP server for persistent structured memory. Optional — falls back to auto-memory (#8) when unavailable. Provides patterns for when to save/search memory.
 
 **Skills (14 modules, integrated from mattpocock/skills):**
 
@@ -178,7 +180,7 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 | `task-tracker` | Unit tests: task CRUD, persistence across compaction simulation |
 | `lsp-bridge` | Integration: edit fixture TypeScript/Python file, verify type errors surface |
 | `monitor-bash` | Integration: run background command, verify streaming output |
-| Skills (all 20) | Manual verification: invoke each skill, verify tool activation, workflow completion |
+| Skills (all 21) | Manual verification: invoke each skill, verify tool activation, workflow completion |
 
 ### Prior art
 
@@ -202,7 +204,7 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 ## Further Notes
 
-- The architecture document at `docs/plans/pi-dev-starter-kit-architecture.md` contains the full technical specification, layer diagrams, and comparison with Claude Code/Codex.
+- The architecture document at `docs/architecture.md` contains the full technical specification, layer diagrams, and comparison with Claude Code/Codex.
 - The `setup-matt-pocock-skills` skill must run once per project before other engineering skills can resolve issue tracker, triage labels, and domain docs.
 - All 5 third-party dependencies reference original repos directly. The `package.json` points to the original repositories — no forks needed.
 - **context-mode requirements**: Node.js >= 22.5 (or Bun). Requires `mcp.json` configuration at `~/.pi/agent/mcp.json`. The extension registers hooks (`tool_call`, `tool_result`, `session_start`, `session_before_compact`) automatically via the Pi.dev extension system. Session continuity data is stored in SQLite at `~/.context-mode/`.

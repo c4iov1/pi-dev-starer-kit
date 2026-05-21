@@ -1,6 +1,6 @@
 ---
 name: browser-testing
-description: Activates the agent_browser tool (from pi-agent-browser-native). Teaches the model patterns for browser automation: navigate pages, take screenshots, fill forms, click buttons, run QA presets, and verify UI state. Use when the user asks to test a web app, verify UI behavior, capture screenshots, or automate any browser task.
+description: "Activates the agent_browser tool (from pi-agent-browser-native). Teaches the model patterns for browser automation: navigate pages, take screenshots, fill forms, click buttons, run QA presets, and verify UI state. Use when the user asks to test a web app, verify UI behavior, capture screenshots, or automate any browser task."
 ---
 
 # Browser Testing

@@ -5,7 +5,7 @@
 
 ## Parent
 
-PRD: `docs/plans/pi-dev-starter-kit-prd.md`
+PRD: `docs/prd.md`
 
 ## What to build
 
@@ -43,8 +43,8 @@ Finalize the package for publication. This is a human-gated slice because it inv
 
 5. **Documentation finalization**:
    - Verify README.md is accurate after clean-room test
-   - Cross-reference architecture doc (`docs/plans/pi-dev-starter-kit-architecture.md`)
-   - Cross-reference PRD (`docs/plans/pi-dev-starter-kit-prd.md`)
+   - Cross-reference architecture doc (`docs/architecture.md`)
+   - Cross-reference PRD (`docs/prd.md`)
 
 ### Known limitations for v1
 

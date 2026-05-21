@@ -332,7 +332,8 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  APPEND_SYSTEM.md   ← Instruções adicionais             │
 │  extensions/        ← permission-gate, post-edit-lint,  │
 │                        loop-protection, task-tracker,   │
-│                        lsp-bridge, monitor-bash         │
+│                        lsp-bridge, monitor-bash,        │
+│                        contrib-gate, auto-memory        │
 │  skills/            ← plan-mode, self-verify,           │
 │                        web-research, browser-testing,   │
 │                        subagent-delegation,             │
@@ -590,7 +591,9 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │       "loop-protection",                     │   │
 │  │       "task-tracker",                        │   │
 │  │       "lsp-bridge",    // opcional           │   │
-│  │       "monitor-bash"   // opcional           │   │
+│  │       "monitor-bash",  // opcional           │   │
+│  │       "contrib-gate",                        │   │
+│  │       "auto-memory"                          │   │
 │  │     ],                                       │   │
 │  │     "activeSkills": [                        │   │
 │  │       "plan-mode",                           │   │
@@ -598,7 +601,8 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │       "web-research",                        │   │
 │  │       "browser-testing",  // opcional        │   │
 │  │       "subagent-delegation",                 │   │
-│  │       "mcp-orchestration" // opcional        │   │
+│  │       "mcp-orchestration", // opcional        │   │
+│  │       "agent-memory"      // opcional        │   │
 │  │     ],                                       │   │
 │  │     "webSearch": "cached",                   │   │
 │  │     "autoLint": true,                        │   │
@@ -744,41 +748,37 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 
 ## 7. Próximos Passos
 
-### Fase 1: Setup do pacote + verificar dependências
+### Fase 1: Setup do pacote + verificar dependências (Agentes A, B)
 
-1. Criar repositório `pi-dev-starter-kit` com `package.json` (manifest Pi.dev, apontando para repos originais)
-2. Verificar instalação das 5 dependências diretas
-3. `SYSTEM.md` + `APPEND_SYSTEM.md` globais
-4. Templates (`AGENTS.template.md`, `CONTEXT.template.md`, `INDEX.template.md`, `ADR.template.md`, `settings.template.json`)
+1. Scaffold do pacote, `package.json` + `SYSTEM.md` global (#001)
+2. Verificar instalação das 5 dependências diretas (#002)
 
-### Fase 2: Extensions core (segurança + qualidade)
+### Fase 2: Extensions core (Agentes C, D, E, F, G, H)
 
-5. `permission-gate` — PreToolUse hook + write constraint + path confinement
-6. `post-edit-lint` — lint automático pós-edição
-7. `loop-protection` — doom-loop + diminishing returns detection
-8. `task-tracker` — TaskCreate/TaskUpdate tools
-9. `contrib-gate` — Git workflow: branch naming + conventional commits
-10. `auto-memory` — MEMORY.md persistence leve
+3. `permission-gate` — PreToolUse hook + write constraint (#003)
+4. `post-edit-lint` — lint automático pós-edição (#004)
+5. `loop-protection` — doom-loop + diminishing returns detection (#005)
+6. `task-tracker` — TaskCreate/TaskUpdate tools (#006)
+7. `contrib-gate` — Git workflow (#015)
+8. `auto-memory` — MEMORY.md persistence leve (#016)
 
-### Fase 3: Skills do kit + integração mattpocock
+### Fase 3: Core Skills & Templates (Agentes I, J)
 
-9. Copiar skills do [mattpocock/skills](https://github.com/mattpocock/skills) para `skills/` (14 skills)
-10. `plan-mode` skill
-11. `self-verify` skill
-12. `web-research` skill
-13. Prompt templates (`plan.md`, `verify.md`, `review.md`, `handoff.md`)
+9. Core skills: `plan-mode` + `self-verify` (#009)
+10. Prompt templates + project templates (#012)
+11. Integrar as 14 skills do `mattpocock/skills` (#011)
 
-### Fase 4: Extensions avançadas + skills extras
+### Fase 4: Extensions avançadas + skills extras (Agentes K, L, M, N)
 
-14. `monitor-bash` extension
-15. `lsp-bridge` extension
-16. Skills restantes: `browser-testing`, `subagent-delegation`, `mcp-orchestration`
+12. `lsp-bridge` extension (#007)
+13. `monitor-bash` extension (#008)
+14. Skills extras: `web-research`, `browser-testing`, `subagent-delegation`, `mcp-orchestration` (#010)
+15. `agent-memory` skill para agentmemory MCP (#017)
 
-### Fase 5: Documentação & validação
+### Fase 5: Documentação & validação (Agente O + Humano)
 
-17. README.md com instruções de instalação e uso
-18. Teste cross-model (Opus, GLM, GPT-5)
-19. Publicação do pacote
+16. README.md + teste smoke cross-model (#013)
+17. Publicação do pacote & Release (#014)
 
 ### Instalação final (visão do usuário)
 

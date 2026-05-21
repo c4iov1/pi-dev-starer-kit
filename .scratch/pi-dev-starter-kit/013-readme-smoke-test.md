@@ -6,7 +6,7 @@
 
 ## Parent
 
-PRD: `docs/plans/pi-dev-starter-kit-prd.md`
+PRD: `docs/prd.md`
 
 ## What to build
 

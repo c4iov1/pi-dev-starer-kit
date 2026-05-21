@@ -21,7 +21,7 @@ Estes pacotes são **dependências diretas** — apontam para os repos originais
 - `pi-contrib-gate` → nova extensão `contrib-gate` (issue #015)
 - `pi-memory` → nova extensão `auto-memory` (issue #016)
 
-> **Issue**: `.scratch/pi-dev-starter-kit/002-install-verify-dependencies.md`
+> **Issue**: `.scratch/pi-dev-starter-kit/002-fork-dependencies.md`
 
 ---
 
@@ -281,7 +281,7 @@ comparável ao Claude Code e Codex, mas com autonomia total de modelo.
 O kit contém:
 - 8 extensions TypeScript (permission-gate, post-edit-lint, loop-protection,
   task-tracker, lsp-bridge, monitor-bash, contrib-gate, auto-memory)
-- 20 skills (6 autorais + 14 do mattpocock/skills)
+- 21 skills (7 autorais + 14 do mattpocock/skills)
 - 4 prompt templates
 - 5 project templates
 - SYSTEM.md global com tool categories, workflow canônico e Think-in-Code routing
