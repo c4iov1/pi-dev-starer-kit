@@ -61,7 +61,7 @@ Document these in the release notes:
 - [ ] Clean-room install succeeds with zero errors
 - [ ] All extensions, skills, and prompts are discovered
 - [ ] New project flow works end-to-end
-- [ ] `v1.0.0` tag created
+- [x] `v1.0.0` tag created
 - [ ] GitHub release published with release notes
 - [x] Known limitations documented
 - [ ] README.md verified against clean-room install
