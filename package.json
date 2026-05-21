@@ -1,0 +1,31 @@
+{
+  "name": "pi-dev-starter-kit",
+  "version": "1.0.0",
+  "description": "Pi.dev harness foundation — security, quality, workflow, and tools for any project",
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "dependencies": {
+    "context-mode": "git+https://github.com/mksglu/context-mode.git",
+    "pi-agent-browser-native": "git+https://github.com/fitchmultz/pi-agent-browser-native.git",
+    "pi-mcp-adapter": "git+https://github.com/nicobailon/pi-mcp-adapter.git",
+    "pi-subagents": "git+https://github.com/nicobailon/pi-subagents.git",
+    "pi-web-access": "git+https://github.com/nicobailon/pi-web-access.git"
+  },
+  "devDependencies": {
+    "@sinclair/typebox": "^0.34.49",
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  }
+}

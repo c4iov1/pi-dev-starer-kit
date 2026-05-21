@@ -1,0 +1,59 @@
+{
+  "_comment": "Pi.dev Starter Kit — Project-level feature flags. Copy to .pi/settings.json and customize.",
+
+  "starterKit": {
+    "_comment": "--- Security & Permissions ---",
+
+    "permissionMode": "default",
+    "_permissionMode_comment": "'default' shows a diff for every file edit and requires [y/N] approval. 'acceptEdits' auto-approves file edits but still gates bash commands.",
+
+    "activeExtensions": [
+      "permission-gate",
+      "post-edit-lint",
+      "loop-protection",
+      "task-tracker",
+      "contrib-gate",
+      "auto-memory"
+    ],
+    "_activeExtensions_comment": "Extensions to load. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash'. Add custom extensions placed in .pi/extensions/.",
+
+    "contribGate": {
+      "mode": "default",
+      "_mode_comment": "'default' warns on violations. 'strict' blocks until fixed.",
+      "branchPatterns": ["feature/", "fix/", "chore/", "docs/", "refactor/", "test/"],
+      "commitTypes": ["feat", "fix", "chore", "docs", "style", "refactor", "test", "perf", "ci", "build", "revert"]
+    },
+
+    "_comment_quality": "--- Quality Gates ---",
+
+    "autoLint": true,
+    "_autoLint_comment": "Run the project linter/formatter (with --fix) after every edit or write. Disable if no linter is configured.",
+
+    "autoTypeCheck": false,
+    "_autoTypeCheck_comment": "Run incremental type-checking (tsc --noEmit, pyright, cargo check) after every edit. Requires lsp-bridge extension to be in activeExtensions.",
+
+    "autoVerify": true,
+    "_autoVerify_comment": "Run tests after every change set and compare output against spec. Requires the self-verify skill to be in activeSkills.",
+
+    "_comment_tools": "--- Tool Availability ---",
+
+    "activeSkills": [
+      "plan-mode",
+      "self-verify",
+      "web-research",
+      "subagent-delegation"
+    ],
+    "_activeSkills_comment": "Skills available to the agent. Optional extras: 'browser-testing', 'mcp-orchestration'. Skills register tools on activation and deregister on completion (progressive disclosure).",
+
+    "webSearch": "cached",
+    "_webSearch_comment": "'cached' returns pre-indexed results (fast, low token usage). 'live' fetches fresh results. 'disabled' turns off web search entirely."
+  },
+
+  "_comment_permissions": "--- Pi.dev built-in settings (see pi docs for all options) ---",
+
+  "permissions": {
+    "allow": [],
+    "deny": [],
+    "ask": []
+  }
+}

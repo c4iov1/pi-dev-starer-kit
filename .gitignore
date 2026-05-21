@@ -1,0 +1,9 @@
+node_modules/
+.pi/
+.env*
+secrets.*
+credentials.*
+.DS_Store
+dist/
+build/
+*.log
