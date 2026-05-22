@@ -42,13 +42,119 @@ function loadSettings(cwd: string) {
   };
 }
 
+interface DiminishingReturnsConfig {
+  minTokens: number;
+  maxLowTokenTurns: number;
+}
+
+interface DiminishingReturnsState {
+  consecutiveLowTokenTurns: number;
+}
+
+function normalizeStopReason(raw: unknown): string {
+  return String(raw ?? "").replace(/[_-]/g, "").toLowerCase();
+}
+
+function isToolUseStopReason(raw: unknown): boolean {
+  const normalized = normalizeStopReason(raw);
+  return normalized === "tooluse" || normalized === "toolcalls";
+}
+
+function getContentPartType(part: unknown): string {
+  if (typeof part !== "object" || part === null) {
+    return "";
+  }
+  const type = (part as Record<string, unknown>).type;
+  return String(type ?? "").replace(/[_-]/g, "").toLowerCase();
+}
+
+function isNonTextToolProgressPart(part: unknown): boolean {
+  const type = getContentPartType(part);
+  return type === "toolcall" || type === "tooluse" || type === "thinking";
+}
+
+function hasTextContent(msg: any): boolean {
+  const content = msg?.content;
+  if (typeof content === "string") {
+    return content.trim().length > 0;
+  }
+  if (!Array.isArray(content)) {
+    return false;
+  }
+  return content.some((part) => {
+    if (typeof part === "string") {
+      return part.trim().length > 0;
+    }
+    if (typeof part !== "object" || part === null) {
+      return false;
+    }
+
+    const record = part as Record<string, unknown>;
+    const type = getContentPartType(part);
+    const text = record.text;
+    return type === "text" && typeof text === "string" && text.trim().length > 0;
+  });
+}
+
+export function isToolOnlyAssistantMessage(msg: any): boolean {
+  if (!msg || msg.role !== "assistant") {
+    return false;
+  }
+
+  const stopReason = msg.stopReason ?? msg.stop_reason ?? msg.finishReason ?? msg.finish_reason;
+  if (isToolUseStopReason(stopReason)) {
+    return true;
+  }
+
+  const content = msg.content;
+  return (
+    Array.isArray(content) &&
+    content.length > 0 &&
+    !hasTextContent(msg) &&
+    content.every(isNonTextToolProgressPart)
+  );
+}
+
+export function shouldTrackDiminishingReturns(msg: any): boolean {
+  if (!msg || msg.role !== "assistant") {
+    return false;
+  }
+  return !isToolOnlyAssistantMessage(msg);
+}
+
+function getOutputTokens(msg: any): number {
+  return Number(msg?.usage?.output ?? msg?.usage?.outputTokens ?? msg?.usage?.completionTokens ?? 0);
+}
+
+export function updateDiminishingReturnsState(
+  msg: any,
+  state: DiminishingReturnsState,
+  config: DiminishingReturnsConfig,
+): boolean {
+  if (!shouldTrackDiminishingReturns(msg)) {
+    return false;
+  }
+
+  const outputTokens = getOutputTokens(msg);
+  if (outputTokens < config.minTokens) {
+    state.consecutiveLowTokenTurns++;
+  } else {
+    state.consecutiveLowTokenTurns = 0;
+  }
+
+  return config.minTokens > 0 &&
+    state.consecutiveLowTokenTurns >= config.maxLowTokenTurns;
+}
+
 // ---------------------------------------------------------------------------
 // State variables
 // ---------------------------------------------------------------------------
 
 const fileEditCounts = new Map<string, number>();
 const filesWarnedThisTurn = new Set<string>();
-let consecutiveLowTokenTurns = 0;
+const diminishingReturnsState: DiminishingReturnsState = {
+  consecutiveLowTokenTurns: 0,
+};
 let contextStarvationWarningInjected = false;
 let pendingWarnings: string[] = [];
 
@@ -61,7 +167,7 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", () => {
     fileEditCounts.clear();
     filesWarnedThisTurn.clear();
-    consecutiveLowTokenTurns = 0;
+    diminishingReturnsState.consecutiveLowTokenTurns = 0;
     contextStarvationWarningInjected = false;
     pendingWarnings = [];
   });
@@ -70,11 +176,12 @@ export default function (pi: ExtensionAPI) {
   pi.on("turn_start", () => {
     fileEditCounts.clear();
     filesWarnedThisTurn.clear();
+    diminishingReturnsState.consecutiveLowTokenTurns = 0;
   });
 
   // Reset session counters when a new prompt runs starts
   pi.on("agent_start", () => {
-    consecutiveLowTokenTurns = 0;
+    diminishingReturnsState.consecutiveLowTokenTurns = 0;
     contextStarvationWarningInjected = false;
   });
 
@@ -115,24 +222,20 @@ export default function (pi: ExtensionAPI) {
     const config = loadSettings(ctx.cwd);
     const msg = event.message;
 
-    if (msg && msg.role === "assistant") {
-      const outputTokens = msg.usage?.output ?? 0;
+    const shouldAbort = updateDiminishingReturnsState(
+      msg,
+      diminishingReturnsState,
+      config,
+    );
 
-      if (outputTokens < config.minTokens) {
-        consecutiveLowTokenTurns++;
+    if (shouldAbort) {
+      ctx.abort();
+      const abortMessage = `Turn force-stopped due to diminishing returns (${diminishingReturnsState.consecutiveLowTokenTurns} consecutive iterations each producing < ${config.minTokens} tokens). Please provide more direction.`;
+
+      if (ctx.hasUI) {
+        ctx.ui.notify(abortMessage, "error");
       } else {
-        consecutiveLowTokenTurns = 0;
-      }
-
-      if (consecutiveLowTokenTurns >= config.maxLowTokenTurns) {
-        ctx.abort();
-        const abortMessage = `Turn force-stopped due to diminishing returns (${consecutiveLowTokenTurns} consecutive iterations each producing < ${config.minTokens} tokens). Please provide more direction.`;
-
-        if (ctx.hasUI) {
-          ctx.ui.notify(abortMessage, "error");
-        } else {
-          console.warn(`[starterKit] ${abortMessage}`);
-        }
+        console.warn(`[starterKit] ${abortMessage}`);
       }
     }
   });

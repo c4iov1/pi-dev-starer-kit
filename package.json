@@ -2,6 +2,9 @@
   "name": "pi-dev-starter-kit",
   "version": "1.0.0",
   "description": "Pi.dev harness foundation — security, quality, workflow, and tools for any project",
+  "scripts": {
+    "test:loop-protection": "tsc extensions/loop-protection/index.ts tests/loop-protection.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && node --test /private/tmp/pi-dev-starter-kit-tests/tests/loop-protection.test.js"
+  },
   "keywords": [
     "pi-package"
   ],
