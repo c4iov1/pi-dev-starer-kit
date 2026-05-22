@@ -35,8 +35,15 @@ interface BlockResult {
 /** Read file tracking: path → read-at-least-once flag */
 const readFileRegistry = new Set<string>();
 
-const WRITE_TOOLS = new Set(["write", "edit"]);
-const PATH_TOOLS = new Set(["read", "write", "edit", "bash"]);
+const READ_TOOLS = new Set(["read", "read_file"]);
+const WRITE_TOOLS = new Set([
+  "write",
+  "edit",
+  "replace_file_content",
+  "multi_replace_file_content",
+  "write_to_file",
+]);
+const PATH_TOOLS = new Set([...READ_TOOLS, ...WRITE_TOOLS, "bash"]);
 
 const DENY_RULES: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /\brm\s+(-rf?\b|--recursive|--preserve-root)/i, label: "rm -rf (recursive delete)" },
@@ -122,9 +129,19 @@ function checkWriteConstraint(toolName: string, filePath: string): BlockResult |
 
 function extractToolPaths(toolName: string, params: Record<string, unknown>): string[] {
   const paths: string[] = [];
-  if (toolName === "read" || toolName === "write" || toolName === "edit") {
-    if (typeof params.path === "string") {
-      paths.push(params.path);
+  if (READ_TOOLS.has(toolName) || WRITE_TOOLS.has(toolName)) {
+    const candidates = [
+      params.path,
+      params.file,
+      params.filepath,
+      params.targetFile,
+      params.TargetFile,
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === "string") {
+        paths.push(candidate);
+      }
     }
   }
   return paths;
@@ -184,8 +201,9 @@ async function promptEditApproval(
   const cwd = process.cwd();
   let preview = "";
 
-  if (toolName === "write" || toolName === "edit") {
-    const path = typeof params.path === "string" ? params.path : "unknown";
+  if (WRITE_TOOLS.has(toolName)) {
+    const paths = extractToolPaths(toolName, params);
+    const path = paths[0] ?? "unknown";
     preview = `${toolName} ${relative(cwd, resolve(cwd, path))}`;
   } else if (toolName === "bash" || toolName === "Monitor" || toolName === "monitor") {
     const command = typeof params.command === "string" ? params.command : "unknown command";
@@ -205,9 +223,8 @@ async function promptEditApproval(
 // ---------------------------------------------------------------------------
 
 function handleProtectedPaths(toolName: string, params: Record<string, unknown>): BlockResult | null {
-  if (toolName === "write" || toolName === "edit") {
-    const filePath = typeof params.path === "string" ? params.path : "";
-    if (filePath) {
+  if (WRITE_TOOLS.has(toolName)) {
+    for (const filePath of extractToolPaths(toolName, params)) {
       return checkProtectedPaths(filePath);
     }
   }
@@ -240,9 +257,8 @@ function handlePathConfinement(toolName: string, params: Record<string, unknown>
 }
 
 function handleWriteConstraint(toolName: string, params: Record<string, unknown>, ctx: any): BlockResult | null {
-  if (toolName === "write" || toolName === "edit") {
-    const filePath = typeof params.path === "string" ? params.path : "";
-    if (filePath) {
+  if (WRITE_TOOLS.has(toolName)) {
+    for (const filePath of extractToolPaths(toolName, params)) {
       const writeBlock = checkWriteConstraint(toolName, filePath);
       if (writeBlock) {
         if (ctx.hasUI) {
@@ -262,26 +278,46 @@ async function handleInteractivePrompt(
   permissionMode: string
 ): Promise<BlockResult | null> {
   if (permissionMode === "default") {
-    if (toolName === "write" || toolName === "edit" || toolName === "bash" || toolName === "Monitor" || toolName === "monitor") {
+    if (WRITE_TOOLS.has(toolName) || toolName === "bash" || toolName === "Monitor" || toolName === "monitor") {
       return await promptEditApproval(toolName, params, ctx);
     }
   }
   return null;
 }
 
-function handleToolResult(event: any): void {
-  if (event.toolName === "read" && event.result) {
-    const details = event.result?.details;
-    if (details && typeof details.path === "string") {
-      const cwd = process.cwd();
-      readFileRegistry.add(resolve(cwd, details.path));
-    }
+function getEventToolName(event: any): string {
+  return String(event.toolName ?? event.tool ?? "");
+}
+
+function getEventParams(event: any): Record<string, unknown> {
+  return (event.input ?? event.arguments ?? event.args ?? {}) as Record<string, unknown>;
+}
+
+function addReadPath(rawPath: string, cwd: string): void {
+  readFileRegistry.add(resolve(cwd, rawPath));
+}
+
+function handleToolResult(event: any, ctx: any): void {
+  const toolName = getEventToolName(event);
+  if (!READ_TOOLS.has(toolName)) {
+    return;
+  }
+
+  const cwd = ctx?.cwd ?? process.cwd();
+  const params = getEventParams(event);
+  for (const rawPath of extractToolPaths(toolName, params)) {
+    addReadPath(rawPath, cwd);
+  }
+
+  const details = event.result?.details;
+  if (details && typeof details.path === "string") {
+    addReadPath(details.path, cwd);
   }
 }
 
 async function handleToolCall(event: any, ctx: any, permissionMode: string) {
-  const toolName = event.toolName;
-  const params = (event.input ?? {}) as Record<string, unknown>;
+  const toolName = getEventToolName(event);
+  const params = getEventParams(event);
 
   const protectedBlock = handleProtectedPaths(toolName, params);
   if (protectedBlock) return { block: true, reason: protectedBlock.reason };
@@ -313,8 +349,8 @@ export default function (pi: ExtensionAPI) {
     readFileRegistry.clear();
   });
 
-  pi.on("tool_result", (event) => {
-    handleToolResult(event);
+  pi.on("tool_result", (event, ctx) => {
+    handleToolResult(event, ctx);
   });
 
   pi.on("tool_call", async (event, ctx) => {
