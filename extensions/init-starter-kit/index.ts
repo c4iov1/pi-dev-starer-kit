@@ -81,6 +81,7 @@ export default function (pi: ExtensionAPI) {
         ["settings.template.json", join(".pi", "settings.json")],
         ["INDEX.template.md", join("docs", "INDEX.md")],
         ["ADR.template.md", join("docs", "adr", "0001-template.md")],
+        ["ai-memory.toml.template", ".ai-memory.toml.example"],
       ];
 
       for (const [srcFile, destRel] of copies) {
@@ -111,6 +112,7 @@ export default function (pi: ExtensionAPI) {
         ".pi/settings.json",
         "docs/INDEX.md",
         "docs/adr/0001-template.md",
+        ".ai-memory.toml.example",
         ".pi/extensions/",
         ".pi/skills/",
         ".pi/prompts/",
@@ -120,8 +122,8 @@ export default function (pi: ExtensionAPI) {
       ];
 
       ctx.ui.notify(
-        `Initialized "${projectName}" (${stack})`,
-        created.map((f) => `  ✓ ${f}`).join("\n"),
+        `Initialized "${projectName}" (${stack})\n\n${created.map((f) => `  ✓ ${f}`).join("\n")}`,
+        "info",
       );
     },
   });

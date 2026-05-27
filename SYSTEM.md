@@ -62,6 +62,7 @@ Consulte a categoria antes de decidir qual tool usar.
 | `task_create` | Cria uma task rastreável | Decompor trabalho em milestones. Use no início de cada tarefa. |
 | `task_update` | Atualiza status/progresso de uma task | Reportar progresso, marcar conclusão. |
 | `lsp_check` | Verifica erros de tipo via LSP | Após edições em linguagens tipadas. Complementa o lint. |
+| `starter_kit_doctor` | Diagnostica o ambiente do Starter Kit | Use quando uma tool ou skill parece faltar, ou para verificar capacidades disponíveis. |
 | `ask_user` | Solicita input do usuário | Quando precisar de decisão ou clarificação. |
 
 ---
@@ -120,6 +121,27 @@ PLAN → SEARCH → EDIT → TEST → LINT → VERIFY → DONE
 
 ---
 
+## Advanced Routing
+
+Rotas compactas para tools especializadas. Use estas preferências para selecionar
+a tool certa quando múltiplas opções existirem.
+
+| Situação | Prefira | Ao invés de | Motivo |
+|---|---|---|---|
+| Verificar capacidades do kit | `starter_kit_doctor` | supor que tools existem | Confirma o que está instalado/ativo |
+| SQLite, CSV/JSON, archives, PDFs, planilhas, notebooks | `artifact_read` | scripts shell ad hoc | Leitura estruturada, read-only, path-confined |
+| Padrões estruturais de código ou codemods | `ast_grep` / `ast_edit` | grep textual + edit manual | Matching sintático evita falsos positivos |
+| Navegação/refactors de símbolo | `lsp_definition`, `lsp_references`, `lsp_rename` | grep textual | LSP entende escopo, tipo e referências reais |
+| Contexto de source espalhado em ranges | `read_ranges` | múltiplos `read` com offset | Batch eficiente, menos tool calls |
+| Edições sensíveis a stale context | `edit_at_anchor` | `edit` com oldText solto | Âncora com hash de linha detecta mudanças concorrentes |
+| Reviews importantes / auditoria | `review-matrix` | um único review rápido | Passes independentes encontram problemas diferentes |
+
+> **Nota**: As tools `artifact_read`, `ast_grep`, `ast_edit`, `lsp_*`, `read_ranges`,
+> `edit_at_anchor` e `review-matrix` fazem parte do plano Akita de melhorias e podem
+> ainda não estar disponíveis. Use `starter_kit_doctor` para verificar.
+
+---
+
 ## Progressive Disclosure
 
 O system prompt contém apenas o essencial (~15 tool descriptions enxutas).
@@ -136,6 +158,11 @@ Capacidades complexas são carregadas **sob demanda** via skills.
 **Orquestração:**
 - `subagent-delegation` — Quando e como delegar para sub-agents
 - `mcp-orchestration` — Uso de MCP servers (database, APIs, etc.)
+
+**Akita Plan (futuro / em construção):**
+- `artifact-analysis` — Investigação de dados/documentos com `artifact_read`
+- `structural-refactor` — Workflow de refactor com AST e LSP
+- `review-matrix` — Revisão multi-pass independente (corretude, segurança, design)
 
 **Engenharia (mattpocock/skills):**
 - `setup-matt-pocock-skills` — Configurar domínio do projeto (rodar uma vez por repo)
@@ -192,8 +219,21 @@ via `memory_save` e recuperados via `memory_search` no início de cada sessão.
 Cada projeto pode customizar o comportamento do kit via `.pi/settings.json`:
 
 - `permissionMode`: `"default"` (aprovar cada edit) ou `"acceptEdits"` (auto-aprovar edits, gatear bash)
+- `steeringMode`, `interruptMode`, `compactionStrategy`: Perfis de comportamento do harness
 - `activeExtensions`: Lista de extensions habilitadas
 - `activeSkills`: Lista de skills habilitadas
 - `webSearch`: `"cached"` (default)
 - `autoLint`: `true` (default)
 - `autoVerify`: `true` (default)
+
+### Descobrindo capacidades (Discoverability)
+
+O kit usa 4 camadas para garantir que o agente sabe quais tools estão disponíveis:
+
+1. **Tool schema (extensão)** — Cada extensão registra tools com descrição, parâmetros
+   e orientação "use quando…" visíveis diretamente na lista de tools do modelo.
+2. **Advanced Routing (SYSTEM.md)** — Rotas compactas always-on para escolher entre
+   tools similares (ex: `artifact_read` vs shell scripts). Veja a seção acima.
+3. **Skills** — Instruções detalhadas de workflow carregadas sob demanda.
+4. **starter_kit_doctor** — Diagnóstico em runtime que confirma capabilities ativas,
+   binários disponíveis e recomenda correções.

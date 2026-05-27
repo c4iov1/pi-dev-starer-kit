@@ -122,21 +122,23 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 8. **auto-memory**: Session hooks + custom tools. Persists agent learnings to `MEMORY.md` as a lightweight index. Tools: `memory_save`, `memory_search`. Limits context injection to last N entries.
 
+9. **setup-ai-memory**: Registers `/setup-ai-memory` plus ai-memory admin commands. Orchestrates upstream wrapper install, Docker server startup, Pi-native lifecycle hook posting, AGENTS.md routing, upgrade, bootstrap, backup, lint, forget-sweep, and status. Explicit opt-in because it mutates global machine state.
+
 **Skills (7 modules, built in-house):**
 
-9. **plan-mode**: Structured planning skill. Creates `plan.md` with checklist, registers TODOs via task-tracker, updates progress at each milestone.
+10. **plan-mode**: Structured planning skill. Creates `plan.md` with checklist, registers TODOs via task-tracker, updates progress at each milestone.
 
-10. **self-verify**: Build→test→fix verification cycle. Runs tests, compares output against spec (not own code), checks happy path + edge cases.
+11. **self-verify**: Build→test→fix verification cycle. Runs tests, compares output against spec (not own code), checks happy path + edge cases.
 
-11. **web-research**: Activates `web_search` and `web_fetch` tools. Teaches the model research patterns: search → filter → fetch → synthesize.
+12. **web-research**: Activates `web_search` and `web_fetch` tools. Teaches the model research patterns: search → filter → fetch → synthesize.
 
-12. **browser-testing**: Activates browser automation tools. For visual testing, form interaction, screenshot verification.
+13. **browser-testing**: Activates browser automation tools. For visual testing, form interaction, screenshot verification.
 
-13. **subagent-delegation**: Teaches when and how to delegate to sub-agents. Covers: exploration, parallel investigation, isolated experiments.
+14. **subagent-delegation**: Teaches when and how to delegate to sub-agents. Covers: exploration, parallel investigation, isolated experiments.
 
-14. **mcp-orchestration**: Teaches MCP server usage patterns. Database queries, API integration, external tool interaction.
+15. **mcp-orchestration**: Teaches MCP server usage patterns. Database queries, API integration, external tool interaction.
 
-15. **agent-memory**: Skill that teaches the agent to use agentmemory MCP server for persistent structured memory. Optional — falls back to auto-memory (#8) when unavailable. Provides patterns for when to save/search memory.
+16. **ai-memory**: Teaches the agent to use Akita's external ai-memory service for always-on long-term memory, cross-agent handoffs, wiki search, and session continuity. Optional service installed explicitly via `/setup-ai-memory`; falls back to auto-memory when unavailable.
 
 **Skills (14 modules, integrated from mattpocock/skills):**
 

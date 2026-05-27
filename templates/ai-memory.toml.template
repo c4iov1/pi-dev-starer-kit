@@ -1,0 +1,13 @@
+# ai-memory workspace/project routing
+# Copy to `.ai-memory.toml` in a project root or any ancestor directory.
+# Docs: https://github.com/akitaonrails/ai-memory/blob/main/docs/marker-file.md
+
+# Required. Use a stable namespace such as company/client/team/personal.
+workspace = "[workspace-name]"
+
+# Optional. Set when all directories below this marker should share one project.
+# project = "[project-name]"
+
+# Optional. Good for monorepos, subdirectories, and linked worktrees.
+# Derives project identity from the git repository root instead of basename(cwd).
+# project_strategy = "repo-root"

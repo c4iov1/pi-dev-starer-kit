@@ -21,7 +21,7 @@
 - **`docs/references/4-harness-reference.md`**: "Engenharia de Harness — Documento de Referência" — benchmark comparativo Claude Code vs Codex vs Cursor vs Pi.dev.
 - **`docs/references/5-pi-dev-doc.md`**: Manual técnico do Pi.dev — extensions, skills, sessions, SDK, packages.
 - **`docs/references/8-mattpocock-skills.md`**: Manual do mattpocock/skills — formato SKILL.md, workflow canônico, feedback loops.
-- **`docs/references/9-agentmemory-karpathy-wiki.md`**: Memória de agentes IA — Karpathy LLM Wiki, taxonomia CoALA, Ebbinghaus decay, agentmemory MCP server.
+- **`docs/references/9-ai-memory.md`**: Memória de agentes IA — problemas do agentmemory, Karpathy LLM Wiki, e plano de adoção do ai-memory de Akita.
 
 ## Issue Tracker
 
@@ -34,10 +34,10 @@ pi-dev-starter-kit/
 ├── AGENTS.md, CONTEXT.md, repo_init.md    # Root docs
 ├── package.json                            # Pi.dev manifest (output)
 ├── SYSTEM.md, APPEND_SYSTEM.md             # System prompt (output)
-├── extensions/                             # 8 extensions (output)
+├── extensions/                             # 9 extensions (output)
 ├── skills/                                 # 21 skills (output: 7 autorais + 14 mattpocock)
 ├── prompts/                                # 4 prompt templates (output)
-├── templates/                              # 5 project templates (output)
+├── templates/                              # 6 project templates (output)
 ├── docs/                                   # Specs + references
 └── .scratch/                               # Issues
 ```

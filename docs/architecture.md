@@ -83,7 +83,12 @@ pi-dev-starter-kit/                    # Repositório git
 │   ├── lsp-bridge/index.ts            #   LSP: type errors pós-edição
 │   ├── monitor-bash/index.ts          #   Tool Monitor: background bash
 │   ├── contrib-gate/index.ts          #   Git workflow: branches + commits
-│   └── auto-memory/index.ts           #   MEMORY.md persistence leve
+│   ├── auto-memory/index.ts           #   MEMORY.md persistence leve
+│   ├── setup-ai-memory/index.ts       #   Hooks Pi + comandos /ai-memory-* para serviço upstream
+│   ├── starter-kit-doctor/index.ts    #   Tool starter_kit_doctor: diagnósticos de ambiente
+│   ├── artifact-read/index.ts         #   Tool artifact_read: SQLite, CSV/JSON, archives, dirs
+│   ├── ast-tools/index.ts             #   Tools ast_grep/ast_edit: busca e edição estrutural
+│   └── source-navigation/index.ts     #   Tools read_ranges/edit_at_anchor
 │
 ├── skills/                            # → ~/.pi/agent/skills/ (global)
 │   │
@@ -94,6 +99,7 @@ pi-dev-starter-kit/                    # Repositório git
 │   ├── browser-testing/SKILL.md       #   Automação de browser
 │   ├── subagent-delegation/SKILL.md   #   Padrões de delegação
 │   ├── mcp-orchestration/SKILL.md     #   Uso de MCP servers
+│   ├── ai-memory/SKILL.md             #   Uso do serviço externo ai-memory
 │   │
 │   │  # Skills integradas (mattpocock/skills — Reference Doc 8)
 │   │  # Copiadas do repo original, mantidas in-tree
@@ -175,29 +181,35 @@ pi-dev-starter-kit/                    # Repositório git
 
 > **Nota sobre context-mode**: Esta é uma dependência de alto impacto que **muda o paradigma de processamento de dados** do agente. Em vez de ler arquivos/dados brutos no contexto, o modelo usa sandbox tools (`ctx_execute`, `ctx_batch_execute`, `ctx_search`) que processam dados em isolated runtimes e retornam apenas resultados. Session continuity via SQLite+FTS5 garante que o agente nunca perde o estado entre compactions. O SYSTEM.md do kit integra as regras de routing do context-mode — não há dois arquivos de instrução competindo.
 
-### Integração opcional: agentmemory (MCP server externo)
+### Integração opcional: ai-memory (serviço externo)
 
-> **Não é dependência do kit** — é um MCP server externo que o usuário opcionalmente instala e conecta via `pi-mcp-adapter`. O kit fornece uma skill (`skills/agent-memory/SKILL.md`) que ensina o agente a usar os tools quando disponíveis, com fallback para a extension `auto-memory` (#016).
+> **Não é dependência do kit** — é um serviço externo upstream de `akitaonrails/ai-memory` que o usuário instala separadamente. O kit deve apenas documentar setup, routing e fallback. Não fazer fork nem copiar código.
 
-O [agentmemory](https://github.com/rohitg00/agentmemory) (Apache 2.0, 11K+ stars) implementa o padrão "LLM Wiki" de Karpathy — memória persistente estruturada com:
+O `ai-memory` substitui a proposta anterior baseada em `agentmemory`. A pesquisa de Akita mostrou que o `agentmemory` tinha boas ideias, mas problemas operacionais estruturais: reindexação BM25 em restart, janela de perda de dados no debounce de persistência, configuração inconsistente, hooks que perdiam tool calls, state store dependente do cwd e arquitetura com múltiplos processos/portas.
 
-- **Busca híbrida**: BM25 + embeddings vetoriais + knowledge graph
-- **Ebbinghaus decay**: Memórias irrelevantes desbotam naturalmente, memórias reforçadas persistem
-- **Taxonomia CoALA**: Working, episodic, semantic, procedural memory
-- **Confidence scoring**: Score dinâmico por fato (sobe com reforço, decai com tempo)
-- **Cross-agent sharing**: Memória compartilhada entre qualquer agente MCP-compatível
+O `ai-memory` usa um desenho mais simples e auditável:
+
+- **Rust single binary + Axum** para HTTP/MCP e hooks
+- **Markdown em git como source of truth** (`wiki/`)
+- **SQLite + FTS5** como índice derivado, com writer único e WAL
+- **Hooks fire-and-forget** para captura automática sem bloquear o agente
+- **Handoff cross-agent** entre Claude Code, Codex, OpenCode, Cursor, Gemini CLI e Oh My Pi/Pi
+- **LLM e embeddings opcionais** — FTS5 funciona sem chaves
+- **Isolamento workspace/projeto** via `.ai-memory.toml`
 
 Comparação com `auto-memory` (#016):
 
-| | auto-memory (built-in) | agentmemory (opcional) |
+| | auto-memory (built-in) | ai-memory (opcional externo) |
 |---|---|---|
-| Storage | MEMORY.md flat file | SQLite + embeddings |
-| Busca | Keyword grep | Híbrida (BM25 + vetores + graph) |
-| Decay | Não | Ebbinghaus curve |
-| Infra | Zero | Servidor em background |
-| Complexidade | ~150 LOC | Projeto completo |
+| Storage | `MEMORY.md` flat file | Markdown wiki em git + SQLite/FTS5 |
+| Captura | Manual via `memory_save` | Hooks automáticos de prompt/tool/session |
+| Busca | Keyword grep | FTS5 + links/graph + embeddings opcionais |
+| Handoff | Manual | SessionStart/SessionEnd cross-agent |
+| Infra | Zero | Docker/binário + servidor local |
+| Papel no kit | Fallback padrão | Memória avançada opcional |
 
-**Setup**: `npx @agentmemory/agentmemory` + adicionar ao `~/.pi/agent/mcp.json`.
+**Setup Pi recomendado**: rodar `/setup-ai-memory`, que baixa o wrapper upstream, sobe o container (`--platform linux/amd64` quando necessário), instala routing em `AGENTS.md` e usa hooks nativos da extension Pi para postar lifecycle events ao `/hook` do ai-memory. Não usa `~/.omp`. Ver `docs/ai-memory-integration-plan.md` e `docs/references/9-ai-memory.md`.
+
 
 ### Skills integradas do mattpocock/skills
 
@@ -333,7 +345,8 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  extensions/        ← permission-gate, post-edit-lint,  │
 │                        loop-protection, task-tracker,   │
 │                        lsp-bridge, monitor-bash,        │
-│                        contrib-gate, auto-memory        │
+│                        contrib-gate, auto-memory,       │
+│                        starter-kit-doctor               │
 │  skills/            ← plan-mode, self-verify,           │
 │                        web-research, browser-testing,   │
 │                        subagent-delegation,             │
@@ -480,6 +493,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 - Extension `task-tracker` — tools TaskCreate/TaskUpdate
 - Extension `lsp-bridge` — type errors pós-edição via LSP
 - Extension `monitor-bash` — background bash com streaming
+- Extension `starter-kit-doctor` — diagnósticos de ambiente e capacidades
 - Curadoria de 5 pacotes do ecossistema (dependências diretas dos repos originais)
 - Extension `contrib-gate` — git workflow: branch naming + conventional commits
 - Extension `auto-memory` — MEMORY.md persistence leve entre sessões
@@ -566,6 +580,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
   - `browser-testing` — automação de browser para testes visuais
   - `subagent-delegation` — quando e como delegar para sub-agents
   - `mcp-orchestration` — uso de MCP servers
+  - `ai-memory` — uso do serviço externo ai-memory quando instalado
 - Skills integradas (mattpocock/skills — Reference Doc 8):
   - `setup-matt-pocock-skills`, `grill-with-docs`, `grill-me`, `to-prd`, `to-issues`, `tdd`, `diagnose`, `triage`, `improve-codebase-architecture`, `design-an-interface`, `zoom-out`, `qa`, `handoff`, `write-a-skill`
 - Prompt templates — `plan.md`, `verify.md`, `review.md`, `handoff.md`
@@ -593,7 +608,8 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │       "lsp-bridge",    // opcional           │   │
 │  │       "monitor-bash",  // opcional           │   │
 │  │       "contrib-gate",                        │   │
-│  │       "auto-memory"                          │   │
+│  │       "auto-memory",                         │   │
+│  │       "setup-ai-memory"                      │   │
 │  │     ],                                       │   │
 │  │     "activeSkills": [                        │   │
 │  │       "plan-mode",                           │   │
@@ -602,7 +618,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │       "browser-testing",  // opcional        │   │
 │  │       "subagent-delegation",                 │   │
 │  │       "mcp-orchestration", // opcional        │   │
-│  │       "agent-memory"      // opcional        │   │
+│  │       "ai-memory"         // opcional        │   │
 │  │     ],                                       │   │
 │  │     "webSearch": "cached",                   │   │
 │  │     "autoLint": true,                        │   │
@@ -761,6 +777,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 6. `task-tracker` — TaskCreate/TaskUpdate tools (#006)
 7. `contrib-gate` — Git workflow (#015)
 8. `auto-memory` — MEMORY.md persistence leve (#016)
+9. `setup-ai-memory` — hooks Pi-native + comandos opt-in para instalar/configurar/administrar o serviço upstream ai-memory (#017)
 
 ### Fase 3: Core Skills & Templates (Agentes I, J)
 
@@ -773,7 +790,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 12. `lsp-bridge` extension (#007)
 13. `monitor-bash` extension (#008)
 14. Skills extras: `web-research`, `browser-testing`, `subagent-delegation`, `mcp-orchestration` (#010)
-15. `agent-memory` skill para agentmemory MCP (#017)
+15. `ai-memory` skill para uso do serviço externo opcional (#017)
 
 ### Fase 5: Documentação & validação (Agente O + Humano)
 

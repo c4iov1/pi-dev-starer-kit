@@ -68,6 +68,18 @@ _This block is populated by the `/setup-matt-pocock-skills` skill._
 <!-- setup-matt-pocock-skills:start -->
 <!-- setup-matt-pocock-skills:end -->
 
+## Optional ai-memory
+
+For always-on long-term memory and cross-agent handoff, run `/setup-ai-memory` once.
+After setup, install/update project routing with:
+
+```bash
+ai-memory install-instructions --target AGENTS.md
+```
+
+<!-- ai-memory:start -->
+<!-- ai-memory:end -->
+
 ## Non-Negotiable Rules
 
 _These rules are enforced by CI, not just by convention. The agent must follow them._

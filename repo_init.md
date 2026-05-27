@@ -37,7 +37,7 @@ Leia os seguintes arquivos em ordem e me explique o que entendeu:
 3. docs/architecture.md — especificação técnica completa (4 camadas, diagramas, comparação com Claude Code/Codex)
 4. docs/prd.md — product requirements (27 user stories, módulos, scope)
 
-Depois me diga: quais são as 4 camadas do kit, quais são as 8 extensions que vamos construir, e qual a ordem de dependência entre elas?
+Depois me diga: quais são as 4 camadas do kit, quais são as 9 extensions que vamos construir, e qual a ordem de dependência entre elas?
 ```
 
 ---
@@ -208,15 +208,14 @@ As dependências (#002) precisam estar acessíveis, mas as skills podem ser escr
 antes da instalação — elas só não serão testáveis até lá.
 ```
 
-### Agente N — Skill agent-memory (agentmemory MCP)
+### Agente N — Integração ai-memory (plano)
 
 ```
-Leia .scratch/pi-dev-starter-kit/017-skill-agent-memory.md e implemente.
+Leia docs/ai-memory-integration-plan.md e implemente a integração com ai-memory.
 
-Criar skills/agent-memory/SKILL.md.
-Esta skill ensina o agente a usar o agentmemory (MCP server externo) para
-memória persistente estruturada. É opcional — faz fallback para auto-memory (#016).
-Referência: https://github.com/rohitg00/agentmemory
+Não fork/copie o projeto. Use o ai-memory upstream como serviço externo via MCP + hooks.
+A integração do kit deve documentar setup, routing, healthcheck e coexistência com auto-memory.
+Referência: https://github.com/akitaonrails/ai-memory
 ```
 
 > **Rode Agentes K, L, M, N em paralelo.**
@@ -252,7 +251,7 @@ Checklist humano:
 FASE 1:  ████████████████ Agente A (scaffold)  ████ Agente B (mattpocock) ████
 FASE 2:  ████ C (perm-gate) ██ D (lint) ██ E (loop) ██ F (tasks) ██ G (contrib-gate) ██ H (auto-memory) ████
 FASE 3:  ████████████ I (plan+verify) ████ J (templates+prompts) ████
-FASE 4:  ████ K (lsp) ██ L (monitor) ██ M (capabilities) ██ N (agent-memory) ████
+FASE 4:  ████ K (lsp) ██ L (monitor) ██ M (capabilities) ██ N (ai-memory plan) ████
 FASE 5:  ████████████ Agente O (README+test) ████ Humano (release) ████
 
 Total de agentes paralelos por fase:
@@ -279,11 +278,11 @@ minimalista do Pi.dev em um ambiente de codificação produtivo e completo —
 comparável ao Claude Code e Codex, mas com autonomia total de modelo.
 
 O kit contém:
-- 8 extensions TypeScript (permission-gate, post-edit-lint, loop-protection,
-  task-tracker, lsp-bridge, monitor-bash, contrib-gate, auto-memory)
+- 9 extensions TypeScript (permission-gate, post-edit-lint, loop-protection,
+  task-tracker, lsp-bridge, monitor-bash, contrib-gate, auto-memory, setup-ai-memory)
 - 21 skills (7 autorais + 14 do mattpocock/skills)
 - 4 prompt templates
-- 5 project templates
+- 6 project templates
 - SYSTEM.md global com tool categories, workflow canônico e Think-in-Code routing
 - 5 dependências diretas do ecossistema Pi.dev
 
@@ -301,7 +300,7 @@ Leia os arquivos na seguinte ordem:
 Depois de ler, me diga:
 
 - Quais são as 4 camadas do kit e o que cada uma contém?
-- Quais são as 8 extensions e qual a função de cada uma?
+- Quais são as 9 extensions e qual a função de cada uma?
 - Qual é a ordem de dependência entre as 17 issues em .scratch/pi-dev-starter-kit/?
 - Quais issues podem rodar em paralelo?
 

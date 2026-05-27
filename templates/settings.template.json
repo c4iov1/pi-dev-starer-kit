@@ -13,9 +13,10 @@
       "loop-protection",
       "task-tracker",
       "contrib-gate",
-      "auto-memory"
+      "auto-memory",
+      "starter-kit-doctor"
     ],
-    "_activeExtensions_comment": "Extensions to load. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash'. Add custom extensions placed in .pi/extensions/.",
+    "_activeExtensions_comment": "Extensions to load. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash', 'artifact-read', 'ast-tools', 'source-navigation'. Add custom extensions placed in .pi/extensions/. starter-kit-doctor reports available capabilities.",
 
     "contribGate": {
       "mode": "default",
@@ -32,6 +33,11 @@
     "autoTypeCheck": false,
     "_autoTypeCheck_comment": "Run incremental type-checking (tsc --noEmit, pyright, cargo check) after every edit. Requires lsp-bridge extension to be in activeExtensions.",
 
+    "lspBridge": {
+      "enableSymbolOps": true,
+      "_enableSymbolOps_comment": "Enable LSP symbol operations: go-to-definition, find-references, rename preview, workspace symbols. TypeScript only. Set false to disable."
+    },
+
     "autoVerify": true,
     "_autoVerify_comment": "Run tests after every change set and compare output against spec. Requires the self-verify skill to be in activeSkills.",
 
@@ -43,7 +49,24 @@
       "web-research",
       "subagent-delegation"
     ],
-    "_activeSkills_comment": "Skills available to the agent. Optional extras: 'browser-testing', 'mcp-orchestration'. Skills register tools on activation and deregister on completion (progressive disclosure).",
+    "_activeSkills_comment": "Skills available to the agent. Optional extras: 'browser-testing', 'mcp-orchestration', 'ai-memory'. Skills register tools on activation and deregister on completion (progressive disclosure).",
+
+    "_comment_harness": "--- Harness Behavior Profiles (Akita plan) ---",
+
+    "steeringMode": "polished-default",
+    "_steeringMode_comment": "Agent steering behavior. 'polished-default' works well for most projects. 'strict' locks the plan until human intervenes. 'loose' lets the agent self-correct freely. 'audit-heavy' requires human approval for every step.",
+
+    "interruptMode": "safe-steer",
+    "_interruptMode_comment": "How the harness handles user interrupts. 'safe-steer' pauses and asks on potential risk. 'soft' suggests corrections but continues. 'hard' always stops for human input.",
+
+    "compactionStrategy": "context-mode-default",
+    "_compactionStrategy_comment": "Compaction behavior. 'context-mode-default' uses SQLite+FTS5 session continuity. 'aggressive' compacts earlier for long sessions. 'conservative' keeps more context for complex tasks.",
+
+    "aiMemory": {
+      "enabled": false,
+      "_enabled_comment": "Set true after running /setup-ai-memory. The service runs continuously via upstream server + hooks; this flag documents project intent.",
+      "serverUrl": "http://127.0.0.1:49374"
+    },
 
     "webSearch": "cached",
     "_webSearch_comment": "'cached' returns pre-indexed results (fast, low token usage). 'live' fetches fresh results. 'disabled' turns off web search entirely."

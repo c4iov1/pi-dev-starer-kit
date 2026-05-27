@@ -66,6 +66,8 @@ To initialize a new project with the starter kit templates, follow these steps:
 
 4. **Adjust `.pi/settings.json`**: Enable or disable specific feature flags (e.g., toggling linter integration or auto type-checks).
 
+5. **Optional advanced memory**: Run `/setup-ai-memory` if you want Akita's always-on long-term memory, cross-agent handoffs, and wiki search. This is explicit opt-in because it starts Docker and installs project routing; Pi lifecycle capture is handled by the starter-kit extension.
+
 ---
 
 ## 5. Feature Index (What You Get)
@@ -78,10 +80,15 @@ To initialize a new project with the starter kit templates, follow these steps:
 | `post-edit-lint` | Deterministic linter triggers | Auto-runs linter/formatter (with `--fix`) after file edits. |
 | `loop-protection` | Aborts doom-loops and repeated queries | Intercepts execution if model loops on the same error/action. |
 | `task-tracker` | Local task management | Registers `TaskCreate`, `TaskUpdate` to track progress. |
-| `lsp-bridge` | Real-time diagnostics & type checking | Provides incremental typechecking using local language servers. |
+| `lsp-bridge` | Real-time diagnostics & symbol operations | Provides incremental typechecking; registers `lsp_definition`, `lsp_references`, `lsp_rename`, `lsp_workspace_symbols` for TypeScript projects. |
 | `monitor-bash` | Background process orchestrator | Registers `Monitor` to run long processes line-by-line asynchronously. |
 | `contrib-gate` | Commit and branch verification | Validates commit messages and branch naming conventions. |
 | `auto-memory` | Session context manager | Persists key concepts to a local `MEMORY.md` file. |
+| `setup-ai-memory` | Optional advanced memory setup | Registers `memory_query`, `memory_status`, `memory_write_page`, `/setup-ai-memory`, `/ai-memory-status`, `/ai-memory-upgrade`, `/ai-memory-bootstrap`, `/ai-memory-backup`, `/ai-memory-lint`, and `/ai-memory-forget-sweep`; posts Pi lifecycle events to upstream `akitaonrails/ai-memory` via HTTP hooks. |
+| `starter-kit-doctor` | Environment & capability diagnostics | Registers `starter_kit_doctor` to inspect extensions, skills, binaries, and harness profile settings. |
+| `artifact-read` | Universal artifact reader | Registers `artifact_read` to inspect SQLite databases, CSV/JSON/JSONL files, archives (zip/tar/tar.gz), and directories with pagination and read-only safety. |
+| `ast-tools` | AST-based code search & codemods | Registers `ast_grep` and `ast_edit` for structural pattern matching and safe, dry-run-first rewrite. |
+| `source-navigation` | Multi-range reads & anchor-pinned edits | Registers `read_ranges` for batch reading scattered sections and `edit_at_anchor` for stale-safe content-hash-pinned edits. |
 
 ### Global Skills
 
@@ -93,6 +100,10 @@ The starter kit bundles standard workflows based on the open Agent Skills format
 - **`browser-testing`**: Automates browser verification of web UIs.
 - **`subagent-delegation`**: Outsources tasks to sub-agents.
 - **`mcp-orchestration`**: Discovers and interacts with registered MCP tools.
+- **`ai-memory`**: Uses Akita's always-on external memory service when installed; falls back to `auto-memory`.
+- **`artifact-analysis`**: Structured inspection of data artifacts (SQLite, CSV, archives) with `artifact_read`.
+- **`structural-refactor`**: Workflow for structural refactoring using AST and LSP tools.
+- **`review-matrix`**: Independent multi-pass code review (correctness, security, design).
 - **14 Matt Pocock engineering skills** (`/grill-with-docs`, `/tdd`, `/diagnose`, `/triage`, `/handoff`, etc.).
 
 ---
@@ -149,6 +160,14 @@ The `post-edit-lint` extension expects a working linter (e.g., Biome, ESLint, Pr
 
 ### Tool loops / Diminishing returns warnings
 If the agent triggers `loop-protection`, review the error it is trying to resolve. Usually, the model is missing context. Break the task down, modify `AGENTS.md`, or use `/grill-me` to clarify requirements.
+
+### Diagnosing missing capabilities
+Run the `starter_kit_doctor` tool to get a full report of installed extensions, active skills, available binaries, and recommended fixes:
+```bash
+# In a Pi.dev session, the agent can call:
+starter_kit_doctor
+```
+The doctor checks for `.pi/settings.json`, verifies extension/skill directories, detects required and optional binaries (node, git, SQLite, language servers), and prints the current harness profile. Missing optional tools are warnings, not errors.
 
 ---
 
