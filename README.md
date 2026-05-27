@@ -139,7 +139,7 @@ Approve command execution? (y/N):
 
 Project-scoped implementation mode. It auto-approves read/write/edit tool calls and common bash commands only when they are scoped to the active session project directory. It still asks for `git commit`, `git push`, network commands (`curl`, `wget`, `ssh`, etc.), and any command path outside the project; hard-deny rules such as `sudo`, `git push --force`, `npm publish`, and `curl | sh` remain blocked.
 
-Toggle for the current session with `/feature-mode on|off|status`, or let the agent call `feature_mode_toggle`.
+Enable it for a project with `/feature-mode on` or `feature_mode_toggle({ mode: "on" })`. This writes `.pi/settings.json` in that project, so future Pi sessions opened there start in `featureWork`. Use `/feature-mode off` to persistently return that project to `default` mode.
 
 ---
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -7,10 +7,12 @@ import permissionGate from "../extensions/permission-gate/index";
 
 type Handler = (event?: any, ctx?: any) => any;
 
-function createHarness(selectChoice = "No", settingsMode = "default") {
-  const workspace = mkdtempSync(join(tmpdir(), "permission-gate-"));
-  mkdirSync(join(workspace, ".pi"), { recursive: true });
-  writeFileSync(join(workspace, ".pi", "settings.json"), JSON.stringify({ starterKit: { permissionMode: settingsMode } }));
+function createHarness(selectChoice = "No", settingsMode = "default", existingWorkspace?: string) {
+  const workspace = existingWorkspace ?? mkdtempSync(join(tmpdir(), "permission-gate-"));
+  if (!existingWorkspace) {
+    mkdirSync(join(workspace, ".pi"), { recursive: true });
+    writeFileSync(join(workspace, ".pi", "settings.json"), JSON.stringify({ starterKit: { permissionMode: settingsMode } }));
+  }
 
   const handlers = new Map<string, Handler>();
   const commands = new Map<string, any>();
@@ -57,7 +59,9 @@ function createHarness(selectChoice = "No", settingsMode = "default") {
     prompts,
     notifications,
     cleanup() {
-      rmSync(workspace, { recursive: true, force: true });
+      if (!existingWorkspace) {
+        rmSync(workspace, { recursive: true, force: true });
+      }
     },
   };
 }
@@ -72,6 +76,25 @@ async function enableFeatureWork(harness: ReturnType<typeof createHarness>) {
 function bashEvent(command: string, cwd?: string) {
   return { toolName: "bash", input: { command, ...(cwd ? { cwd } : {}) } };
 }
+
+test("feature-mode on persists featureWork to project settings for future sessions", async () => {
+  const firstSession = createHarness();
+  try {
+    await enableFeatureWork(firstSession);
+
+    const settings = JSON.parse(readFileSync(join(firstSession.workspace, ".pi", "settings.json"), "utf-8"));
+    assert.equal(settings.starterKit.permissionMode, "featureWork");
+
+    const nextSession = createHarness("No", "default", firstSession.workspace);
+    const toolCall = nextSession.handlers.get("tool_call");
+    assert.ok(toolCall);
+
+    assert.equal(await toolCall(bashEvent("git status"), nextSession.ctx), undefined);
+    assert.equal(nextSession.prompts.length, 0);
+  } finally {
+    firstSession.cleanup();
+  }
+});
 
 test("featureWork auto-allows read/write/edit tools inside the active project", async () => {
   const harness = createHarness();

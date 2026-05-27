@@ -501,7 +501,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 ```
 
 **Deliverables (all global, loaded in every session):**
-- Extension `permission-gate` — PreToolUse hook, write constraint, path confinement, and `/feature-mode` project-scoped implementation permissions
+- Extension `permission-gate` — PreToolUse hook, write constraint, path confinement, and `/feature-mode` project-scoped implementation permissions persisted to `.pi/settings.json`
 - Extension `post-edit-lint` — PostToolUse hook: post-edit lint
 - Extension `loop-protection` — doom-loop detection + diminishing returns
 - Extension `task-tracker` — TaskCreate/TaskUpdate tools

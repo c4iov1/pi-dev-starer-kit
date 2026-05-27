@@ -8,7 +8,7 @@
     "_permissionMode_comment": "'default' shows a diff for every file edit and requires [y/N] approval. 'acceptEdits' auto-approves file edits but still gates bash commands. 'featureWork' auto-approves read/write/edit and bash commands scoped to the active project; git commit, git push, network commands, protected paths, and outside-project paths still ask/block.",
 
     "featureWork": {
-      "_comment": "Session mode can be toggled with /feature-mode on|off|status or the feature_mode_toggle tool. Auto-allow is project-scoped to the active session cwd only.",
+      "_comment": "/feature-mode on and feature_mode_toggle({mode:'on'}) persist starterKit.permissionMode='featureWork' into this project's .pi/settings.json. Auto-allow is project-scoped to the active session cwd only.",
       "autoAllowProjectReadWrite": true,
       "autoAllowProjectBash": true,
       "alwaysPrompt": ["git commit", "git push", "curl", "wget", "ssh", "scp", "remote rsync"]

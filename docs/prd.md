@@ -114,7 +114,7 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 **Extensions (13 modules, built in-house):**
 
-1. **permission-gate**: PreToolUse hook. Blocks destructive commands, enforces write constraint (must read file before overwriting except in explicit `featureWork` mode), confines paths to workspace root. Approval modes: `default` / `acceptEdits` / `featureWork`, with `/feature-mode` and `feature_mode_toggle` for session-scoped project implementation permissions.
+1. **permission-gate**: PreToolUse hook. Blocks destructive commands, enforces write constraint (must read file before overwriting except in explicit `featureWork` mode), confines paths to workspace root. Approval modes: `default` / `acceptEdits` / `featureWork`, with `/feature-mode` and `feature_mode_toggle` to persist project implementation permissions into `.pi/settings.json` for future sessions.
 
 2. **post-edit-lint**: PostToolUse hook. After every `edit` or `write` tool call, runs the project's linter/formatter (`--fix`) and injects results into context. Auto-detects ESLint, Biome, Prettier, or language-native formatters.
 

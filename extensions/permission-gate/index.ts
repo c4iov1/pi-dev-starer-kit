@@ -19,7 +19,7 @@
 
 import { Type } from "@sinclair/typebox";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 
 // ---------------------------------------------------------------------------
@@ -664,28 +664,65 @@ async function handleToolCall(event: any, ctx: any, permissionMode: PermissionMo
 // Mode toggle command/tool
 // ---------------------------------------------------------------------------
 
+function readProjectSettings(workspaceRoot: string): Record<string, unknown> {
+  const configPath = resolve(workspaceRoot, ".pi", "settings.json");
+
+  try {
+    const raw = readFileSync(configPath, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // Missing or invalid settings should not block enabling feature mode.
+  }
+
+  return {};
+}
+
+function writeProjectPermissionMode(workspaceRoot: string, mode: PermissionMode): void {
+  const settings = readProjectSettings(workspaceRoot);
+  const starterKit =
+    typeof settings.starterKit === "object" && settings.starterKit !== null && !Array.isArray(settings.starterKit)
+      ? { ...(settings.starterKit as Record<string, unknown>) }
+      : {};
+
+  starterKit.permissionMode = mode;
+  settings.starterKit = starterKit;
+
+  const configDir = resolve(workspaceRoot, ".pi");
+  mkdirSync(configDir, { recursive: true });
+  writeFileSync(resolve(configDir, "settings.json"), `${JSON.stringify(settings, null, 2)}\n`);
+}
+
 function applyFeatureModeAction(
   action: FeatureModeAction,
   currentMode: PermissionMode,
   settingsMode: PermissionMode,
-): { mode: PermissionMode; message: string } {
+  workspaceRoot: string,
+): { mode: PermissionMode; settingsMode: PermissionMode; message: string } {
   if (action === "on") {
+    writeProjectPermissionMode(workspaceRoot, "featureWork");
     return {
       mode: "featureWork",
-      message: "featureWork mode ON — project-local read/write/edit and bash commands auto-approved. git commit, git push, network, protected paths, and outside-project paths still ask/block.",
+      settingsMode: "featureWork",
+      message: "featureWork mode ON and saved to this project — future sessions here will start with project-local read/write/edit and bash auto-approved. git commit, git push, network, protected paths, and outside-project paths still ask/block.",
     };
   }
 
   if (action === "off") {
+    writeProjectPermissionMode(workspaceRoot, "default");
     return {
-      mode: settingsMode,
-      message: `featureWork mode OFF — reverted to settings mode: ${settingsMode}.`,
+      mode: "default",
+      settingsMode: "default",
+      message: "featureWork mode OFF and saved to this project — future sessions here will start in default permission mode.",
     };
   }
 
   return {
     mode: currentMode,
-    message: `Current permission mode: ${currentMode}. Settings mode: ${settingsMode}.`,
+    settingsMode,
+    message: `Current permission mode: ${currentMode}. Project settings mode: ${settingsMode}.`,
   };
 }
 
@@ -719,7 +756,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("feature-mode", {
-    description: "Toggle project-scoped featureWork permissions for this session",
+    description: "Toggle project-scoped featureWork permissions and persist them to this project",
     getArgumentCompletions: (prefix) => {
       const actions = ["on", "off", "status"];
       const matches = actions.filter((action) => action.startsWith(prefix));
@@ -727,8 +764,9 @@ export default function (pi: ExtensionAPI) {
     },
     handler: async (args, ctx) => {
       const action = parseFeatureModeAction(args.trim());
-      const result = applyFeatureModeAction(action, permissionMode, settingsMode);
+      const result = applyFeatureModeAction(action, permissionMode, settingsMode, workspaceRoot);
       permissionMode = result.mode;
+      settingsMode = result.settingsMode;
       ctx.ui.notify(result.message, "info");
     },
   });
@@ -737,18 +775,19 @@ export default function (pi: ExtensionAPI) {
     name: "feature_mode_toggle",
     label: "Feature Mode Toggle",
     description:
-      "Toggle project-scoped featureWork permissions for the current session. When on, read/write/edit and bash commands inside the active project are auto-approved. git commit, git push, network commands, protected paths, and outside-project paths still require approval or block.",
+      "Toggle project-scoped featureWork permissions and persist them to this project's .pi/settings.json. When on, read/write/edit and bash commands inside the active project are auto-approved. git commit, git push, network commands, protected paths, and outside-project paths still require approval or block.",
     parameters: Type.Object({
       mode: Type.Union([
         Type.Literal("on"),
         Type.Literal("off"),
         Type.Literal("status"),
-      ], { description: "Use 'on' to enable featureWork, 'off' to return to settings mode, or 'status' to inspect the current mode." }),
+      ], { description: "Use 'on' to persist featureWork for this project, 'off' to persist default mode, or 'status' to inspect the current mode." }),
     }) as any,
     async execute(_toolCallId, params: { mode: FeatureModeAction }) {
       const action = parseFeatureModeAction(params.mode);
-      const result = applyFeatureModeAction(action, permissionMode, settingsMode);
+      const result = applyFeatureModeAction(action, permissionMode, settingsMode, workspaceRoot);
       permissionMode = result.mode;
+      settingsMode = result.settingsMode;
 
       return {
         content: [{ type: "text", text: result.message }],

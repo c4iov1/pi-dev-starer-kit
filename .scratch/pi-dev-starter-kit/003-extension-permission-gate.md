@@ -22,7 +22,7 @@ The extension must:
 - Register via `pi.on("session_start", ...)` to read configuration from `.pi/settings.json`
 - Use `pi.on("tool_call", ...)` or equivalent PreToolUse mechanism
 - Support three permission modes: `default` (approve each edit), `acceptEdits` (auto-approve edits, gate bash), and `featureWork` (auto-approve project-scoped implementation work)
-- Register `/feature-mode on|off|status` and `feature_mode_toggle` for session-scoped mode switching
+- Register `/feature-mode on|off|status` and `feature_mode_toggle` for project-persisted mode switching via `.pi/settings.json`
 - Read `.pi/settings.json` for the `starterKit.permissionMode` setting
 - Block destructive commands even in `acceptEdits` mode; in `featureWork`, allow recursive `rm` only when all targets resolve inside the active project workspace
 
@@ -46,6 +46,7 @@ Reference: https://github.com/cmptr/pi-quick-perms
 - [x] In `featureWork` mode, `git commit`, `git push`, network commands, and outside-project bash paths ask for permission
 - [x] Destructive commands are blocked regardless of mode, with a narrow project-scoped recursive-rm exception in `featureWork`
 - [x] Quick policy commands integrated as `/feature-mode` and `feature_mode_toggle`
+- [x] `/feature-mode on` persists `starterKit.permissionMode = "featureWork"` to the active project's `.pi/settings.json` so future sessions start with feature permissions
 
 ## Blocked by
 
