@@ -1,38 +1,38 @@
 # Pi.dev Starter Kit — PRD
 
 > **Status**: Draft
-> **Data**: 2026-05-15
-> **Fonte**: Síntese da arquitetura definida em `docs/architecture.md`
-> **Referências**: docs/references/1 a 8
+> **Date**: 2026-05-15
+> **Source**: Synthesis of the architecture defined in `docs/architecture.md`
+> **References**: docs/references/1 through 8
 
 ---
 
 ## Problem Statement
 
-Um desenvolvedor adota o Pi.dev como harness de codificação com IA porque quer **autonomia de modelo** — poder usar Claude Opus, GPT-5, GLM-5 ou qualquer provider sem ficar preso a um ecossistema. O Pi.dev entrega o mínimo viável (7 ferramentas nativas, sessions, extensibilidade), mas falta o scaffolding que transforma um modelo bruto em um agente de codificação produtivo.
+A developer adopts Pi.dev as an AI coding harness because they want **model autonomy** — the ability to use Claude Opus, GPT-5, GLM-5, or any provider without being locked into a single ecosystem. Pi.dev delivers the minimum viable (7 native tools, sessions, extensibility), but it's missing the scaffolding that transforms a raw model into a productive coding agent.
 
-Sem esse scaffolding, o desenvolvedor enfrenta:
+Without this scaffolding, the developer faces:
 
-- **Diagnóstico de gaps**: O modelo não performa e o desenvolvedor não sabe por quê. Passa horas ou dias descobrindo que falta web search, que o contexto está poluído, que o modelo não verifica o próprio trabalho, que comandos destrutivos não têm gate.
-- **Ferramentas insuficientes**: Sem web search, o modelo alucina versões de bibliotecas. Sem sub-agents, tarefas longas poluem o contexto. Sem MCP, não há integração com serviços externos (database, Figma, APIs).
-- **Ausência de guardrails**: Nada impede `rm -rf`, `git push --force`, ou escritas fora do workspace. Cada sessão é uma aposta na boa-fé do modelo.
-- **Falta de workflow**: O modelo escreve código, relê, acha que está bom e para — sem testar, sem lint, sem verificação. A qualidade depende exclusivamente de instruções em prompt, que o modelo pode ignorar.
-- **Setup repetitivo**: A cada novo projeto, o desenvolvedor precisa reconfigurar tools, extensions, skills e instruções. Não há um ponto de partida padronizado.
+- **Gap diagnosis**: The model underperforms and the developer doesn't know why. They spend hours or days discovering that web search is missing, context is polluted, the model doesn't verify its own work, destructive commands have no gate.
+- **Insufficient tools**: Without web search, the model hallucinates library versions. Without sub-agents, long tasks pollute context. Without MCP, there's no integration with external services (database, Figma, APIs).
+- **No guardrails**: Nothing prevents `rm -rf`, `git push --force`, or writes outside the workspace. Each session is a bet on the model's good faith.
+- **Missing workflow**: The model writes code, re-reads it, thinks it's fine, and stops — without testing, without lint, without verification. Quality depends exclusively on prompt instructions, which the model can ignore.
+- **Repetitive setup**: For each new project, the developer must reconfigure tools, extensions, skills, and instructions. There is no standardized starting point.
 
-Os harnesses concorrentes (Claude Code, Codex) resolvem isso — mas ao custo de vendor lock-in. O desenvolvedor quer o melhor dos dois mundos: a **capacidade** de um harness completo com a **liberdade** de escolher qualquer modelo.
+Competing harnesses (Claude Code, Codex) solve this — but at the cost of vendor lock-in. The developer wants the best of both worlds: the **capability** of a complete harness with the **freedom** to choose any model.
 
 ## Solution
 
-Um **pacote Pi.dev instalável** que adiciona ao harness base as camadas de segurança, qualidade, workflow e ferramentas que faltam — em um único `pi install`. O kit é global (toda sessão herda), mas permite desabilitar módulos por projeto via `settings.json`.
+An **installable Pi.dev package** that adds the missing security, quality, workflow, and tool layers to the base harness — in a single `pi install`. The kit is global (every session inherits it), but allows disabling modules per project via `settings.json`.
 
-Após a instalação, o desenvolvedor:
+After installation, the developer:
 
-1. Executa `pi install git:github.com/caioo/pi-dev-starter-kit` **uma vez**
-2. Para cada novo projeto, copia 3 templates (AGENTS.md, CONTEXT.md, .pi/settings.json)
-3. Roda `/setup-matt-pocock-skills` para configurar o domínio do projeto
-4. A partir daí, toda sessão do Pi.dev tem: permission gates, lint automático, loop protection, task tracking, LSP feedback, web search, sub-agents, MCP, browser, plano→verify workflow, e 14 skills de engenharia
+1. Runs `pi install git:github.com/caioo/pi-dev-starter-kit` **once**
+2. For each new project, copies 3 templates (AGENTS.md, CONTEXT.md, .pi/settings.json)
+3. Runs `/setup-matt-pocock-skills` to configure the project domain
+4. From then on, every Pi.dev session has: permission gates, automatic lint, loop protection, task tracking, LSP feedback, web search, sub-agents, MCP, browser, plan→verify workflow, and 14 engineering skills
 
-O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especialização por projeto em `.pi/extensions/` e `.pi/skills/`.
+The kit imposes no stack, domain, or product. The developer adds project-specific specialization in `.pi/extensions/` and `.pi/skills/`.
 
 ## User Stories
 
@@ -168,9 +168,9 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 **Context files (3 modules):**
 
-- `SYSTEM.md`: Tool categories, workflow canônico, regras de segurança, progressive disclosure instructions.
-- `APPEND_SYSTEM.md`: Instruções de workflow anexadas ao system prompt.
-- `AGENTS.template.md`: Índice do projeto (~100 linhas), ponteiros para docs/, convenções da stack.
+- `SYSTEM.md`: Tool categories, canonical workflow, security rules, progressive disclosure instructions.
+- `APPEND_SYSTEM.md`: Workflow instructions appended to the system prompt.
+- `AGENTS.template.md`: Project index (~100 lines), pointers to docs/, stack conventions.
 
 **Dependencies (5 packages, direct from original repos):**
 
@@ -180,7 +180,7 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 ### Design Principles
 
-- **No pós-training dependency**: Tool descriptions and system prompt must be clear enough for any frontier model to use without specific training on the Pi.dev tool set.
+- **No post-training dependency**: Tool descriptions and system prompt must be clear enough for any frontier model to use without specific training on the Pi.dev tool set.
 - **Skills as capability gates**: Complex tools are only in context when their skill is active. Skills register tools on activation and deregister on completion.
 - **Direct dependencies**: Third-party packages reference original repos. If upstream breaks, fork reactively — not proactively.
 - **Template-driven per-project setup**: Only 3 files to copy per project (AGENTS.md, CONTEXT.md, settings.json). Everything else is global.
@@ -220,7 +220,7 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 - **Agent Teams**: Experimental in Claude Code, requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`. Overkill for the starter kit.
 - **Cloud sandbox / managed infrastructure**: The kit targets local development.
 - **Plugin marketplace**: Pi.dev's `pi install` already solves discovery via npm/git.
-- **Auto Memory expansivo**: Risk of context overload and hallucination. MEMORY.md as lightweight index instead.
+- **Expansive Auto Memory**: Risk of context overload and hallucination. MEMORY.md as lightweight index instead.
 - **App Server JSON-RPC**: The starter kit targets interactive/Pi.dev sessions, not multi-surface integration.
 - **Model-specific prompt tuning**: The kit uses a single SYSTEM.md for all models. Per-model tuning is a project-level concern.
 - **CI/CD integration**: Out of scope for v1. Can be added as a project-specific extension.

@@ -1,39 +1,39 @@
-# Reference Doc 9 — ai-memory (Akita) para memória de agentes
+# Reference Doc 9 — ai-memory (Akita) for Agent Memory
 
-> **Fonte principal**: https://akitaonrails.com/2026/05/23/criei-sistema-memoria-agentes-codigo-ai-memory/
-> **Repositório**: https://github.com/akitaonrails/ai-memory
+> **Main source**: https://akitaonrails.com/2026/05/23/criei-sistema-memoria-agentes-codigo-ai-memory/
+> **Repository**: https://github.com/akitaonrails/ai-memory
 
-## Por que remover agentmemory
+## Why remove agentmemory
 
-Akita relata que o `agentmemory` tinha boas ideias (LLM Wiki de Karpathy, consolidação, hooks automáticos, MCP), mas problemas estruturais em uso diário:
+Akita reports that `agentmemory` had good ideas (Karpathy's LLM Wiki, consolidation, automatic hooks, MCP), but structural problems in daily use:
 
-- Reindexação BM25 em todo restart quando a persistência do índice falha, causando minutos de rebuild.
-- Janela de perda de dados por debounce de 5s + timeout de persistência que pode derrubar o processo Node.
-- Caminhos inconsistentes de leitura de configuração (`process.env` vs helper), tornando env vars não confiáveis.
-- Hook incorreto para parte das tool calls do Claude Code (`tool_output` vs `tool_response`), perdendo observações silenciosamente.
-- Engine rodando no cwd do chamador, causando state stores diferentes em Windows/terminais distintos.
-- Arquitetura complexa demais para o problema: TypeScript MCP + iii-engine Rust separado + múltiplos processos/portas + índices em memória persistidos via KV remoto.
+- BM25 reindexing on every restart when index persistence fails, causing minutes of rebuild.
+- Data loss window from 5s debounce + persistence timeout that can crash the Node process.
+- Inconsistent configuration reading paths (`process.env` vs helper), making env vars unreliable.
+- Wrong hook for part of Claude Code's tool calls (`tool_output` vs `tool_response`), silently dropping observations.
+- Engine running in caller's cwd, causing different state stores in Windows/different terminals.
+- Architecture too complex for the problem: TypeScript MCP + separate iii-engine Rust + multiple processes/ports + in-memory indexes persisted via remote KV.
 
-## O que o ai-memory propõe
+## What ai-memory proposes
 
-- Um binário Rust único com servidor Axum HTTP/MCP.
-- Markdown em disco como source of truth, versionado por git.
-- SQLite + FTS5 como índice derivado, WAL mode e writer único via mpsc.
-- Hooks fire-and-forget para capturar prompts, tool calls, compaction e boundaries de sessão.
-- Handoff cross-agent: sair do Claude Code e continuar no Codex/Pi/OpenCode no mesmo diretório.
-- MCP tools para consulta (`memory_query`, `memory_explore`, `memory_recent`, `memory_status`), handoff e manutenção.
-- LLM/embeddings opcionais: sem chave ainda funciona com FTS5 e resumo rule-based; com LLM melhora consolidação.
-- Isolamento por workspace/projeto via UUIDs e `.ai-memory.toml`.
-- Suporte a múltiplos agentes. Para Pi.dev, o starter kit usa hooks nativos de extension em vez de arquivos `~/.omp`.
+- A single Rust binary with Axum HTTP/MCP server.
+- Markdown on disk as source of truth, versioned by git.
+- SQLite + FTS5 as derived index, WAL mode and single writer via mpsc.
+- Fire-and-forget hooks to capture prompts, tool calls, compaction, and session boundaries.
+- Cross-agent handoff: exit Claude Code and continue in Codex/Pi/OpenCode in the same directory.
+- MCP tools for querying (`memory_query`, `memory_explore`, `memory_recent`, `memory_status`), handoff, and maintenance.
+- LLM/embeddings optional: without a key it still works with FTS5 and rule-based summary; with LLM it improves consolidation.
+- Per-workspace/project isolation via UUIDs and `.ai-memory.toml`.
+- Multi-agent support. For Pi.dev, the starter kit uses native extension hooks instead of `~/.omp` files.
 
-## Implicação para o kit
+## Implication for the kit
 
-O kit não deve fork/copy o ai-memory. Deve tratá-lo como serviço externo opcional, instalado diretamente do upstream, e fornecer apenas:
+The kit should not fork/copy ai-memory. It should treat it as an optional external service, installed directly from upstream, and provide only:
 
-1. Documentação de setup e operação.
-2. Skill/instruções leves para roteamento de uso das MCP tools quando disponíveis.
-3. Template opcional de `.ai-memory.toml`.
-4. Healthcheck/diagnóstico e comandos administrativos que não bloqueiem o agente quando o serviço está offline.
-5. Extension Pi-native que posta lifecycle events para `/hook`.
+1. Setup and operations documentation.
+2. Skill/lightweight instructions for routing MCP tool usage when available.
+3. Optional `.ai-memory.toml` template.
+4. Healthcheck/diagnostics and administrative commands that don't block the agent when the service is offline.
+5. Pi-native extension that posts lifecycle events to `/hook`.
 
-`auto-memory` continua como fallback zero-infra (`MEMORY.md`) para usuários que não querem Docker/servidor externo.
+`auto-memory` continues as the zero-infra fallback (`MEMORY.md`) for users who don't want Docker/external server.

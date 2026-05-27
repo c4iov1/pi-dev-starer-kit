@@ -1,38 +1,37 @@
-
-# `mattpocock/skills` — Manual Técnico
+# `mattpocock/skills` — Technical Manual
 
 > **Skills for Real Engineers. Straight from the `.claude` directory.**
 
 ---
 
-## 1. O que é
+## 1. What it is
 
-Uma coleção de agent skills (slash commands e behaviors) carregados pelo Claude Code. As skills são organizadas em buckets e consumidas por configuração per-repo emitida pelo `/setup-matt-pocock-skills`.
+A collection of agent skills (slash commands and behaviors) loaded by Claude Code. Skills are organized into buckets and consumed via per-repo configuration emitted by `/setup-matt-pocock-skills`.
 
-Agent skills são capacidades modulares que estendem AI coding agents. Cada skill empacota instruções, metadados (`name` e `description`), e opcionalmente recursos (scripts, templates) em um único arquivo `SKILL.md`. O formato usa YAML frontmatter + Markdown instructions, seguindo um open standard lançado pela Anthropic em dezembro de 2025.
+Agent skills are modular capabilities that extend AI coding agents. Each skill packages instructions, metadata (`name` and `description`), and optionally resources (scripts, templates) in a single `SKILL.md` file. The format uses YAML frontmatter + Markdown instructions, following an open standard launched by Anthropic in December 2025.
 
 ---
 
-## 2. Formato `SKILL.md` — Especificação
+## 2. `SKILL.md` Format — Specification
 
-Em `SKILL.md`, o campo `description` é o único entry point pelo qual o agente percebe a skill. Requisito estrito de formato: a primeira frase deve dizer **o que a skill faz**; a segunda deve dizer **quando ela deve disparar**. Use trigger phrases para ajudar o AI a auto-carregar a skill.
+In `SKILL.md`, the `description` field is the only entry point through which the agent perceives the skill. Strict format requirement: the first sentence must say **what the skill does**; the second must say **when it should trigger**. Use trigger phrases to help the AI auto-load the skill.
 
-A `description` é limitada a **1024 caracteres** — seja preciso. Descriptions vagas (ex: "help process documentation") não permitem ao AI distinguir essa skill de outras.
+The `description` is limited to **1024 characters** — be precise. Vague descriptions (e.g., "help process documentation") don't allow the AI to distinguish this skill from others.
 
 ```yaml
 ---
 name: my-skill
 description: >
-  O que faz (1ª frase). Use quando o usuário mencionar "X", "Y", ou "Z" (2ª frase).
+  What it does (1st sentence). Use when the user mentions "X", "Y", or "Z" (2nd sentence).
 ---
-# Corpo em Markdown com instruções para o agente
+# Body in Markdown with instructions for the agent
 ```
 
-Cada `SKILL.md` é exposto ao agente como uma callable tool. O frontmatter diz **quando usar**; o corpo diz **como executar**.
+Each `SKILL.md` is exposed to the agent as a callable tool. The frontmatter says **when to use it**; the body says **how to execute it**.
 
 ---
 
-## 3. Estrutura de Diretórios
+## 3. Directory Structure
 
 
 ```
@@ -69,196 +68,196 @@ skills/
 
 ---
 
-## 4. Instalação
+## 4. Installation
 
 ```bash
-npx skills@latest add mattpocock/skills/<nome-da-skill>
+npx skills@latest add mattpocock/skills/<skill-name>
 ```
 
-Você pode fazer fork do repo, soltar em `~/.claude/skills/`, e ter um working set no dia um.
+You can fork the repo, drop it into `~/.claude/skills/`, and have a working set on day one.
 
-O `Skills Over MCP` transforma qualquer repo público de `SKILL.md` em um live MCP server. A página de share link do `mattpocock/skills` permite que um colega cole a MCP URL no Claude Code, Cursor ou Codex em segundos.
+`Skills Over MCP` turns any public `SKILL.md` repo into a live MCP server. The `mattpocock/skills` share link page lets a colleague paste the MCP URL into Claude Code, Cursor, or Codex in seconds.
 
 ---
 
-## 5. Configuração Inicial: `/setup-matt-pocock-skills`
+## 5. Initial Setup: `/setup-matt-pocock-skills`
 
-**Entry point obrigatório antes de qualquer outra engineering skill.**
+**Mandatory entry point before any other engineering skill.**
 
-Seta um bloco `## Agent skills` em `AGENTS.md`/`CLAUDE.md` e `docs/agents/` para que as engineering skills conheçam: issue tracker do repo (GitHub ou local markdown), vocabulário de triage labels, e domain doc layout.
+Sets up a `## Agent skills` block in `AGENTS.md`/`CLAUDE.md` and `docs/agents/` so that engineering skills know: the repo's issue tracker (GitHub or local markdown), triage label vocabulary, and domain doc layout.
 
-**Quando rodar:** antes do primeiro uso de `to-issues`, `to-prd`, `triage`, `diagnose`, `tdd`, `improve-codebase-architecture`, ou `zoom-out` — ou se essas skills estiverem com contexto faltando sobre issue tracker, triage labels ou domain docs.
+**When to run:** before first use of `to-issues`, `to-prd`, `triage`, `diagnose`, `tdd`, `improve-codebase-architecture`, or `zoom-out` — or if these skills are missing context about the issue tracker, triage labels, or domain docs.
 
-### O que o setup configura
+### What the setup configures
 
-Três decisões obrigatórias:
-1. **Issue tracker** — onde as issues vivem (GitHub por default; local markdown suportado out of the box)
-2. **Triage labels** — as strings usadas para os 5 papéis canônicos de triage
-3. **Domain docs** — onde `CONTEXT.md` e ADRs vivem, e as consumer rules para lê-los
+Three mandatory decisions:
+1. **Issue tracker** — where issues live (GitHub by default; local markdown supported out of the box)
+2. **Triage labels** — the strings used for the 5 canonical triage roles
+3. **Domain docs** — where `CONTEXT.md` and ADRs live, and the consumer rules for reading them
 
-O setup escreve um bloco `## Agent skills` (com três sub-seções `###`, cada uma com um curto resumo + pointer) dentro de `AGENTS.md` (preferido) ou `CLAUDE.md`, e seed três arquivos em `docs/agents/`. O usuário é o dono desses arquivos a partir daí — são prosa human-editable.
+The setup writes a `## Agent skills` block (with three `###` subsections, each with a short summary + pointer) inside `AGENTS.md` (preferred) or `CLAUDE.md`, and seeds three files in `docs/agents/`. The user owns these files from then on — they are human-editable prose.
 
-**Arquivos gerados:**
+**Generated files:**
 - `docs/agents/issue-tracker.md`
 - `docs/agents/triage-labels.md`
 - `docs/agents/domain.md`
 
-Como `AGENTS.md` está no contexto do modelo, as referências resolvem naturalmente sem pointers explícitos no texto das skills.
+Since `AGENTS.md` is in the model's context, references resolve naturally without explicit pointers in the skill text.
 
-Sem validação ou halt-on-missing — se a config não estiver lá, o modelo produz output fuzzy, e isso é aceitável.
+No validation or halt-on-missing — if the config isn't there, the model produces fuzzy output, and that's acceptable.
 
 ---
 
-## 6. Skills por Categoria
+## 6. Skills by Category
 
 ### 6.1 — `engineering/` (Daily Use)
 
 #### `/grill-me`
-Entrevista relentlessly sobre um plano ou design até que todo branch da decision tree esteja resolvido.
+Relentlessly interviews about a plan or design until every branch of the decision tree is resolved.
 
 #### `/grill-with-docs`
-Grilling session que desafia seu plano contra o domain model existente, afina a terminologia, e atualiza `CONTEXT.md` e ADRs inline.
+Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates `CONTEXT.md` and ADRs inline.
 
-É a skill mais poderosa do repo. Constrói uma shared language com o AI e documenta decisões difíceis de explicar em ADRs.
+It's the most powerful skill in the repo. Builds a shared language with the AI and documents hard-to-explain decisions in ADRs.
 
 #### `/to-prd`
-Transforma o contexto da conversa atual em um PRD e publica no project issue tracker. Use quando o usuário quer criar um PRD do contexto atual. A skill toma o contexto da conversa e o entendimento da codebase e produz um PRD. **Não entrevista o usuário** — sintetiza o que já sabe.
+Converts the current conversation context into a PRD and publishes it to the project issue tracker. Use when the user wants to create a PRD from the current context. The skill takes the conversation context and codebase understanding and produces a PRD. **Does not interview the user** — synthesizes what it already knows.
 
-**Template obrigatório do PRD:**
+**Mandatory PRD template:**
 
-- Problema do usuário (perspectiva do usuário)
-- Solução (perspectiva do usuário)
-- Lista longa e numerada de user stories no formato `As a <role>, I want <feature>, so that <benefit>`
-- Lista de implementation decisions tomadas
-- **NÃO inclui** file paths específicos ou code snippets (ficam desatualizados rapidamente)
+- User problem (user perspective)
+- Solution (user perspective)
+- Long numbered list of user stories in the format `As a <role>, I want <feature>, so that <benefit>`
+- List of implementation decisions made
+- **Does NOT include** specific file paths or code snippets (go stale quickly)
 
-Usa o vocabulário do domain glossary do projeto no PRD, respeita ADRs na área tocada. Identifica ativamente oportunidades de extrair **deep modules** — módulos que encapsulam muita funcionalidade em uma interface simples e testável que raramente muda.
+Uses the project's domain glossary vocabulary in the PRD, respects ADRs in the touched area. Actively identifies opportunities to extract **deep modules** — modules that encapsulate lots of functionality behind a simple, testable interface that rarely changes.
 
 #### `/to-issues`
-Quebra qualquer plano, spec ou PRD em GitHub issues independentemente executáveis, usando vertical slices.
+Breaks any plan, spec, or PRD into independently executable GitHub issues, using vertical slices.
 
 #### `/tdd`
-Test-driven development com red-green-refactor loop. Constrói features ou corrige bugs um vertical slice por vez.
+Test-driven development with red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.
 
-**Anti-pattern crítico:** horizontal slicing — terminar todos os testes primeiro, depois toda a implementação. O approach correto:
-- **RED:** escreve um teste que descreve o primeiro behavior → teste falha
-- **GREEN:** escreve o código mínimo para o teste passar
-- **REFACTOR:** refatorar (opcional)
-- Repete o loop
+**Critical anti-pattern:** horizontal slicing — finishing all tests first, then all implementation. The correct approach:
+- **RED:** write a test describing the first behavior → test fails
+- **GREEN:** write minimal code for the test to pass
+- **REFACTOR:** refactor (optional)
+- Repeat the loop
 
-**Resources bundled no `/tdd`:**
-Inclui deep modules, interface design, mocking, refactoring e testing guidelines.
+**Bundled resources in `/tdd`:**
+Includes deep modules, interface design, mocking, refactoring, and testing guidelines.
 
 #### `/diagnose`
-Loop disciplinado de diagnóstico para hard bugs e performance regressions: `reproduce → minimise → hypothesise → instrument → fix → regression-test`.
+Disciplined diagnosis loop for hard bugs and performance regressions: `reproduce → minimise → hypothesise → instrument → fix → regression-test`.
 
-**Estratégias de feedback loop do `/diagnose`:**
+**Feedback loop strategies from `/diagnose`:**
 
 
-- Failing test no seam que alcança o bug (unit, integration, e2e)
-- Curl / HTTP script contra um dev server rodando
-- CLI invocation com fixture input, diff de stdout contra snapshot known-good
+- Failing test at a seam that reaches the bug (unit, integration, e2e)
+- Curl / HTTP script against a running dev server
+- CLI invocation with fixture input, diff stdout against known-good snapshot
 - Headless browser script (Playwright/Puppeteer) — UI, DOM/console/network
 
-Estratégias avançadas:
-- **Bisection harness:** se o bug apareceu entre dois estados conhecidos (commit, dataset, versão), automatiza "boot at state X, check, repeat" para `git bisect run`
-- **Differential loop:** roda o mesmo input por old-version vs new-version e diff de outputs
+Advanced strategies:
+- **Bisection harness:** if the bug appeared between two known states (commit, dataset, version), automate "boot at state X, check, repeat" for `git bisect run`
+- **Differential loop:** run the same input through old-version vs new-version and diff outputs
 
-Se você tem um sinal pass/fail rápido, determinístico e agent-runnable para o bug, você vai encontrar a causa. Se não tem, nenhuma quantidade de leitura de código vai salvar. **Gaste esforço desproporcional aqui.**
+If you have a fast, deterministic, agent-runnable pass/fail signal for the bug, you will find the cause. If you don't, no amount of code reading will save you. **Spend disproportionate effort here.**
 
 #### `/triage`
-Quando a triage skill processa uma issue recebida, move-a através de uma state machine — `needs evaluation`, `waiting on reporter`, `ready for AFK agent`, `ready for human`, ou `won't fix`. Para isso, precisa aplicar labels (ou equivalente) que correspondam às strings configuradas.
+When the triage skill processes a received issue, it moves it through a state machine — `needs evaluation`, `waiting on reporter`, `ready for AFK agent`, `ready for human`, or `won't fix`. To do this, it needs to apply labels (or equivalent) that match the configured strings.
 
 #### `/improve-codebase-architecture`
-Encontra deepening opportunities em uma codebase, informado pelo domain language em `CONTEXT.md` e decisões em `docs/adr/`.
+Finds deepening opportunities in a codebase, informed by the domain language in `CONTEXT.md` and decisions in `docs/adr/`.
 
-O problema: a maioria dos apps construídos com agents são complexos e difíceis de mudar. Como agents aceleram radicalmente o coding, também aceleram a software entropy. Codebases ficam mais complexas em uma taxa sem precedentes.
+The problem: most apps built with agents are complex and hard to change. Because agents radically accelerate coding, they also accelerate software entropy. Codebases become more complex at an unprecedented rate.
 
-O `/improve-codebase-architecture` ajuda a resgatar uma codebase que virou um ball of mud. Recomendado rodar uma vez a cada poucos dias.
+`/improve-codebase-architecture` helps rescue a codebase that became a ball of mud. Recommended to run once every few days.
 
 #### `/zoom-out`
-Diz ao agente para dar broader context ou uma perspectiva de alto nível sobre uma seção de código desconhecida.
+Tells the agent to give broader context or a high-level perspective on an unfamiliar section of code.
 
 #### `/qa`
-QA session interativa onde o usuário reporta bugs ou issues conversacionalmente, e o agente abre GitHub issues. Explora a codebase em background para contexto e domain language. Use quando o usuário quer reportar bugs, fazer QA ou file issues conversacionalmente.
+Interactive QA session where the user reports bugs or issues conversationally, and the agent opens GitHub issues. Explores the codebase in the background for context and domain language. Use when the user wants to report bugs, do QA, or file issues conversationally.
 
 #### `/request-refactor-plan`
-Cria um plano de refactor detalhado com tiny commits via user interview e o arquiva como GitHub issue. Use quando o usuário quer planejar um refactor ou quebrar um refactor em passos incrementais seguros.
+Creates a detailed refactor plan with tiny commits via user interview and files it as a GitHub issue. Use when the user wants to plan a refactor or break a refactor into safe incremental steps.
 
 #### `/design-an-interface`
-Gera múltiplos designs radicalmente diferentes de interface para um módulo usando **parallel sub-agents**. Use quando o usuário quer explorar opções de interface ou menciona "design it twice".
+Generates multiple radically different interface designs for a module using **parallel sub-agents**. Use when the user wants to explore interface options or mentions "design it twice."
 
 ---
 
 ### 6.2 — `productivity/`
 
 #### `/handoff`
-Compacta a conversa atual em um handoff document para que outro agente possa continuar o trabalho.
+Compacts the current conversation into a handoff document so another agent can continue the work.
 
 #### `/write-a-skill`
-Cria novas skills com estrutura adequada, progressive disclosure e bundled resources.
+Creates new skills with proper structure, progressive disclosure, and bundled resources.
 
 ---
 
 ### 6.3 — `misc/` (Rarely Used)
 
-| Skill | Função |
+| Skill | Function |
 |---|---|
-| `/git-guardrails-claude-code` | Configura Claude Code hooks para bloquear git commands perigosos (push, reset --hard, clean, etc.) antes de executar. |
-| `/migrate-to-shoehorn` | Migra test files de `as` type assertions para `@total-typescript/shoehorn`. |
-| `/scaffold-exercises` | Cria estruturas de diretório de exercícios com sections, problems, solutions e explainers. |
+| `/git-guardrails-claude-code` | Configures Claude Code hooks to block dangerous git commands (push, reset --hard, clean, etc.) before execution. |
+| `/migrate-to-shoehorn` | Migrates test files from `as` type assertions to `@total-typescript/shoehorn`. |
+| `/scaffold-exercises` | Creates exercise directory structures with sections, problems, solutions, and explainers. |
 
 ---
 
 ## 7. Domain Model: `CONTEXT.md` + ADRs
 
-### O Problema
-No início de um projeto, devs e domain experts falam línguas diferentes. O mesmo problema existe com agents. Agents são normalmente lançados em um projeto e mandados para descobrir o jargão conforme avançam. Então usam 20 palavras onde 1 resolveria.
+### The Problem
+At the start of a project, devs and domain experts speak different languages. The same problem exists with agents. Agents are typically dropped into a project and told to figure out the jargon as they go. Then they use 20 words where 1 would suffice.
 
-### A Solução
-`CONTEXT.md` é um documento que ajuda agents a decodificar o jargão usado no projeto.
+### The Solution
+`CONTEXT.md` is a document that helps agents decode the jargon used in the project.
 
-**Exemplo concreto do impacto:**
-BEFORE: "There's a problem when a lesson inside a section of a course is made 'real' (i.e. given a spot in the file system)" → AFTER: "There's a problem with the materialization cascade." Essa concisão paga dividendos sessão após sessão.
+**Concrete example of the impact:**
+BEFORE: "There's a problem when a lesson inside a section of a course is made 'real' (i.e. given a spot in the file system)" → AFTER: "There's a problem with the materialization cascade." This conciseness pays dividends session after session.
 
 ### Triage State Machine (canonical roles)
-**Triage role**: label de state machine aplicado a uma Issue durante triage (ex: `needs-triage`, `ready-for-afk`). Cada role mapeia para uma real label string no Issue tracker via `docs/agents/triage-labels.md`.
+**Triage role**: state machine label applied to an Issue during triage (e.g., `needs-triage`, `ready-for-afk`). Each role maps to an actual label string in the Issue tracker via `docs/agents/triage-labels.md`.
 
 ---
 
-## 8. Feedback Loops: Princípio Fundamental
+## 8. Feedback Loops: Core Principle
 
-Sem feedback sobre como o código produzido roda, o agente voa às cegas. O fix: você precisa do tranche usual de feedback loops — **static types**, **browser access**, e **automated tests**. Para automated tests, um red-green-refactor loop é crítico.
-
----
-
-## 9. Compatibilidade de Runtime
-
-O mesmo arquivo `SKILL.md` funciona no Claude Code, Cursor, Gemini CLI, Codex CLI e Antigravity IDE. Sem vendor lock-in. Sem formatos proprietários. Se você migrar do Claude Code para o Cursor amanhã, suas skills vão junto.
-
-Mesmo `SKILL.md` funciona no Claude Code, Cursor (via cc-switch), e qualquer harness que leia o open SKILL.md spec. Combina naturalmente com `obra/superpowers`, `warp` e `cc-switch` para um stack completo de agent-skills runtime.
+Without feedback on how the produced code runs, the agent flies blind. The fix: you need the usual set of feedback loops — **static types**, **browser access**, and **automated tests**. For automated tests, a red-green-refactor loop is critical.
 
 ---
 
-## 10. Ordem de Invocação Recomendada (workflow completo)
+## 9. Runtime Compatibility
+
+The same `SKILL.md` file works in Claude Code, Cursor, Gemini CLI, Codex CLI, and Antigravity IDE. No vendor lock-in. No proprietary formats. If you migrate from Claude Code to Cursor tomorrow, your skills go with you.
+
+The same `SKILL.md` works in Claude Code, Cursor (via cc-switch), and any harness that reads the open SKILL.md spec. Combines naturally with `obra/superpowers`, `warp`, and `cc-switch` for a complete agent-skills runtime stack.
+
+---
+
+## 10. Recommended Invocation Order (complete workflow)
 
 ```
-1. /setup-matt-pocock-skills   ← uma vez por repo
-2. /grill-me ou /grill-with-docs  ← antes de escrever código
-3. /to-prd                     ← sintetiza o plano em PRD
-4. /to-issues                  ← quebra PRD em issues (vertical slices)
-5. /tdd                        ← implementa slice a slice (RED→GREEN→REFACTOR)
-6. /qa                         ← QA conversacional → abre issues
-7. /triage                     ← processa issues pela state machine
-8. /improve-codebase-architecture  ← periodicamente (a cada poucos dias)
-9. /diagnose                   ← quando há hard bugs
-10. /handoff                   ← encerra sessão / passa para outro agente
+1. /setup-matt-pocock-skills   ← once per repo
+2. /grill-me or /grill-with-docs  ← before writing code
+3. /to-prd                     ← synthesize plan into PRD
+4. /to-issues                  ← break PRD into issues (vertical slices)
+5. /tdd                        ← implement slice by slice (RED→GREEN→REFACTOR)
+6. /qa                         ← conversational QA → file issues
+7. /triage                     ← process issues through state machine
+8. /improve-codebase-architecture  ← periodically (every few days)
+9. /diagnose                   ← when there are hard bugs
+10. /handoff                   ← close session / hand off to another agent
 ```
 
 ---
 
-## 11. Comportamento do Harness sem Configuração
+## 11. Harness Behavior Without Configuration
 
-As engineering skills usam terminologia vaga ("publish to the backlog", "the AFK-ready label", "the domain glossary") em vez de referenciar GitHub ou label strings explicitamente. Como `AGENTS.md` está no contexto do modelo, as referências resolvem naturalmente sem pointers explícitos no texto das skills.
+Engineering skills use vague terminology ("publish to the backlog", "the AFK-ready label", "the domain glossary") instead of referencing GitHub or label strings explicitly. Since `AGENTS.md` is in the model's context, references resolve naturally without explicit pointers in the skill text.
 
-Nunca sobrescreve um `docs/agents/*.md` existente sem confirmação; o usuário é dono desses arquivos. Pode preencher seções faltando sem disturbar as presentes.
+Never overwrites an existing `docs/agents/*.md` without confirmation; the user owns these files. Can fill in missing sections without disturbing existing ones.

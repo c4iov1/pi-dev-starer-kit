@@ -1,75 +1,75 @@
-# Pi.dev Starter Kit — Arquitetura
+# Pi.dev Starter Kit — Architecture
 
-> **Status**: Draft para revisão
-> **Data**: 2026-05-15
-> **Referências**: docs/references/1 a 8
-
----
-
-## 1. Definição
-
-**Pi.dev Starter Kit** é um pacote de fundamentos — AGENTS.md canônico, SYSTEM.md otimizado por modelo, extensions de segurança e qualidade, skills de workflow, templates de documentação e curadoria de pacotes do ecossistema — que transforma o Pi.dev de um harness minimalista em um ambiente produtivo imediato para qualquer projeto, com autonomia total de escolha de modelo.
-
-**O que é:**
-- Uma fundação universal que funciona em qualquer stack, domínio ou produto
-- Um conjunto opinado de ferramentas, instruções e guardrails que eliminam a fase de "diagnóstico de gaps"
-- Um harness que rivaliza com Claude Code/Codex em capacidade, mas mantém a independência de provider
-
-**O que não é:**
-- Um produto selado — você adiciona especialização por projeto
-- Um substituto do Claude Code/Codex — é uma alternativa para quem quer autonomia de modelo
-- Uma camada que prevê o que você vai construir — fornece fundamentos, não produto
+> **Status**: Draft for review
+> **Date**: 2026-05-15
+> **References**: docs/references/1 through 8
 
 ---
 
-## 2. Princípios
+## 1. Definition
 
-1. **Autonomia de modelo**: O harness funciona com qualquer provider (Anthropic, OpenAI, Google, GLM, etc.). Nenhuma otimização é exclusiva de um modelo.
+**Pi.dev Starter Kit** is a foundational package — canonical AGENTS.md, model-optimized SYSTEM.md, security and quality extensions, workflow skills, documentation templates, and ecosystem package curation — that transforms Pi.dev from a minimalist harness into an immediately productive environment for any project, with full freedom of model choice.
 
-2. **Progressive disclosure**: Ferramentas e instruções carregam sob demanda via Skills. O system prompt contém apenas o essencial — o cache é protegido.
+**What it is:**
+- A universal foundation that works on any stack, domain, or product
+- An opinionated set of tools, instructions, and guardrails that eliminate the "gap diagnosis" phase
+- A harness that rivals Claude Code/Codex in capability, but maintains provider independence
 
-3. **Segurança por padrão**: Permission gates, path confinement e write constraints estão ativos desde o primeiro comando. O modelo opera em modo restrito, escalando permissões explicitamente.
-
-4. **Qualidade é estrutural, não opcional**: Lint pós-edição, self-verification e loop protection não dependem do modelo lembrar — são hooks determinísticos que executam sempre.
-
-5. **Index, não enciclopédia**: AGENTS.md, CONTEXT.md e MEMORY.md funcionam como mapa de referências. O modelo consulta sob demanda, não carrega tudo upfront.
-
-6. **Starter, não straitjacket**: Toda extensão e skill pode ser desabilitada por projeto via `settings.json`. O kit é ponto de partida, não destino final.
-
-7. **Ecosystem-first**: Sempre que possível, usa pacotes existentes do ecossistema Pi.dev em vez de reinventar. A curadoria é parte do valor do kit.
-
-8. **Observabilidade**: Toda tool call, erro e decisão de permissão gera rastro. O agente opera em "glass box" — você sempre sabe o que ele fez e por quê.
+**What it is not:**
+- A sealed product — you add per-project specialization
+- A replacement for Claude Code/Codex — it's an alternative for those who want model autonomy
+- A layer that predicts what you'll build — it provides foundations, not product
 
 ---
 
-## 3. Interface do Kit — Componentes
+## 2. Principles
 
-### Modelo de instalação
+1. **Model autonomy**: The harness works with any provider (Anthropic, OpenAI, Google, GLM, etc.). No optimizations are exclusive to a single model.
 
-O starter kit é um **pacote Pi.dev instalável** (Reference Doc 5, seção 10). Um único comando instala tudo globalmente:
+2. **Progressive disclosure**: Tools and instructions load on demand via Skills. The system prompt contains only the essentials — the cache is protected.
+
+3. **Security by default**: Permission gates, path confinement, and write constraints are active from the first command. The model operates in restricted mode, escalating permissions explicitly.
+
+4. **Quality is structural, not optional**: Post-edit lint, self-verification, and loop protection don't rely on the model remembering — they are deterministic hooks that always execute.
+
+5. **Index, not encyclopedia**: AGENTS.md, CONTEXT.md, and MEMORY.md function as a reference map. The model consults on demand, not load everything upfront.
+
+6. **Starter, not straitjacket**: Every extension and skill can be disabled per project via `settings.json`. The kit is a starting point, not a final destination.
+
+7. **Ecosystem-first**: Whenever possible, uses existing packages from the Pi.dev ecosystem instead of reinventing. Curation is part of the kit's value.
+
+8. **Observability**: Every tool call, error, and permission decision generates a trace. The agent operates in "glass box" — you always know what it did and why.
+
+---
+
+## 3. Kit Interface — Components
+
+### Installation model
+
+The starter kit is an **installable Pi.dev package** (Reference Doc 5, section 10). A single command installs everything globally:
 
 ```bash
 pi install git:github.com/user/pi-dev-starter-kit
 ```
 
-Após a instalação, **toda sessão do Pi.dev** — em qualquer projeto — carrega:
+After installation, **every Pi.dev session** — in any project — loads:
 - Extensions (security gates, lint hooks, loop protection, etc.)
 - Skills (plan-mode, self-verify, web-research, etc.)
 - Prompt templates (plan, verify, review, handoff)
-- SYSTEM.md global (tool categories, workflow canônico)
-- Dependências do ecossistema (web search, sub-agents, MCP, etc.)
+- Global SYSTEM.md (tool categories, canonical workflow)
+- Ecosystem dependencies (web search, sub-agents, MCP, etc.)
 
-**Por projeto**, o usuário copia apenas os templates:
-- `AGENTS.md` (índice do projeto)
-- `CONTEXT.md` (glossário de domínio)
-- `.pi/settings.json` (feature flags: o que habilitar/desabilitar)
-- `docs/INDEX.md` + `docs/adr/` (documentação)
+**Per project**, the user copies only the templates:
+- `AGENTS.md` (project index)
+- `CONTEXT.md` (domain glossary)
+- `.pi/settings.json` (feature flags: what to enable/disable)
+- `docs/INDEX.md` + `docs/adr/` (documentation)
 
-### Estrutura do pacote
+### Package structure
 
 ```
-pi-dev-starter-kit/                    # Repositório git
-├── package.json                       # Manifest Pi.dev package
+pi-dev-starter-kit/                    # Git repository
+├── package.json                       # Pi.dev package manifest
 ├── README.md
 │
 ├── SYSTEM.md                          # → ~/.pi/agent/SYSTEM.md (global)
@@ -77,36 +77,36 @@ pi-dev-starter-kit/                    # Repositório git
 │
 ├── extensions/                        # → ~/.pi/agent/extensions/ (global)
 │   ├── permission-gate/index.ts       #   PreToolUse hook
-│   ├── post-edit-lint/index.ts        #   Lint automático pós-edição
+│   ├── post-edit-lint/index.ts        #   Auto lint post-edit
 │   ├── loop-protection/index.ts       #   Doom-loop + diminishing returns
 │   ├── task-tracker/index.ts          #   Tools TaskCreate/TaskUpdate
 │   ├── lsp-bridge/index.ts            #   LSP: type errors + symbol ops
 │   ├── monitor-bash/index.ts          #   Tool Monitor: background bash
 │   ├── contrib-gate/index.ts          #   Git workflow: branches + commits
-│   ├── auto-memory/index.ts           #   MEMORY.md persistence leve
-│   ├── setup-ai-memory/index.ts       #   Hooks Pi + comandos /ai-memory-* para serviço upstream
-│   ├── starter-kit-doctor/index.ts    #   Tool starter_kit_doctor: diagnósticos de ambiente
+│   ├── auto-memory/index.ts           #   Lightweight MEMORY.md persistence
+│   ├── setup-ai-memory/index.ts       #   Pi hooks + /ai-memory-* commands for upstream service
+│   ├── starter-kit-doctor/index.ts    #   Tool starter_kit_doctor: environment diagnostics
 │   ├── artifact-read/index.ts         #   Tool artifact_read: SQLite, CSV/JSON, archives, dirs
-│   ├── ast-tools/index.ts             #   Tools ast_grep/ast_edit: busca e edição estrutural
+│   ├── ast-tools/index.ts             #   Tools ast_grep/ast_edit: structural search and editing
 │   └── source-navigation/index.ts     #   Tools read_ranges/edit_at_anchor
 │
 ├── skills/                            # → ~/.pi/agent/skills/ (global)
 │   │
-│   │  # Skills do kit (autorais, mantidas no repo)
-│   ├── plan-mode/SKILL.md             #   Planejamento estruturado
-│   ├── self-verify/SKILL.md           #   Ciclo build→test→fix
-│   ├── web-research/SKILL.md          #   Web search + fetch + síntese
-│   ├── browser-testing/SKILL.md       #   Automação de browser
-│   ├── subagent-delegation/SKILL.md   #   Padrões de delegação
-│   ├── mcp-orchestration/SKILL.md     #   Uso de MCP servers
-│   ├── ai-memory/SKILL.md             #   Uso do serviço externo ai-memory
-│   ├── artifact-analysis/SKILL.md     #   Investigação de dados/documentos
-│   ├── structural-refactor/SKILL.md   #   Refactor estrutural com AST/LSP
-│   ├── review-matrix/SKILL.md         #   Review multi-pass independente
+│   │  # Kit skills (in-house, maintained in repo)
+│   ├── plan-mode/SKILL.md             #   Structured planning
+│   ├── self-verify/SKILL.md           #   Build→test→fix cycle
+│   ├── web-research/SKILL.md          #   Web search + fetch + synthesis
+│   ├── browser-testing/SKILL.md       #   Browser automation
+│   ├── subagent-delegation/SKILL.md   #   Delegation patterns
+│   ├── mcp-orchestration/SKILL.md     #   MCP server usage
+│   ├── ai-memory/SKILL.md             #   External ai-memory service usage
+│   ├── artifact-analysis/SKILL.md     #   Data/document investigation
+│   ├── structural-refactor/SKILL.md   #   Structural refactor with AST/LSP
+│   ├── review-matrix/SKILL.md         #   Independent multi-pass review
 │   │
-│   │  # Skills integradas (mattpocock/skills — Reference Doc 8)
-│   │  # Copiadas do repo original, mantidas in-tree
-│   ├── setup-mattpocock-skills/SKILL.md
+│   │  # Integrated skills (mattpocock/skills — Reference Doc 8)
+│   │  # Copied from original repo, kept in-tree
+│   ├── setup-matt-pocock-skills/SKILL.md
 │   ├── grill-with-docs/SKILL.md
 │   ├── grill-me/SKILL.md
 │   ├── to-prd/SKILL.md
@@ -128,7 +128,7 @@ pi-dev-starter-kit/                    # Repositório git
 │   ├── handoff.md
 │   └── review-matrix.md
 │
-└── templates/                         # → Copiar manualmente por projeto
+└── templates/                         # → Manually copy per project
     ├── AGENTS.template.md             #   → ./AGENTS.md
     ├── CONTEXT.template.md            #   → ./CONTEXT.md
     ├── INDEX.template.md              #   → ./docs/INDEX.md
@@ -136,7 +136,7 @@ pi-dev-starter-kit/                    # Repositório git
     └── settings.template.json         #   → ./.pi/settings.json
 ```
 
-### Manifest do pacote (package.json)
+### Package manifest (package.json)
 
 ```json
 {
@@ -163,189 +163,189 @@ pi-dev-starter-kit/                    # Repositório git
 }
 ```
 
-### Curadoria do ecossistema (dependências diretas)
+### Ecosystem curation (direct dependencies)
 
-> **Política de dependências diretas**: As dependências de terceiros são referenciadas diretamente dos repositórios originais — sem forks. Isso simplifica a manutenção (um único repositório) e permite receber melhorias upstream automaticamente. Caso um repo upstream quebre ou seja descontinuado, o fallback é forkar naquele momento.
+> **Direct dependency policy**: Third-party dependencies are referenced directly from original repositories — no forks. This simplifies maintenance (single repository) and allows receiving upstream improvements automatically. If an upstream repo breaks or is discontinued, the fallback is to fork at that point.
 
-| Pacote | Autor | Categoria | Função |
+| Package | Author | Category | Function |
 |---|---|---|---|
-| `pi-web-access` | nicobailon | Web | Busca, fetch, GitHub clone, PDF, YouTube |
-| `pi-subagents` | nicobailon | Orquestração | Delegação com chains e paralelo |
-| `pi-mcp-adapter` | nicobailon | Integração | MCP servers (database, APIs externas) |
-| `pi-agent-browser-native` | fitchmultz | Browser | Automação de browser |
-| `context-mode` | mksglu | Contexto | Sandbox tools, FTS5 session continuity, 98% context savings, Think-in-Code paradigm |
+| `pi-web-access` | nicobailon | Web | Search, fetch, GitHub clone, PDF, YouTube |
+| `pi-subagents` | nicobailon | Orchestration | Delegation with chains and parallel |
+| `pi-mcp-adapter` | nicobailon | Integration | MCP servers (database, external APIs) |
+| `pi-agent-browser-native` | fitchmultz | Browser | Browser automation |
+| `context-mode` | mksglu | Context | Sandbox tools, FTS5 session continuity, 98% context savings, Think-in-Code paradigm |
 
-**Pacotes removidos como dependências externas (reimplementados como extensões internas):**
+**Packages removed as external dependencies (reimplemented as internal extensions):**
 
-| Pacote original | Motivo | Substituído por |
+| Original package | Reason | Replaced by |
 |---|---|---|
-| `pi-quick-perms` (cmptr) | Redundante com `permission-gate` — ambos implementam permission pipelines | `extensions/permission-gate/` (absorvido) |
-| `pi-contrib-gate` (nandal) | Funcionalidade simples (regex sobre git ops) — não justifica dependência externa | `extensions/contrib-gate/` (reimplementado) |
-| `pi-memory` (samfoy) | PRD recomenda approach leve (MEMORY.md index-style) — implementação interna mais adequada | `extensions/auto-memory/` (reimplementado) |
+| `pi-quick-perms` (cmptr) | Redundant with `permission-gate` — both implement permission pipelines | `extensions/permission-gate/` (absorbed) |
+| `pi-contrib-gate` (nandal) | Simple functionality (regex over git ops) — doesn't justify external dependency | `extensions/contrib-gate/` (reimplemented) |
+| `pi-memory` (samfoy) | PRD recommends lightweight approach (MEMORY.md index-style) — internal implementation more suitable | `extensions/auto-memory/` (reimplemented) |
 
-> **Nota sobre context-mode**: Esta é uma dependência de alto impacto que **muda o paradigma de processamento de dados** do agente. Em vez de ler arquivos/dados brutos no contexto, o modelo usa sandbox tools (`ctx_execute`, `ctx_batch_execute`, `ctx_search`) que processam dados em isolated runtimes e retornam apenas resultados. Session continuity via SQLite+FTS5 garante que o agente nunca perde o estado entre compactions. O SYSTEM.md do kit integra as regras de routing do context-mode — não há dois arquivos de instrução competindo.
+> **Note on context-mode**: This is a high-impact dependency that **changes the agent's data processing paradigm**. Instead of reading raw files/data into context, the model uses sandbox tools (`ctx_execute`, `ctx_batch_execute`, `ctx_search`) that process data in isolated runtimes and return only results. Session continuity via SQLite+FTS5 ensures the agent never loses state between compactions. The kit's SYSTEM.md integrates context-mode routing rules — there are no two competing instruction files.
 
-### Integração opcional: ai-memory (serviço externo)
+### Optional integration: ai-memory (external service)
 
-> **Não é dependência do kit** — é um serviço externo upstream de `akitaonrails/ai-memory` que o usuário instala separadamente. O kit deve apenas documentar setup, routing e fallback. Não fazer fork nem copiar código.
+> **Not a kit dependency** — it's an external upstream service from `akitaonrails/ai-memory` that the user installs separately. The kit should only document setup, routing, and fallback. Do not fork or copy code.
 
-O `ai-memory` substitui a proposta anterior baseada em `agentmemory`. A pesquisa de Akita mostrou que o `agentmemory` tinha boas ideias, mas problemas operacionais estruturais: reindexação BM25 em restart, janela de perda de dados no debounce de persistência, configuração inconsistente, hooks que perdiam tool calls, state store dependente do cwd e arquitetura com múltiplos processos/portas.
+`ai-memory` replaces the previous `agentmemory`-based proposal. Akita's research showed that `agentmemory` had good ideas but structural operational problems: BM25 reindexing on restart, data loss window from persistence debounce, inconsistent configuration, hooks dropping tool calls, cwd-dependent state store, and multi-process/ports architecture.
 
-O `ai-memory` usa um desenho mais simples e auditável:
+`ai-memory` uses a simpler, auditable design:
 
-- **Rust single binary + Axum** para HTTP/MCP e hooks
-- **Markdown em git como source of truth** (`wiki/`)
-- **SQLite + FTS5** como índice derivado, com writer único e WAL
-- **Hooks fire-and-forget** para captura automática sem bloquear o agente
-- **Handoff cross-agent** entre Claude Code, Codex, OpenCode, Cursor, Gemini CLI e Oh My Pi/Pi
-- **LLM e embeddings opcionais** — FTS5 funciona sem chaves
-- **Isolamento workspace/projeto** via `.ai-memory.toml`
+- **Rust single binary + Axum** for HTTP/MCP and hooks
+- **Markdown in git as source of truth** (`wiki/`)
+- **SQLite + FTS5** as derived index, with single writer and WAL
+- **Fire-and-forget hooks** for automatic capture without blocking the agent
+- **Cross-agent handoff** between Claude Code, Codex, OpenCode, Cursor, Gemini CLI, and Oh My Pi/Pi
+- **LLM and embeddings optional** — FTS5 works without keys
+- **Workspace/project isolation** via `.ai-memory.toml`
 
-Comparação com `auto-memory` (#016):
+Comparison with `auto-memory` (#016):
 
-| | auto-memory (built-in) | ai-memory (opcional externo) |
+| | auto-memory (built-in) | ai-memory (optional external) |
 |---|---|---|
-| Storage | `MEMORY.md` flat file | Markdown wiki em git + SQLite/FTS5 |
-| Captura | Manual via `memory_save` | Hooks automáticos de prompt/tool/session |
-| Busca | Keyword grep | FTS5 + links/graph + embeddings opcionais |
+| Storage | `MEMORY.md` flat file | Markdown wiki in git + SQLite/FTS5 |
+| Capture | Manual via `memory_save` | Automatic prompt/tool/session hooks |
+| Search | Keyword grep | FTS5 + links/graph + optional embeddings |
 | Handoff | Manual | SessionStart/SessionEnd cross-agent |
-| Infra | Zero | Docker/binário + servidor local |
-| Papel no kit | Fallback padrão | Memória avançada opcional |
+| Infra | Zero | Docker/binary + local server |
+| Role in kit | Default fallback | Optional advanced memory |
 
-**Setup Pi recomendado**: rodar `/setup-ai-memory`, que baixa o wrapper upstream, sobe o container (`--platform linux/amd64` quando necessário), instala routing em `AGENTS.md` e usa hooks nativos da extension Pi para postar lifecycle events ao `/hook` do ai-memory. Não usa `~/.omp`. Ver `docs/ai-memory-integration-plan.md` e `docs/references/9-ai-memory.md`.
+**Recommended Pi setup**: run `/setup-ai-memory`, which downloads the upstream wrapper, brings up the container (`--platform linux/amd64` when needed), installs routing in `AGENTS.md`, and uses native Pi extension hooks to post lifecycle events to ai-memory's `/hook`. Does not use `~/.omp`. See `docs/ai-memory-integration-plan.md` and `docs/references/9-ai-memory.md`.
 
 
-### Skills integradas do mattpocock/skills
+### Integrated mattpocock/skills
 
-> **Política de confiança**: As skills do [mattpocock/skills](https://github.com/mattpocock/skills) (Reference Doc 8) são mantidas por um arquiteto de confiança e seguem o open standard `SKILL.md` compatível com Pi.dev, Claude Code, Codex e Cursor. **Não precisam de fork** — são incluídas diretamente como dependência ou copiadas para o diretório `skills/` do kit.
+> **Trust policy**: The [mattpocock/skills](https://github.com/mattpocock/skills) (Reference Doc 8) are maintained by a trusted architect and follow the open `SKILL.md` standard compatible with Pi.dev, Claude Code, Codex, and Cursor. **No fork needed** — they are included directly as a dependency or copied to the kit's `skills/` directory.
 
-As skills formam o **workflow de engenharia** do kit. Ordem canônica de uso (Reference Doc 8, seção 10):
+The skills form the kit's **engineering workflow**. Canonical order of use (Reference Doc 8, section 10):
 
 ```
-1. /grill-with-docs    ← Antes de qualquer decisão de design
-2. /grill-me           ← Stress-test de planos (alternativa ao grill-with-docs)
-3. /to-prd             ← Sintetiza discussão em PRD
-4. /to-issues          ← Quebra PRD em issues (vertical slices)
-5. /tdd                ← Implementa slice a slice (RED→GREEN→REFACTOR)
-6. /qa                 ← QA conversacional → abre issues
-7. /triage             ← Processa issues pela state machine
-8. /improve-codebase-architecture ← A cada poucos dias
-9. /diagnose           ← Hard bugs e performance regressions
-10. /handoff           ← Encerra sessão / passa para outro agente
+1. /grill-with-docs    ← Before any design decision
+2. /grill-me           ← Plan stress-test (alternative to grill-with-docs)
+3. /to-prd             ← Synthesize discussion into PRD
+4. /to-issues          ← Break PRD into issues (vertical slices)
+5. /tdd                ← Implement slice by slice (RED→GREEN→REFACTOR)
+6. /qa                 ← Conversational QA → file issues
+7. /triage             ← Process issues through state machine
+8. /improve-codebase-architecture ← Every few days
+9. /diagnose           ← Hard bugs and performance regressions
+10. /handoff           ← Close session / hand off to another agent
 ```
 
-**Skills incluídas no kit:**
+**Skills included in the kit:**
 
-| Skill | Categoria | Função | Referência |
+| Skill | Category | Function | Reference |
 |---|---|---|---|
-| `setup-matt-pocock-skills` | Setup | Entry point obrigatório. Configura `AGENTS.md` com bloco `## Agent skills`, cria `docs/agents/` (issue-tracker, triage-labels, domain). Rodar uma vez por repo. | Ref 8 §5 |
-| `grill-with-docs` | Engineering | Entrevista profunda que desafia planos contra o domain model, afina terminologia, atualiza CONTEXT.md e ADRs inline. **A skill mais poderosa do repo.** | Ref 8 §6.1 |
-| `grill-me` | Engineering | Entrevista relentlessly sobre um plano até resolver cada branch da decision tree. Alternativa mais leve ao grill-with-docs. | Ref 8 §6.1 |
-| `to-prd` | Engineering | Converte contexto da conversa em PRD. Template: problema, solução, user stories, implementation decisions. **Não entrevista** — sintetiza o que já sabe. | Ref 8 §6.1 |
-| `to-issues` | Engineering | Quebra PRD/plano em issues independentes usando vertical slices. Anti-pattern: horizontal slicing. | Ref 8 §6.1 |
+| `setup-matt-pocock-skills` | Setup | Mandatory entry point. Configures `AGENTS.md` with `## Agent skills` block, creates `docs/agents/` (issue-tracker, triage-labels, domain). Run once per repo. | Ref 8 §5 |
+| `grill-with-docs` | Engineering | Deep interview that challenges plans against the domain model, refines terminology, updates CONTEXT.md and ADRs inline. **The most powerful skill in the repo.** | Ref 8 §6.1 |
+| `grill-me` | Engineering | Relentlessly interviews about a plan until resolving each branch of the decision tree. Lighter alternative to grill-with-docs. | Ref 8 §6.1 |
+| `to-prd` | Engineering | Converts conversation context into PRD. Template: problem, solution, user stories, implementation decisions. **Does not interview** — synthesizes what it already knows. | Ref 8 §6.1 |
+| `to-issues` | Engineering | Breaks PRD/plan into independent issues using vertical slices. Anti-pattern: horizontal slicing. | Ref 8 §6.1 |
 | `tdd` | Engineering | Red-green-refactor loop. Bundled resources: deep modules, interface design, mocking, refactoring, testing guidelines. | Ref 8 §6.1 |
-| `diagnose` | Engineering | Loop disciplinado: reproduce → minimise → hypothesise → instrument → fix → regression-test. Estratégias avançadas: bisection harness, differential loop. | Ref 8 §6.1 |
-| `triage` | Engineering | State machine de issues: needs evaluation → waiting on reporter → ready for AFK agent → ready for human → won't fix. | Ref 8 §6.1 |
-| `improve-codebase-architecture` | Engineering | Encontra deepening opportunities informado por CONTEXT.md e ADRs. Resgata codebases que viraram ball of mud. | Ref 8 §6.1 |
-| `design-an-interface` | Engineering | Gera múltiplos designs radicalmente diferentes de interface usando parallel sub-agents. "Design it twice." | Ref 8 §6.1 |
-| `zoom-out` | Engineering | Perspectiva de alto nível sobre código desconhecido. | Ref 8 §6.1 |
-| `qa` | Engineering | QA interativa: usuário reporta bugs, agente explora codebase, abre issues. | Ref 8 §6.1 |
-| `handoff` | Productivity | Compacta conversa em handoff document para outro agente continuar. | Ref 8 §6.2 |
-| `write-a-skill` | Productivity | Cria novas skills com estrutura adequada, progressive disclosure, bundled resources. | Ref 8 §6.2 |
+| `diagnose` | Engineering | Disciplined loop: reproduce → minimise → hypothesise → instrument → fix → regression-test. Advanced strategies: bisection harness, differential loop. | Ref 8 §6.1 |
+| `triage` | Engineering | Issue state machine: needs evaluation → waiting on reporter → ready for AFK agent → ready for human → won't fix. | Ref 8 §6.1 |
+| `improve-codebase-architecture` | Engineering | Finds deepening opportunities informed by CONTEXT.md and ADRs. Rescues codebases that became ball of mud. | Ref 8 §6.1 |
+| `design-an-interface` | Engineering | Generates multiple radically different interface designs using parallel sub-agents. "Design it twice." | Ref 8 §6.1 |
+| `zoom-out` | Engineering | High-level perspective on unfamiliar code. | Ref 8 §6.1 |
+| `qa` | Engineering | Interactive QA: user reports bugs, agent explores codebase, files issues. | Ref 8 §6.1 |
+| `handoff` | Productivity | Compacts conversation into handoff document for another agent to continue. | Ref 8 §6.2 |
+| `write-a-skill` | Productivity | Creates new skills with proper structure, progressive disclosure, bundled resources. | Ref 8 §6.2 |
 
-**Skills NÃO incluídas** (específicas demais ou redundantes com o kit):
+**Skills NOT included** (too specific or redundant with the kit):
 
-| Skill | Motivo da exclusão |
+| Skill | Exclusion reason |
 |---|---|
-| `migrate-to-shoehorn` | Específica do ecossistema Total TypeScript |
-| `scaffold-exercises` | Específica para criação de exercícios educacionais |
-| `git-guardrails-claude-code` | Redundante — o kit já tem `permission-gate` extension com as mesmas proteções |
-| `request-refactor-plan` | Redundante — coberto por `improve-codebase-architecture` + `to-issues` |
+| `migrate-to-shoehorn` | Specific to Total TypeScript ecosystem |
+| `scaffold-exercises` | Specific for educational exercise creation |
+| `git-guardrails-claude-code` | Redundant — the kit already has `permission-gate` extension with the same protections |
+| `request-refactor-plan` | Redundant — covered by `improve-codebase-architecture` + `to-issues` |
 
-### Integração com o workflow do kit
+### Integration with the kit workflow
 
-As skills do mattpocock se encaixam nas camadas do kit:
+The mattpocock skills fit into the kit's layers:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                CAMADA C: WORKFLOW & QUALIDADE            │
+│                LAYER C: WORKFLOW & QUALITY               │
 │                                                         │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ PLANEJAMENTO                                     │   │
+│  │ PLANNING                                         │   │
 │  │ /grill-with-docs  →  /grill-me  →  /to-prd       │   │
-│  │ /design-an-interface (quando necessário)         │   │
+│  │ /design-an-interface (when needed)               │   │
 │  └──────────────────────────────────────────────────┘   │
 │                         │                               │
 │                         ▼                               │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ DECOMPOSIÇÃO                                     │   │
-│  │ /to-issues  →  issues independentes              │   │
-│  │ (vertical slices, NÃO horizontal)                │   │
+│  │ DECOMPOSITION                                    │   │
+│  │ /to-issues  →  independent issues                │   │
+│  │ (vertical slices, NOT horizontal)                │   │
 │  └──────────────────────────────────────────────────┘   │
 │                         │                               │
 │                         ▼                               │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ EXECUÇÃO                                         │   │
+│  │ EXECUTION                                        │   │
 │  │ /tdd (RED→GREEN→REFACTOR)                       │   │
-│  │ + self-verify skill do kit                       │   │
-│  │ + post-edit-lint extension do kit                │   │
+│  │ + kit's self-verify skill                        │   │
+│  │ + kit's post-edit-lint extension                 │   │
 │  └──────────────────────────────────────────────────┘   │
 │                         │                               │
 │                         ▼                               │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ VERIFICAÇÃO & ITERAÇÃO                           │   │
-│  │ /qa  →  /triage  →  /diagnose (se bug)          │   │
-│  │ /improve-codebase-architecture (periódico)      │   │
-│  │ /zoom-out (para contexto de código novo)        │   │
+│  │ VERIFICATION & ITERATION                         │   │
+│  │ /qa  →  /triage  →  /diagnose (if bug)         │   │
+│  │ /improve-codebase-architecture (periodic)       │   │
+│  │ /zoom-out (for new code context)                │   │
 │  └──────────────────────────────────────────────────┘   │
 │                         │                               │
 │                         ▼                               │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ ENCERRAMENTO                                     │   │
-│  │ /handoff  →  documento para próximo agente       │   │
+│  │ CLOSING                                          │   │
+│  │ /handoff  →  document for next agent             │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Princípios herdados do mattpocock/skills (Reference Doc 8):**
+**Principles inherited from mattpocock/skills (Reference Doc 8):**
 
-1. **Feedback loops são fundamentais** (Ref 8 §8): Static types + browser access + automated tests. Sem feedback sobre como o código roda, o agente voa às cegas. O kit implementa isso via `post-edit-lint`, `lsp-bridge`, `self-verify` skill e `browser-testing` skill.
+1. **Feedback loops are fundamental** (Ref 8 §8): Static types + browser access + automated tests. Without feedback on how code runs, the agent flies blind. The kit implements this via `post-edit-lint`, `lsp-bridge`, `self-verify` skill, and `browser-testing` skill.
 
-2. **Vertical slices, nunca horizontal** (Ref 8 §6.1 `/to-issues`): Cada issue deve ser um slice completo (UI → lógica → dados → teste), não uma camada horizontal ("todos os testes primeiro").
+2. **Vertical slices, never horizontal** (Ref 8 §6.1 `/to-issues`): Each issue should be a complete slice (UI → logic → data → test), not a horizontal layer ("all tests first").
 
-3. **Deep modules** (Ref 8 §6.1 `/to-prd`): Identificar ativamente oportunidades de extrair módulos que encapsulam muita funcionalidade em uma interface simples e testável.
+3. **Deep modules** (Ref 8 §6.1 `/to-prd`): Actively identify opportunities to extract modules that encapsulate lots of functionality behind a simple, testable interface.
 
-4. **Gaste esforço desproporcional no sinal de feedback** (Ref 8 §6.1 `/diagnose`): Se você tem um sinal pass/fail rápido, determinístico e agent-runnable para o bug, você vai encontrar a causa. Se não tem, nenhuma quantidade de leitura de código vai salvar.
+4. **Spend disproportionate effort on the feedback signal** (Ref 8 §6.1 `/diagnose`): If you have a fast, deterministic, agent-runnable pass/fail signal for the bug, you will find the cause. If you don't, no amount of code reading will save you.
 
-5. **CONTEXT.md paga dividendos** (Ref 8 §7): "There's a problem with the materialization cascade" vs "There's a problem when a lesson inside a section of a course is made real". A concisão do glossário de domínio se paga a cada sessão.
+5. **CONTEXT.md pays dividends** (Ref 8 §7): "There's a problem with the materialization cascade" vs "There's a problem when a lesson inside a section of a course is made real". The conciseness of the domain glossary pays off in every session.
 
-### Fluxo de adoção
+### Adoption flow
 
 ```
-# 1. Instalação única (global)
+# 1. One-time installation (global)
 pi install git:github.com/user/pi-dev-starter-kit
 
-# 2. Novo projeto — copiar templates
+# 2. New project — copy templates
 cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/AGENTS.template.md ./AGENTS.md
 cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/CONTEXT.template.md ./CONTEXT.md
 cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/settings.template.json ./.pi/settings.json
 mkdir -p docs/adr
 cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/INDEX.md
 
-# 3. Editar AGENTS.md com detalhes do projeto
-# 4. Ajustar .pi/settings.json (habilitar/desabilitar módulos)
-# 5. Pronto. Toda sessão `pi` no projeto herda o kit.
+# 3. Edit AGENTS.md with project details
+# 4. Adjust .pi/settings.json (enable/disable modules)
+# 5. Done. Every `pi` session in the project inherits the kit.
 ```
 
-### O que é global vs o que é por projeto
+### What is global vs what is per-project
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    GLOBAL (~/.pi/agent/)                 │
-│  Instalado UMA vez. Presente em TODA sessão.            │
+│  Installed ONCE. Present in EVERY session.              │
 │                                                         │
 │  SYSTEM.md          ← Tool categories + workflow        │
-│  APPEND_SYSTEM.md   ← Instruções adicionais             │
+│  APPEND_SYSTEM.md   ← Additional instructions           │
 │  extensions/        ← permission-gate, post-edit-lint,  │
 │                        loop-protection, task-tracker,   │
 │                        lsp-bridge, monitor-bash,        │
@@ -360,29 +360,29 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │                        review-matrix                    │
 │  prompts/           ← plan, verify, review, handoff,    │
 │                        review-matrix                    │
-│  packages/          ← Dependências do ecossistema       │
+│  packages/          ← Ecosystem dependencies           │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
-│               POR PROJETO (./ e ./.pi/)                 │
-│  Copiado dos templates. Único por projeto.              │
+│               PER PROJECT (./ and ./.pi/)               │
+│  Copied from templates. Unique per project.             │
 │                                                         │
-│  ./AGENTS.md        ← Índice do projeto, stack,         │
-│                        convenções, docs/ pointers       │
-│  ./CONTEXT.md       ← Glossário de domínio              │
-│  ./.pi/settings.json← Feature flags: o que habilitar    │
-│  ./docs/INDEX.md    ← Índice de referências do projeto  │
-│  ./docs/adr/        ← Decisões de arquitetura           │
-│  ./.pi/extensions/  ← Extensões específicas do projeto  │
-│  ./.pi/skills/      ← Skills de domínio/stack           │
+│  ./AGENTS.md        ← Project index, stack,             │
+│                        conventions, docs/ pointers       │
+│  ./CONTEXT.md       ← Domain glossary                   │
+│  ./.pi/settings.json← Feature flags: what to enable     │
+│  ./docs/INDEX.md    ← Project reference index           │
+│  ./docs/adr/        ← Architecture decisions            │
+│  ./.pi/extensions/  ← Project-specific extensions       │
+│  ./.pi/skills/      ← Domain/stack skills               │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Mapa de Capacidades — 4 Camadas
+## 4. Capability Map — 4 Layers
 
-### Camada A: Contexto & Documentação
+### Layer A: Context & Documentation
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -390,82 +390,82 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
 │  │ SYSTEM.md                                     │  │
-│  │ ├─ Tool categories (6 grupos)                 │  │
-│  │ ├─ Workflow canônico (Plan→Search→Edit→Test   │  │
+│  │ ├─ Tool categories (6 groups)                 │  │
+│  │ ├─ Canonical workflow (Plan→Search→Edit→Test  │  │
 │  │ │   →Lint→Verify→Done)                        │  │
 │  │ ├─ Think-in-Code routing (context-mode):      │  │
-│  │ │   bash/read p/ operações diretas; dados     │  │
-│  │ │   grandes → ctx_execute sandbox             │  │
-│  │ ├─ Regras de segurança (permission gates)     │  │
-│  │ └─ Progressive disclosure (quando usar skills)│  │
+│  │ │   bash/read for direct ops; large data →    │  │
+│  │ │   ctx_execute sandbox                       │  │
+│  │ ├─ Security rules (permission gates)          │  │
+│  │ └─ Progressive disclosure (when to use skills)│  │
 │  └───────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
 │  │ Session Continuity (context-mode SQLite+FTS5) │  │
-│  │ ├─ Toda edição, git op, task, erro indexado  │  │
-│  │ ├─ Após compaction: BM25 search recupera     │  │
-│  │ │   só o relevante — sem flooding de estado  │  │
+│  │ ├─ Every edit, git op, task, error indexed   │  │
+│  │ ├─ After compaction: BM25 search recovers    │  │
+│  │ │   only relevant state — no state flooding  │  │
 │  │ └─ Resume: ctx_search(sort:"timeline")      │  │
-│  │     recupera estado da sessão anterior       │  │
+│  │     recovers previous session state          │  │
 │  └───────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
-│  │ AGENTS.md (~100 linhas)                       │  │
-│  │ ├─ Índice de diretórios (docs/, src/, tests/) │  │
-│  │ ├─ Ponteiros para CONTEXT.md, docs/adr/       │  │
-│  │ ├─ Stack detectada + comandos essenciais      │  │
-│  │ └─ Regras não-negociáveis (enforced via CI)   │  │
+│  │ AGENTS.md (~100 lines)                        │  │
+│  │ ├─ Directory index (docs/, src/, tests/)      │  │
+│  │ ├─ Pointers to CONTEXT.md, docs/adr/          │  │
+│  │ ├─ Detected stack + essential commands        │  │
+│  │ └─ Non-negotiable rules (enforced via CI)     │  │
 │  └───────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
-│  │ CONTEXT.md (glossário de domínio)             │  │
-│  │ ├─ Termos canônicos do projeto                │  │
-│  │ └─ Sem detalhes de implementação              │  │
+│  │ CONTEXT.md (domain glossary)                  │  │
+│  │ ├─ Canonical project terminology              │  │
+│  │ └─ No implementation details                  │  │
 │  └───────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
-│  │ MEMORY.md (auto memory entre sessões)          │  │
-│  │ ├─ Notas do agente sobre o projeto            │  │
-│  │ └─ Reload pós-compaction                      │  │
+│  │ MEMORY.md (auto memory across sessions)        │  │
+│  │ ├─ Agent notes about the project              │  │
+│  │ └─ Reload post-compaction                     │  │
 │  └───────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Entregáveis:**
-- `SYSTEM.md` global — tool categories + workflow canônico + Think-in-Code routing rules (context-mode integrado)
-- `APPEND_SYSTEM.md` global — instruções de workflow anexadas ao system prompt
-- `mcp.json` — configuração do MCP server do context-mode (`~/.pi/agent/mcp.json`)
-- `AGENTS.template.md` — template para copiar ao root do projeto (~100 linhas, index-style)
-- `CONTEXT.template.md` — template de glossário de domínio para copiar ao root
-- `INDEX.template.md` — template de índice de referências para `docs/INDEX.md`
+**Deliverables:**
+- Global `SYSTEM.md` — tool categories + canonical workflow + Think-in-Code routing rules (context-mode integrated)
+- Global `APPEND_SYSTEM.md` — workflow instructions appended to system prompt
+- `mcp.json` — context-mode MCP server config (`~/.pi/agent/mcp.json`)
+- `AGENTS.template.md` — template to copy to project root (~100 lines, index-style)
+- `CONTEXT.template.md` — domain glossary template to copy to root
+- `INDEX.template.md` — reference index template for `docs/INDEX.md`
 
 ---
 
-### Camada B: Ferramentas & Segurança
+### Layer B: Tools & Security
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │              TOOLS & SECURITY                        │
 │                                                     │
-│  Tool Categories (carregadas no system prompt):      │
+│  Tool Categories (loaded in system prompt):         │
 │                                                     │
 │  ┌─ File I/O ──────────────────────────────────┐   │
-│  │ read, write, edit (nativas)                  │   │
+│  │ read, write, edit (native)                   │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌─ Search ────────────────────────────────────┐   │
-│  │ grep, glob, find, ls (nativas)               │   │
+│  │ grep, glob, find, ls (native)               │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌─ Execution ─────────────────────────────────┐   │
-│  │ bash (nativa), monitor (extension)           │   │
+│  │ bash (native), monitor (extension)           │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  ┌─ Web (ativadas via skill web-research) ──────┐   │
+│  ┌─ Web (activated via web-research skill) ─────┐   │
 │  │ web_search, web_fetch (pi-web-access)        │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  ┌─ Orchestration (ativadas via skills) ────────┐   │
+│  ┌─ Orchestration (activated via skills) ───────┐   │
 │  │ subagent (pi-subagents), mcp_* (pi-mcp)      │   │
 │  │ browser (pi-agent-browser-native)            │   │
 │  └──────────────────────────────────────────────┘   │
@@ -476,50 +476,50 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │ ask_user (rpiv-ask-user-question)            │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  Security Gates (sempre ativos):                    │
+│  Security Gates (always active):                    │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ PreToolUse hook                              │   │
-│  │ ├─ Bloqueia: rm -rf, git push --force,       │   │
+│  │ ├─ Blocks: rm -rf, git push --force,         │   │
 │  │ │   DROP TABLE, sudo, chmod 777              │   │
-│  │ ├─ Write constraint: require leitura prévia  │   │
-│  │ └─ Path confinement: não escapa do workspace │   │
+│  │ ├─ Write constraint: requires prior read    │   │
+│  │ └─ Path confinement: doesn't escape workspace│   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  Approval Modes:                                    │
 │  ┌─ default ──────┐ ┌─ acceptEdits ───┐             │
-│  │ diff visível,   │ │ auto-aprova     │             │
-│  │ [y/N] por edit  │ │ edits, bash     │             │
-│  │                 │ │ ainda gateado   │             │
+│  │ visible diff,   │ │ auto-approves   │             │
+│  │ [y/N] per edit  │ │ edits, bash     │             │
+│  │                 │ │ still gated     │             │
 │  └─────────────────┘ └─────────────────┘             │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Entregáveis (todas globais, carregadas em toda sessão):**
+**Deliverables (all global, loaded in every session):**
 - Extension `permission-gate` — PreToolUse hook, write constraint, path confinement
-- Extension `post-edit-lint` — PostToolUse hook: lint pós-edição
+- Extension `post-edit-lint` — PostToolUse hook: post-edit lint
 - Extension `loop-protection` — doom-loop detection + diminishing returns
-- Extension `task-tracker` — tools TaskCreate/TaskUpdate
-- Extension `lsp-bridge` — type errors pós-edição + `lsp_definition`, `lsp_references`, `lsp_rename`, `lsp_workspace_symbols`
-- Extension `monitor-bash` — background bash com streaming
-- Extension `setup-ai-memory` — comandos/admin + hooks Pi para serviço externo ai-memory
-- Extension `starter-kit-doctor` — diagnósticos de ambiente e capacidades
-- Extension `artifact-read` — `artifact_read` read-only para SQLite, CSV/JSON/JSONL, archives e diretórios
-- Extension `ast-tools` — `ast_grep` e `ast_edit` preview-only para busca/codemods estruturais
-- Extension `source-navigation` — `read_ranges` e `edit_at_anchor` preview-only com anchors hash
-- Curadoria de 5 pacotes do ecossistema (dependências diretas dos repos originais)
+- Extension `task-tracker` — TaskCreate/TaskUpdate tools
+- Extension `lsp-bridge` — post-edit type errors + `lsp_definition`, `lsp_references`, `lsp_rename`, `lsp_workspace_symbols`
+- Extension `monitor-bash` — background bash with streaming
+- Extension `setup-ai-memory` — admin commands + Pi hooks for external ai-memory service
+- Extension `starter-kit-doctor` — environment and capability diagnostics
+- Extension `artifact-read` — `artifact_read` read-only for SQLite, CSV/JSON/JSONL, archives, and directories
+- Extension `ast-tools` — `ast_grep` and preview-only `ast_edit` for structural search/codemods
+- Extension `source-navigation` — `read_ranges` and preview-only `edit_at_anchor` with hash anchors
+- Curation of 5 ecosystem packages (direct dependencies from original repos)
 - Extension `contrib-gate` — git workflow: branch naming + conventional commits
-- Extension `auto-memory` — MEMORY.md persistence leve entre sessões
+- Extension `auto-memory` — lightweight MEMORY.md persistence across sessions
 
 ---
 
-### Camada C: Workflow & Qualidade
+### Layer C: Workflow & Quality
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │            WORKFLOW & QUALITY                        │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
-│  │           O CICLO COMPLETO                    │   │
+│  │           THE COMPLETE CYCLE                  │   │
 │  │                                              │   │
 │  │  ┌──────────┐    ┌──────────┐    ┌────────┐  │   │
 │  │  │  PLAN    │───▶│  SEARCH  │───▶│  EDIT  │  │   │
@@ -536,92 +536,92 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │                  └──────────┘    └────────┘  │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  Skills de Workflow:                                │
+│  Workflow Skills:                                   │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ plan-mode                                    │   │
-│  │ ├─ Cria plan.md com checklist                │   │
-│  │ ├─ Registra TODOs via task-tracker           │   │
-│  │ └─ Atualiza progresso a cada milestone       │   │
+│  │ ├─ Creates plan.md with checklist            │   │
+│  │ ├─ Registers TODOs via task-tracker          │   │
+│  │ └─ Updates progress at each milestone        │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ self-verify                                  │   │
-│  │ ├─ Roda testes após cada change set          │   │
-│  │ ├─ Compara output com spec, não com código   │   │
-│  │ ├─ Lint + type-check automático              │   │
+│  │ ├─ Runs tests after each change set          │   │
+│  │ ├─ Compares output with spec, not code       │   │
+│  │ ├─ Auto lint + type-check                    │   │
 │  │ └─ Checklist: happy path + edge cases        │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  Hooks Determinísticos:                             │
+│  Deterministic Hooks:                               │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ PostToolUse (post-edit-lint)                 │   │
-│  │ ├─ Após edit/write: roda lint --fix          │   │
-│  │ ├─ Injeta erros/warnings no contexto         │   │
-│  │ └─ Modelo vê feedback imediato               │   │
+│  │ ├─ After edit/write: runs lint --fix         │   │
+│  │ ├─ Injects errors/warnings into context      │   │
+│  │ └─ Model sees immediate feedback             │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ PostToolUse (lsp-bridge)                     │   │
-│  │ ├─ Após edit: type-check incremental         │   │
-│  │ └─ Reporta erros de tipo no contexto         │   │
+│  │ ├─ After edit: incremental type-check        │   │
+│  │ └─ Reports type errors in context            │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ session_before_compact (compaction hook)     │   │
-│  │ ├─ Preserva AGENTS.md + SYSTEM.md verbatim   │   │
-│  │ └─ Re-injeta pós-compaction                  │   │
+│  │ ├─ Preserves AGENTS.md + SYSTEM.md verbatim  │   │
+│  │ └─ Re-injects post-compaction                │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  Loop Protection (sempre ativo):                    │
+│  Loop Protection (always active):                   │
 │  ┌──────────────────────────────────────────────┐   │
-│  │ ├─ Doom-loop: N edições no mesmo arquivo     │   │
-│  │ │   → "Considere reconsiderar abordagem"     │   │
-│  │ ├─ Diminishing returns: 3 iterações <500     │   │
-│  │ │   tokens → força parada                    │   │
-│  │ └─ Inanição de contexto: >85% usado          │   │
-│  │     → sugestão de /compact                   │   │
+│  │ ├─ Doom-loop: N edits on same file           │   │
+│  │ │   → "Consider reconsidering approach"      │   │
+│  │ ├─ Diminishing returns: 3 iterations <500    │   │
+│  │ │   tokens → force stop                      │   │
+│  │ └─ Context starvation: >85% used             │   │
+│  │     → suggestion to /compact                 │   │
 │  └──────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Entregáveis (todas globais, carregadas em toda sessão):**
-- Skills do kit (autorais):
-  - `plan-mode` — planejamento estruturado (plan.md → checklist → execute)
-  - `self-verify` — ciclo build→test→lint→fix→verify
-  - `web-research` — busca web + fetch + síntese de documentação
-  - `browser-testing` — automação de browser para testes visuais
-  - `subagent-delegation` — quando e como delegar para sub-agents
-  - `mcp-orchestration` — uso de MCP servers
-  - `ai-memory` — uso do serviço externo ai-memory quando instalado
-  - `artifact-analysis` — investigação estruturada de SQLite/CSV/JSON/archives com `artifact_read`
-  - `structural-refactor` — refactor/codemod com AST + LSP
-  - `review-matrix` — review multi-pass independente (corretude, segurança, design)
-- Skills integradas (mattpocock/skills — Reference Doc 8):
+**Deliverables (all global, loaded in every session):**
+- Kit skills (in-house):
+  - `plan-mode` — structured planning (plan.md → checklist → execute)
+  - `self-verify` — build→test→lint→fix→verify cycle
+  - `web-research` — web search + fetch + documentation synthesis
+  - `browser-testing` — browser automation for visual testing
+  - `subagent-delegation` — when and how to delegate to sub-agents
+  - `mcp-orchestration` — MCP server usage
+  - `ai-memory` — external ai-memory service usage when installed
+  - `artifact-analysis` — structured SQLite/CSV/JSON/archive investigation with `artifact_read`
+  - `structural-refactor` — refactor/codemod with AST + LSP
+  - `review-matrix` — independent multi-pass review (correctness, security, design)
+- Integrated skills (mattpocock/skills — Reference Doc 8):
   - `setup-matt-pocock-skills`, `grill-with-docs`, `grill-me`, `to-prd`, `to-issues`, `tdd`, `diagnose`, `triage`, `improve-codebase-architecture`, `design-an-interface`, `zoom-out`, `qa`, `handoff`, `write-a-skill`
 - Prompt templates — `plan.md`, `verify.md`, `review.md`, `handoff.md`, `review-matrix.md`
-- Hook de compaction — `session_before_compact`: preserva SYSTEM.md verbatim, re-injeta pós-compactação
+- Compaction hook — `session_before_compact`: preserves SYSTEM.md verbatim, re-injects post-compaction
 
 ---
 
-### Camada D: Extensibilidade por Projeto
+### Layer D: Per-Project Extensibility
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│          EXTENSIBILIDADE POR PROJETO                 │
+│          PER-PROJECT EXTENSIBILITY                   │
 │                                                     │
-│  .pi/settings.json (feature flags por projeto):     │
+│  .pi/settings.json (per-project feature flags):     │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ {                                            │   │
 │  │   "starterKit": {                            │   │
-│  │     "permissionMode": "default", // ou       │   │
+│  │     "permissionMode": "default", // or       │   │
 │  │                           // "acceptEdits"   │   │
 │  │     "activeExtensions": [                    │   │
 │  │       "permission-gate",                     │   │
 │  │       "post-edit-lint",                      │   │
 │  │       "loop-protection",                     │   │
 │  │       "task-tracker",                        │   │
-│  │       "lsp-bridge",    // opcional           │   │
-│  │       "monitor-bash",  // opcional           │   │
+│  │       "lsp-bridge",    // optional           │   │
+│  │       "monitor-bash",  // optional           │   │
 │  │       "contrib-gate",                        │   │
 │  │       "auto-memory",                         │   │
 │  │       "setup-ai-memory"                      │   │
@@ -630,10 +630,10 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │       "plan-mode",                           │   │
 │  │       "self-verify",                         │   │
 │  │       "web-research",                        │   │
-│  │       "browser-testing",  // opcional        │   │
+│  │       "browser-testing",  // optional        │   │
 │  │       "subagent-delegation",                 │   │
-│  │       "mcp-orchestration", // opcional        │   │
-│  │       "ai-memory"         // opcional        │   │
+│  │       "mcp-orchestration", // optional        │   │
+│  │       "ai-memory"         // optional        │   │
 │  │     ],                                       │   │
 │  │     "webSearch": "cached",                   │   │
 │  │     "autoLint": true,                        │   │
@@ -642,96 +642,97 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │ }                                            │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  Pontos de extensão por projeto:                    │
+│  Per-project extension points:                      │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ .pi/extensions/                              │   │
-│  │ ├─ stack-detection.ts    # Detecta Node, Py, │   │
+│  │ ├─ stack-detection.ts    # Detects Node, Py, │   │
 │  │ │                          Rust, Go, etc.    │   │
-│  │ ├─ custom-tools.ts       # Tools específicas │   │
-│  │ └─ project-hooks.ts      # Hooks do projeto  │   │
+│  │ ├─ custom-tools.ts       # Project-specific  │   │
+│  │ │                          tools             │   │
+│  │ └─ project-hooks.ts      # Project hooks     │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
 │  │ .pi/skills/                                  │   │
-│  │ ├─ domain-knowledge/     # Skill de domínio  │   │
-│  │ ├─ deployment/           # Skill de deploy   │   │
-│  │ └─ database-migrations/  # Skill de DB       │   │
+│  │ ├─ domain-knowledge/     # Domain skill      │   │
+│  │ ├─ deployment/           # Deploy skill      │   │
+│  │ └─ database-migrations/  # DB skill          │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
-│  │ AGENTS.md (override de projeto)              │   │
-│  │ ├─ Stack específica + comandos               │   │
-│  │ ├─ Convenções de código                      │   │
-│  │ ├─ Estrutura de diretórios                   │   │
-│  │ └─ Ponteiros para docs/ locais               │   │
+│  │ AGENTS.md (project override)                 │   │
+│  │ ├─ Specific stack + commands                 │   │
+│  │ ├─ Code conventions                          │   │
+│  │ ├─ Directory structure                       │   │
+│  │ └─ Pointers to local docs/                   │   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
-│  │ docs/adr/  (decisões de arquitetura)         │   │
-│  │ docs/INDEX.md  (índice de referências)       │   │
-│  │ CONTEXT.md  (glossário de domínio)           │   │
+│  │ docs/adr/  (architecture decisions)          │   │
+│  │ docs/INDEX.md  (reference index)             │   │
+│  │ CONTEXT.md  (domain glossary)                │   │
 │  └──────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Entregáveis:**
-- `settings.template.json` — feature flags documentadas, para copiar a `.pi/settings.json`
-- Templates de arquivos de projeto — `AGENTS.template.md`, `CONTEXT.template.md`, `INDEX.template.md`, `ADR.template.md`
-- `AGENTS.md` do projeto — editado com stack, convenções, estrutura de diretórios
-- `.pi/extensions/` — ponto de extensão para tools específicas do projeto
-- `.pi/skills/` — ponto de extensão para skills de domínio/stack
-- Documentação de como estender o kit por projeto (README.md)
+**Deliverables:**
+- `settings.template.json` — documented feature flags, to copy to `.pi/settings.json`
+- Project file templates — `AGENTS.template.md`, `CONTEXT.template.md`, `INDEX.template.md`, `ADR.template.md`
+- Project `AGENTS.md` — edited with stack, conventions, directory structure
+- `.pi/extensions/` — extension point for project-specific tools
+- `.pi/skills/` — extension point for domain/stack skills
+- Documentation on how to extend the kit per project (README.md)
 
 ---
 
-## 5. Comparação com Claude Code e Codex
+## 5. Comparison with Claude Code and Codex
 
-### O que vale COPIAR
+### What's worth COPYING
 
-| Característica | Origem | Como o kit implementa | Justificativa (ref) |
+| Feature | Source | How the kit implements it | Rationale (ref) |
 |---|---|---|---|
-| **CLAUDE.md hierárquico** (global→projeto→subdir) | Claude Code (Ref 7) | AGENTS.md com index-style, ~100 linhas | Ref 7: "CLAUDE.md sobrevive à compaction" |
-| **3 tiers de ativação de tools** | Claude Code (Ref 7) | Skills com tools embutidas + `setActiveTools` dinâmico | Ref 7: "evita overload no system prompt" |
-| **Prompt caching** (prefixo estável) | Codex (Ref 6), Claude Code | SYSTEM.md enxuto, skills via progressive disclosure | Ref 6: "cada turno obtém cache hit" |
-| **Layered permission pipeline** | Claude Code (Ref 7) | PreToolUse hook com deny→allow→interactive | Ref 7: "98.4% infraestrutura determinística" |
-| **Sandbox modes** (workspace-write / danger-full-access) | Codex (Ref 6) | Permission modes: default / acceptEdits | Ref 6: "3 eixos de controle de autonomia" |
-| **PostToolUse lint hook** | Cursor (Ref 4) | Extension `post-edit-lint` | Ref 4: "surfacear erros de lint após cada edição" |
-| **PreCompletionChecklistMiddleware** | LangChain (Ref 2) | Skill `self-verify` + prompt template `verify.md` | Ref 2: "padrão de falha mais comum: não verificar" |
-| **LoopDetectionMiddleware** | LangChain (Ref 2) | Extension `loop-protection` | Ref 2: "doom loops: 10+ edições no mesmo arquivo" |
-| **Diminishing returns detection** | Claude Code (Ref 7) | Extension `loop-protection` | Ref 7: "3 iterações <500 tokens → para" |
-| **Task/TODO tracking tool** | Codex (`update_plan`), Claude Code (`TaskCreate`) | Extension `task-tracker` | Ref 3: "Working memory como camada separada" |
-| **Plan mode** | Claude Code, Cursor | Skill `plan-mode` + prompt template | Ref 7: "mudança de estado no permission system" |
-| **AGENTS.md como índice** | Codex (Ref 6) | Template AGENTS.md canônico | Ref 6: "índice, não enciclopédia" |
-| **Web search com cache** | Codex (Ref 6) | `pi-web-access`, configurável | Ref 6: "resultados pré-indexados, reduz injection" |
-| **MCP support** | Ambos | `pi-mcp-adapter` | Ref 6, Ref 7 |
-| **Sub-agents** | Claude Code (`Agent` tool), Codex (`spawn_agent`) | `pi-subagents` | Ref 7: "context windows isolados" |
+| **Hierarchical CLAUDE.md** (global→project→subdir) | Claude Code (Ref 7) | AGENTS.md with index-style, ~100 lines | Ref 7: "CLAUDE.md survives compaction" |
+| **3 tiers of tool activation** | Claude Code (Ref 7) | Skills with embedded tools + dynamic `setActiveTools` | Ref 7: "avoids system prompt overload" |
+| **Prompt caching** (stable prefix) | Codex (Ref 6), Claude Code | Lean SYSTEM.md, skills via progressive disclosure | Ref 6: "every turn gets cache hit" |
+| **Layered permission pipeline** | Claude Code (Ref 7) | PreToolUse hook with deny→allow→interactive | Ref 7: "98.4% deterministic infrastructure" |
+| **Sandbox modes** (workspace-write / danger-full-access) | Codex (Ref 6) | Permission modes: default / acceptEdits | Ref 6: "3 axes of autonomy control" |
+| **PostToolUse lint hook** | Cursor (Ref 4) | Extension `post-edit-lint` | Ref 4: "surface lint errors after every edit" |
+| **PreCompletionChecklistMiddleware** | LangChain (Ref 2) | Skill `self-verify` + prompt template `verify.md` | Ref 2: "most common failure pattern: not verifying" |
+| **LoopDetectionMiddleware** | LangChain (Ref 2) | Extension `loop-protection` | Ref 2: "doom loops: 10+ edits on same file" |
+| **Diminishing returns detection** | Claude Code (Ref 7) | Extension `loop-protection` | Ref 7: "3 iterations <500 tokens → stop" |
+| **Task/TODO tracking tool** | Codex (`update_plan`), Claude Code (`TaskCreate`) | Extension `task-tracker` | Ref 3: "Working memory as separate layer" |
+| **Plan mode** | Claude Code, Cursor | Skill `plan-mode` + prompt template | Ref 7: "state change in permission system" |
+| **AGENTS.md as index** | Codex (Ref 6) | Canonical AGENTS.md template | Ref 6: "index, not encyclopedia" |
+| **Web search with cache** | Codex (Ref 6) | `pi-web-access`, configurable | Ref 6: "pre-indexed results, reduces injection" |
+| **MCP support** | Both | `pi-mcp-adapter` | Ref 6, Ref 7 |
+| **Sub-agents** | Claude Code (`Agent` tool), Codex (`spawn_agent`) | `pi-subagents` | Ref 7: "isolated context windows" |
 
-### O que NÃO vale copiar
+### What NOT to copy
 
-| Característica | Origem | Por que NÃO | Alternativa no kit |
+| Feature | Source | Why NOT | Kit alternative |
 |---|---|---|---|
-| **Sandbox via Seatbelt/bubblewrap** | Codex (Ref 6) | Depende de OS, complexo, foge do escopo | Rode Pi.dev dentro de container se precisar |
-| **Compaction via Responses API** (`encrypted_content`) | Codex (Ref 6) | API proprietária da OpenAI, inalcançável sem o modelo Codex | Compaction nativa do Pi.dev + hook de preservação de instruções |
-| **Agent Teams** | Claude Code (Ref 7) | Experimental, complexo, env var gate | `pi-crew` para times coordenados (se necessário) |
-| **Auto Memory expansivo** | Claude Code (Ref 7) | Sobrecarrega contexto, risco de alucinação | MEMORY.md enxuto, index-style |
-| **Pós-treinamento no tool set** | Codex (GPT-5-Codex), Claude Code | Inalcançável — depende do provider treinar o modelo | SYSTEM.md com tool categories extremamente claras + exemplos |
-| **App Server JSON-RPC** | Codex (Ref 6) | Overkill para uso individual, complexidade de manutenção | RPC mode nativo do Pi.dev |
-| **Cloud Sandbox** | Codex (Ref 6) | Infraestrutura OpenAI, não reproduzível | Containers locais se necessário |
-| **Plugin marketplace** | Claude Code (Ref 7) | Ecossistema Pi.dev já supre via npm/git packages | `pi install` nativo |
-| **Managed Agents (API)** | Claude Code (Ref 7) | Serviço gerenciado, não self-hosted | SDK do Pi.dev para embedding |
+| **Sandbox via Seatbelt/bubblewrap** | Codex (Ref 6) | OS-dependent, complex, out of scope | Run Pi.dev inside a container if needed |
+| **Compaction via Responses API** (`encrypted_content`) | Codex (Ref 6) | Proprietary OpenAI API, unreachable without Codex model | Pi.dev native compaction + instruction preservation hook |
+| **Agent Teams** | Claude Code (Ref 7) | Experimental, complex, env var gate | `pi-crew` for coordinated teams (if needed) |
+| **Expansive Auto Memory** | Claude Code (Ref 7) | Overloads context, hallucination risk | Lean MEMORY.md, index-style |
+| **Post-training on tool set** | Codex (GPT-5-Codex), Claude Code | Unreachable — depends on provider training the model | SYSTEM.md with extremely clear tool categories + examples |
+| **App Server JSON-RPC** | Codex (Ref 6) | Overkill for individual use, maintenance complexity | Pi.dev native RPC mode |
+| **Cloud Sandbox** | Codex (Ref 6) | OpenAI infrastructure, not reproducible | Local containers if needed |
+| **Plugin marketplace** | Claude Code (Ref 7) | Pi.dev ecosystem already supplies via npm/git packages | Native `pi install` |
+| **Managed Agents (API)** | Claude Code (Ref 7) | Managed service, not self-hosted | Pi.dev SDK for embedding |
 
 ---
 
-## 6. Como o Modelo Descobre as Ferramentas
+## 6. How the Model Discovers Tools
 
-### Estratégia de Progressive Disclosure
+### Progressive Disclosure Strategy
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│          SYSTEM PROMPT (cache estável)               │
+│          SYSTEM PROMPT (stable cache)                │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
-│  │ TOOLS DISPONÍVEIS (categorizadas)             │  │
+│  │ AVAILABLE TOOLS (categorized)                 │  │
 │  │                                               │  │
 │  │ File I/O: read, write, edit                   │  │
 │  │ Search: grep, glob, find, ls                  │  │
@@ -739,90 +740,90 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │ Quality: task_create, task_update,            │  │
 │  │          lsp_check, ask_user                  │  │
 │  │                                               │  │
-│  │ → Aproximadamente 15 tool descriptions        │  │
-│  │   enxutas no system prompt                    │  │
+│  │ → Approximately 15 lean tool descriptions     │  │
+│  │   in the system prompt                        │  │
 │  └───────────────────────────────────────────────┘  │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
-│  │ SKILLS DISPONÍVEIS (progressive disclosure)   │  │
+│  │ AVAILABLE SKILLS (progressive disclosure)     │  │
 │  │                                               │  │
 │  │ /skill:web-research                           │  │
-│  │   → Ativa web_search, web_fetch               │  │
+│  │   → Activates web_search, web_fetch           │  │
 │  │                                               │  │
 │  │ /skill:browser-testing                        │  │
-│  │   → Ativa browser tools                       │  │
+│  │   → Activates browser tools                   │  │
 │  │                                               │  │
 │  │ /skill:subagent-delegation                    │  │
-│  │   → Ativa subagent tools                      │  │
+│  │   → Activates subagent tools                  │  │
 │  │                                               │  │
 │  │ /skill:mcp-orchestration                      │  │
-│  │   → Ativa MCP tools                           │  │
+│  │   → Activates MCP tools                       │  │
 │  └───────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Fluxo típico de uma tarefa:**
+**Typical task flow:**
 
-1. Modelo recebe tarefa → consulta SYSTEM.md → identifica skills relevantes
-2. Invoca skill (ex: `web-research`) → SKILL.md carrega + tools ativadas
-3. Skill termina → tools são desativadas → contexto volta ao estado base
-4. Próxima tarefa → repete o ciclo com cache limpo
+1. Model receives task → consults SYSTEM.md → identifies relevant skills
+2. Invokes skill (e.g., `web-research`) → SKILL.md loads + tools activated
+3. Skill finishes → tools are deactivated → context returns to base state
+4. Next task → repeats cycle with clean cache
 
-**Por que isso funciona para múltiplos modelos:**
+**Why this works for multiple models:**
 
-- Modelos não precisam ser pós-treinados no tool set do Pi.dev
-- O system prompt é descritivo e categorizado — qualquer modelo frontier entende
-- Skills fornecem instruções detalhadas on-demand, não upfront
-- As tool descriptions seguem um padrão consistente (nome, categoria, quando usar, exemplo)
+- Models don't need post-training on Pi.dev's tool set
+- The system prompt is descriptive and categorized — any frontier model understands it
+- Skills provide detailed instructions on-demand, not upfront
+- Tool descriptions follow a consistent pattern (name, category, when to use, example)
 
 ---
 
-## 7. Próximos Passos
+## 7. Next Steps
 
-### Fase 1: Setup do pacote + verificar dependências (Agentes A, B)
+### Phase 1: Package setup + verify dependencies (Agents A, B)
 
-1. Scaffold do pacote, `package.json` + `SYSTEM.md` global (#001)
-2. Verificar instalação das 5 dependências diretas (#002)
+1. Package scaffold, `package.json` + global `SYSTEM.md` (#001)
+2. Verify installation of 5 direct dependencies (#002)
 
-### Fase 2: Extensions core (Agentes C, D, E, F, G, H)
+### Phase 2: Core extensions (Agents C, D, E, F, G, H)
 
 3. `permission-gate` — PreToolUse hook + write constraint (#003)
-4. `post-edit-lint` — lint automático pós-edição (#004)
+4. `post-edit-lint` — automatic post-edit lint (#004)
 5. `loop-protection` — doom-loop + diminishing returns detection (#005)
 6. `task-tracker` — TaskCreate/TaskUpdate tools (#006)
 7. `contrib-gate` — Git workflow (#015)
-8. `auto-memory` — MEMORY.md persistence leve (#016)
-9. `setup-ai-memory` — hooks Pi-native + comandos opt-in para instalar/configurar/administrar o serviço upstream ai-memory (#017)
+8. `auto-memory` — lightweight MEMORY.md persistence (#016)
+9. `setup-ai-memory` — Pi-native hooks + opt-in commands to install/configure/administer the upstream ai-memory service (#017)
 
-### Fase 3: Core Skills & Templates (Agentes I, J)
+### Phase 3: Core Skills & Templates (Agents I, J)
 
 9. Core skills: `plan-mode` + `self-verify` (#009)
 10. Prompt templates + project templates (#012)
-11. Integrar as 14 skills do `mattpocock/skills` (#011)
+11. Integrate 14 `mattpocock/skills` (#011)
 
-### Fase 4: Extensions avançadas + skills extras (Agentes K, L, M, N)
+### Phase 4: Advanced extensions + extra skills (Agents K, L, M, N)
 
 12. `lsp-bridge` extension (#007)
 13. `monitor-bash` extension (#008)
-14. Skills extras: `web-research`, `browser-testing`, `subagent-delegation`, `mcp-orchestration` (#010)
-15. `ai-memory` skill para uso do serviço externo opcional (#017)
+14. Extra skills: `web-research`, `browser-testing`, `subagent-delegation`, `mcp-orchestration` (#010)
+15. `ai-memory` skill for using the optional external service (#017)
 
-### Fase 5: Documentação & validação (Agente O + Humano)
+### Phase 5: Documentation & validation (Agent O + Human)
 
-16. README.md + teste smoke cross-model (#013)
-17. Publicação do pacote & Release (#014)
+16. README.md + cross-model smoke test (#013)
+17. Package publication & Release (#014)
 
-### Instalação final (visão do usuário)
+### Final installation (user perspective)
 
 ```bash
-# 1. Instalar o kit (uma vez, global) — dependências são resolvidas automaticamente
+# 1. Install the kit (once, global) — dependencies are resolved automatically
 pi install git:github.com/caioo/pi-dev-starter-kit
 
-# 3. Novo projeto — setup inicial
+# 3. New project — initial setup
 pi
-# → Rodar /setup-matt-pocock-skills
-# → Copiar templates: AGENTS.md, CONTEXT.md, .pi/settings.json
-# → Editar AGENTS.md com detalhes do projeto
+# → Run /setup-matt-pocock-skills
+# → Copy templates: AGENTS.md, CONTEXT.md, .pi/settings.json
+# → Edit AGENTS.md with project details
 
-# 4. Pronto. Toda sessão herda o kit.
+# 4. Done. Every session inherits the kit.
 ```

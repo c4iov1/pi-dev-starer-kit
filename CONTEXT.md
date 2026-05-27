@@ -1,60 +1,60 @@
 # Context — Pi.dev Starter Kit
 
-## Glossário do Projeto
+## Project Glossary
 
 **Starter Kit**
-O pacote Pi.dev instalável que adiciona segurança, qualidade, workflow e ferramentas
-ao harness base. Não é um produto — é uma fundação universal. Um `pi install`
-e toda sessão herda o kit.
+The installable Pi.dev package that adds security, quality, workflow, and tools
+to the base harness. It's not a product — it's a universal foundation. One `pi install`
+and every session inherits the kit.
 
 **Extension**
-Módulo TypeScript que estende o comportamento do Pi.dev via `registerTool()`,
-`on()` (lifecycle events), `registerCommand()`, etc. As extensions do kit são
-autorais e mantidas neste repositório.
+A TypeScript module that extends Pi.dev behavior via `registerTool()`,
+`on()` (lifecycle events), `registerCommand()`, etc. The kit's extensions are
+built in-house and maintained in this repository.
 
 **Skill**
-Arquivo `SKILL.md` (YAML frontmatter + Markdown) carregado sob demanda pelo Pi.dev.
-Segue o open standard Agent Skills (agentskills.io). O kit inclui skills autorais
-e skills integradas do mattpocock/skills.
+A `SKILL.md` file (YAML frontmatter + Markdown) loaded on-demand by Pi.dev.
+Follows the open Agent Skills standard (agentskills.io). The kit includes in-house skills
+and integrated skills from mattpocock/skills.
 
 **Package (Pi.dev)**
-Unidade de distribuição do ecossistema Pi.dev. Contém extensions, skills, prompts
-e themes. Instalável via `pi install npm:...` ou `pi install git:...`.
+A distribution unit in the Pi.dev ecosystem. Contains extensions, skills, prompts,
+and themes. Installable via `pi install npm:...` or `pi install git:...`.
 
-**Dependência direta**
-Pacote de terceiros referenciado diretamente do repositório original — sem fork.
-O kit usa 5 dependências diretas do ecossistema Pi.dev. Caso um repo upstream
-quebre ou seja descontinuado, o fallback é forkar naquele momento (reativo, não proativo).
+**Direct Dependency**
+Third-party package referenced directly from the original repository — no fork.
+The kit uses 5 direct dependencies from the Pi.dev ecosystem. If an upstream repo
+breaks or is discontinued, the fallback is to fork at that point (reactive, not proactive).
 
 **Progressive Disclosure**
-Estratégia de carregamento de contexto: ferramentas e instruções pesadas só entram
-no system prompt quando a skill correspondente é ativada. Mantém o cache enxuto.
+Context loading strategy: heavy tools and instructions only enter the system prompt
+when the corresponding skill is activated. Keeps the prompt cache lean.
 
 **Permission Pipeline**
-Fluxo em camadas que processa tool calls: deny rules → allow rules → interactive prompt.
-Implementado pela extension `permission-gate`. Dois modos: `default` (aprovar cada edit)
-e `acceptEdits` (auto-aprovar edits, gatear bash).
+Layered flow that processes tool calls: deny rules → allow rules → interactive prompt.
+Implemented by the `permission-gate` extension. Two modes: `default` (approve each edit)
+and `acceptEdits` (auto-approve edits, gate bash).
 
 **Think-in-Code**
-Paradigma imposto pelo context-mode: em vez de ler dados brutos no contexto,
-o modelo escreve código que processa os dados em sandbox e retorna apenas o resultado.
+Paradigm enforced by context-mode: instead of reading raw data into context,
+the model writes code that processes data in a sandbox and returns only the result.
 
 **Session Continuity**
-Mecanismo do context-mode que indexa todo evento (edição, git op, task, erro, decisão)
-em SQLite+FTS5. Após compaction, o modelo recupera apenas o estado relevante via BM25 search.
+Context-mode mechanism that indexes every event (edit, git op, task, error, decision)
+into SQLite+FTS5. After compaction, the model recovers only relevant state via BM25 search.
 
 **Vertical Slice**
-Unidade de trabalho que corta todas as camadas (schema → lógica → UI → teste)
-entregando um caminho completo e demoável. Oposto de horizontal slice (fazer
-todos os testes primeiro, depois toda a implementação).
+A unit of work that cuts across all layers (schema → logic → UI → test),
+delivering a complete, demoable path. Opposite of horizontal slice (doing
+all tests first, then all implementation).
 
 **ADR (Architecture Decision Record)**
-Registro de decisão arquitetural. Contém: Status, Context, Options Considered,
-Decision, Consequences. Armazenado em `docs/adr/`.
+Architectural decision record. Contains: Status, Context, Options Considered,
+Decision, Consequences. Stored in `docs/adr/`.
 
-## Fontes de Verdade
+## Sources of Truth
 
-- `docs/architecture.md` — especificação técnica completa (4 camadas, diagramas, comparação)
-- `docs/prd.md` — product requirements (user stories, módulos, scope)
+- `docs/architecture.md` — complete technical specification (4 layers, diagrams, comparison)
+- `docs/prd.md` — product requirements (user stories, modules, scope)
 - `.scratch/pi-dev-starter-kit/` — issue tracker (17 issues, dependency-ordered)
-- `docs/references/` — referências externas (harness engineering, Pi.dev, mattpocock skills)
+- `docs/references/` — external references (harness engineering, Pi.dev, mattpocock skills)

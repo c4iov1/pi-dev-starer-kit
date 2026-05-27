@@ -1,74 +1,72 @@
+# Pi — Harness Technical Manual
 
-
-# Pi — Manual Técnico de Harness
-
-> **Stack**: `earendil-works/pi` (monorepo MIT). Pacote principal: `@earendil-works/pi-coding-agent`.
-> O domínio `pi.dev` é cedido por `exe.dev`. Pi é um *minimal terminal coding harness*.
-> `pi-ai` cuida da comunicação com LLMs multi-provider; `pi-agent-core` adiciona o agent loop com tool calling; `pi-coding-agent` entrega o agente completo com built-in tools, session persistence e extensibilidade; `pi-tui` provê a terminal UI.
+> **Stack**: `earendil-works/pi` (MIT monorepo). Main package: `@earendil-works/pi-coding-agent`.
+> The domain `pi.dev` is provided by `exe.dev`. Pi is a *minimal terminal coding harness*.
+> `pi-ai` handles multi-provider LLM communication; `pi-agent-core` adds the agent loop with tool calling; `pi-coding-agent` delivers the complete agent with built-in tools, session persistence, and extensibility; `pi-tui` provides the terminal UI.
 
 ---
 
-## 1. Filosofia de Design
+## 1. Design Philosophy
 
-**Sem MCP** — use Skills (CLI tools com READMEs) ou escreva uma extension que adicione MCP. **Sem sub-agents** — spawne instâncias via tmux ou construa com extensions. **Sem permission popups** — rode em container ou construa seu próprio fluxo de confirmação via extensions. **Sem plan mode** — escreva planos em arquivos ou construa com extensions. Todos esses padrões estão disponíveis como exemplos de extensions (50+ exemplos fornecidos).
+**No MCP** — use Skills (CLI tools with READMEs) or write an extension that adds MCP. **No sub-agents** — spawn instances via tmux or build with extensions. **No permission popups** — run in a container or build your own confirmation flow via extensions. **No plan mode** — write plans in files or build with extensions. All of these patterns are available as extension examples (50+ examples provided).
 
-Os built-in tools shipped são: `read`, `bash`, `edit`, `write`, `grep`, `find` e `ls`. O projeto trata o core como algo para adaptar, não um produto selado.
+The shipped built-in tools are: `read`, `bash`, `edit`, `write`, `grep`, `find`, and `ls`. The project treats the core as something to adapt, not a sealed product.
 
 ---
 
 ## 2. Providers & Models
 
-Pi suporta Anthropic, OpenAI, Google, Azure, Bedrock, Mistral, Groq, Cerebras, xAI, Hugging Face, Kimi, MiniMax, OpenRouter, Ollama e mais — ao contrário de Claude Code (Anthropic-only) ou GitHub Copilot (tied to GitHub/OpenAI).
+Pi supports Anthropic, OpenAI, Google, Azure, Bedrock, Mistral, Groq, Cerebras, xAI, Hugging Face, Kimi, MiniMax, OpenRouter, Ollama, and more — unlike Claude Code (Anthropic-only) or GitHub Copilot (tied to GitHub/OpenAI).
 
-Providers customizados: adicione via `~/.pi/agent/models.json` se falam API suportada (OpenAI, Anthropic, Google). Para APIs customizadas ou OAuth, use extensions.
+Custom providers: add via `~/.pi/agent/models.json` if they speak a supported API (OpenAI, Anthropic, Google). For custom APIs or OAuth, use extensions.
 
-OAuth login suportado: use subscrições existentes (Claude Pro/Max, ChatGPT Plus/Pro, GitHub Copilot, Google Gemini CLI) em vez de apenas API keys.
+OAuth login supported: use existing subscriptions (Claude Pro/Max, ChatGPT Plus/Pro, GitHub Copilot, Google Gemini CLI) instead of only API keys.
 
-Todas as credenciais ficam em `~/.pi/agent/auth.json` com permissões `0o600`. File locking via `proper-lockfile` previne race conditions em refresh de tokens simultâneos. Pi **não** usa macOS Keychain, keytar ou qualquer OS-level credential store. Prioridade de resolução: runtime override → auth.json → env var → fallback resolver.
+All credentials are stored in `~/.pi/agent/auth.json` with `0o600` permissions. File locking via `proper-lockfile` prevents race conditions during simultaneous token refresh. Pi **does not** use macOS Keychain, keytar, or any OS-level credential store. Resolution priority: runtime override → auth.json → env var → fallback resolver.
 
-O campo `transport` seleciona preferência de transporte do provider (`"sse"`, `"websocket"` ou `"auto"`) para providers que suportam múltiplos transportes.
+The `transport` field selects the provider's transport preference (`"sse"`, `"websocket"`, or `"auto"`) for providers that support multiple transports.
 
-Mid-session switching: `/model` ou `Ctrl+L`. `Ctrl+P` cicla uma lista de favoritos com escopo (`/scoped-models`).
+Mid-session switching: `/model` or `Ctrl+L`. `Ctrl+P` cycles a scoped favorites list (`/scoped-models`).
 
 ---
 
-## 3. Modos de Execução
+## 3. Execution Modes
 
-Pi roda em quatro modos: **interactive**, **print** ou **JSON**, **RPC** para integração de processos, e **SDK** para embedding em suas próprias apps.
+Pi runs in four modes: **interactive**, **print** or **JSON**, **RPC** for process integration, and **SDK** for embedding in your own apps.
 
-| Modo | Flag | Descrição |
+| Mode | Flag | Description |
 |---|---|---|
-| Interactive | *(default)* | TUI completa no terminal |
+| Interactive | *(default)* | Full terminal TUI |
 | Print/JSON | `--mode json` | Newline-delimited JSON events |
 | RPC | `--mode rpc` | JSONL over stdin/stdout |
-| SDK | — | Import direto do pacote TypeScript |
+| SDK | — | Direct import from the TypeScript package |
 
-`--export [out]` escreve uma session em HTML sem acionar a interactive UI.
+`--export [out]` writes a session as HTML without triggering the interactive UI.
 
 ---
 
 ## 4. Sessions
 
-### 4.1 Formato de Armazenamento
+### 4.1 Storage Format
 
-Sessions são armazenadas como arquivos JSONL (JSON Lines). Cada linha é um JSON object com um campo `type`. Entries formam uma **árvore** via campos `id`/`parentId`, habilitando branching in-place sem criar novos arquivos.
+Sessions are stored as JSONL (JSON Lines) files. Each line is a JSON object with a `type` field. Entries form a **tree** via `id`/`parentId` fields, enabling in-place branching without creating new files.
 
-Path de armazenamento: `~/.pi/agent/sessions/--<path>--/<timestamp>_<uuid>.jsonl`, onde `<path>` é o working directory com `/` substituído por `-`.
+Storage path: `~/.pi/agent/sessions/--<path>--/<timestamp>_<uuid>.jsonl`, where `<path>` is the working directory with `/` replaced by `-`.
 
-### 4.2 Tipos de Entry
+### 4.2 Entry Types
 
-**SessionEntryBase** (base de todos exceto SessionHeader):
+**SessionEntryBase** (base for all except SessionHeader):
 ```typescript
 interface SessionEntryBase {
   type: string;
   id: string;        // 8-char hex ID
-  parentId: string | null;  // null no primeiro entry
+  parentId: string | null;  // null on first entry
   timestamp: string; // ISO timestamp
 }
 ```
-O **SessionHeader** é a primeira linha do arquivo — metadata only, sem `id`/`parentId`.
+The **SessionHeader** is the first line of the file — metadata only, no `id`/`parentId`.
 
-Exemplo de header de session com parent (fork/clone):
+Example session header with parent (fork/clone):
 ```json
 {
   "type": "session", "version": 3, "id": "uuid",
@@ -77,70 +75,63 @@ Exemplo de header de session com parent (fork/clone):
 }
 ```
 
-**Union de tipos de entry disponíveis:**
+**Union of available entry types:**
 
+- `message` — conversation message (user/assistant/tool result)
+- `model_change` — emitted when the user switches models mid-session
+- `thinking_level_change` — emitted when changing reasoning level
+- `compaction` — stores summary of previous messages; includes `summary`, `firstKeptEntryId`, `tokensBefore`
+- `branch_summary` — created when navigating between distant branches with an LLM-generated summary of the previous branch
+- `custom` — arbitrary data entry from extension
+- `custom_message` — message injected by extension into LLM context
+- `label` — bookmark on a specific entry
 
-- `message` — mensagem na conversa (user/assistant/tool result)
-- `model_change` — emitido quando o usuário troca de model mid-session
-- `thinking_level_change` — emitido ao mudar nível de reasoning
-- `compaction` — armazena summary de mensagens anteriores; inclui `summary`, `firstKeptEntryId`, `tokensBefore`
-- `branch_summary` — criado ao navegar entre branches distantes com summary LLM-gerado da branch anterior
-- `custom` — entry de dados arbitrários de extension
-- `custom_message` — mensagem injetada por extension no contexto LLM
-- `label` — bookmark em entry específico
-
-
-Sessions legadas são automaticamente migradas para a versão atual (v3) ao carregar.
+Legacy sessions are automatically migrated to the current version (v3) on load.
 
 ### 4.3 Session Management — CLI
 
-
 ```bash
-pi -c              # continua a session mais recente
-pi -r              # browse e seleciona sessions passadas
-pi --no-session    # modo efêmero (não salva)
-pi --session <id>  # usa session específica por path ou ID
-pi --fork <id>     # fork de session específica em nova session
+pi -c              # continue the most recent session
+pi -r              # browse and select past sessions
+pi --no-session    # ephemeral mode (don't save)
+pi --session <id>  # use a specific session by path or ID
+pi --fork <id>     # fork a specific session into a new session
 ```
-
 
 ### 4.4 Branching & Tree Navigation
 
-Pi-agent usa formato tree-structured JSONL para persistir interações. Essa arquitetura permite histórico não-linear (forking/branching) dentro de um único arquivo de session, appending eficiente de novos eventos e migração automática entre versões.
+Pi-agent uses a tree-structured JSONL format to persist interactions. This architecture enables non-linear history (forking/branching) within a single session file, efficient appending of new events, and automatic migration between versions.
 
-`/fork` cria um novo `.jsonl` partindo do estado atual, efetivamente "detachando" o branch em sua própria session. **Branch Summarization**: ao mover entre branches distantes, o sistema pode gerar um `BranchSummaryEntry` para carregar contexto do branch "esquerdo" para o "direito".
+`/fork` creates a new `.jsonl` from the current state, effectively "detaching" the branch into its own session. **Branch Summarization**: when moving between distant branches, the system can generate a `BranchSummaryEntry` to load context from the "left" branch to the "right" one.
 
-O `SessionSelectorComponent` (via `pi --resume` ou `/resume`) provê TUI para busca e restauração de sessions. Suporta fuzzy matching, frases exatas (com aspas) e Regex (`re:<pattern>`).
+The `SessionSelectorComponent` (via `pi --resume` or `/resume`) provides a TUI for searching and restoring sessions. Supports fuzzy matching, exact phrases (with quotes), and Regex (`re:<pattern>`).
 
-### 4.5 SessionManager — API interna
+### 4.5 SessionManager — Internal API
 
+- `appendEntry(entry)` — persists a new entry to JSONL and updates the in-memory tree
+- `getTree()` — returns a defensive copy of the session as a hierarchical `SessionTreeNode`
+- `getBranch(leafId)` — resolves the linear path from a specific leaf to the root, filtering out entries outside that branch
+- `fork(entryId)` — creates a new session file from a specific point
 
-- `appendEntry(entry)` — persiste novo entry no JSONL e atualiza a árvore in-memory
-- `getTree()` — retorna cópia defensiva da session como `SessionTreeNode` hierárquico
-- `getBranch(leafId)` — resolve o caminho linear de um leaf específico até a raiz, filtrando entries fora daquele branch
-- `fork(entryId)` — cria novo arquivo de session a partir de um ponto específico
-
-
-`buildSessionContext()` é chamado para reconstruir o array de mensagens para o LLM. Se um `CompactionEntry` está presente no branch, as mensagens anteriores ao seu `firstKeptEntryId` são omitidas e substituídas pelo compaction summary.
+`buildSessionContext()` is called to rebuild the message array for the LLM. If a `CompactionEntry` is present in the branch, messages before its `firstKeptEntryId` are omitted and replaced with the compaction summary.
 
 ---
 
 ## 5. Compaction
 
-Compaction sumariza mensagens antigas mantendo as recentes. Manual: `/compact` ou `/compact <custom instructions>`. Automático: habilitado por padrão. Dispara em context overflow (recupera e retenta) ou ao se aproximar do limite (proativo).
+Compaction summarizes old messages while keeping recent ones. Manual: `/compact` or `/compact <custom instructions>`. Automatic: enabled by default. Triggers on context overflow (recovers and retries) or when approaching the limit (proactive).
 
-**Compaction é lossy.** O histórico completo permanece no JSONL; use `/tree` para revisitar.
+**Compaction is lossy.** Full history remains in JSONL; use `/tree` to revisit.
 
-O built-in compaction de pi é simples e eficaz, mas ainda é um passo de sumarização single-pass.
+Pi's built-in compaction is simple and effective, but is still a single-pass summarization step.
 
-### 5.1 Hooks de Compaction via Extension
-
+### 5.1 Compaction Hooks via Extension
 
 ```typescript
 pi.on("session_before_compact", async (event, ctx) => {
   const { preparation, branchEntries, customInstructions, signal } = event;
-  // Cancelar: return { cancel: true };
-  // Summary customizado:
+  // Cancel: return { cancel: true };
+  // Custom summary:
   return {
     compaction: {
       summary: "...",
@@ -151,23 +142,22 @@ pi.on("session_before_compact", async (event, ctx) => {
 });
 
 pi.on("session_compact", async (event, ctx) => {
-  // event.compactionEntry - a compaction salva
-  // event.fromExtension - se a extension proveu
+  // event.compactionEntry - the saved compaction
+  // event.fromExtension - if the extension provided it
 });
 ```
-
 
 ---
 
 ## 6. Extensions
 
-Extensions são módulos TypeScript que estendem o comportamento de pi. Podem subscrever lifecycle events, registrar custom tools chamáveis pelo LLM, adicionar commands e mais.
+Extensions are TypeScript modules that extend pi's behavior. They can subscribe to lifecycle events, register custom tools callable by the LLM, add commands, and more.
 
-Extensions são escritas em TypeScript e carregadas dinamicamente **sem compilação**.
+Extensions are written in TypeScript and loaded dynamically **without compilation**.
 
-Extensions são descobertas em `~/.pi/agent/extensions/` (global) e `.pi/extensions/` (project-local). A função `discoverAndLoadExtensions` usa **jiti** para carregar os módulos TypeScript, provendo um ambiente virtualizado que inclui pacotes core como `@mariozechner/pi-coding-agent` e `@sinclair/typebox`.
+Extensions are discovered in `~/.pi/agent/extensions/` (global) and `.pi/extensions/` (project-local). The `discoverAndLoadExtensions` function uses **jiti** to load TypeScript modules, providing a virtualized environment that includes core packages like `@mariozechner/pi-coding-agent` and `@sinclair/typebox`.
 
-### 6.1 Estrutura mínima
+### 6.1 Minimum Structure
 
 ```typescript
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -181,7 +171,7 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-Estrutura de diretório de uma extension:
+Extension directory structure:
 ```
 ~/.pi/agent/extensions/
 └── my-extension/
@@ -190,142 +180,131 @@ Estrutura de diretório de uma extension:
     └── utils.ts
 ```
 
+### 6.2 ExtensionAPI — Registration Methods
 
-### 6.2 ExtensionAPI — Métodos de Registro
+The API provides three functional groups: **Registration methods** — `on()`, `registerTool()`, `registerCommand()`, `registerShortcut()`, `registerFlag()`, `registerMessageRenderer()`. **Flag access** — `getFlag()` to read configuration values.
 
-A API provê três grupos funcionais: **Registration methods** — `on()`, `registerTool()`, `registerCommand()`, `registerShortcut()`, `registerFlag()`, `registerMessageRenderer()`. **Flag access** — `getFlag()` para ler valores de configuração.
-
-Gerenciamento de tools ativas:
+Active tool management:
 ```typescript
 const active = pi.getActiveTools(); // ["read", "bash", "edit", "write"]
 const all = pi.getAllTools();
-pi.setActiveTools(["read", "bash"]); // Switch para read-only
+pi.setActiveTools(["read", "bash"]); // Switch to read-only
 ```
 
-
-Controle de modelo e thinking level:
+Model and thinking level control:
 ```typescript
 const model = ctx.modelRegistry.find("anthropic", "claude-sonnet-4-5");
-await pi.setModel(model); // retorna false se sem API key
+await pi.setModel(model); // returns false if no API key
 
 const current = pi.getThinkingLevel(); // "off"|"minimal"|"low"|"medium"|"high"|"xhigh"
-pi.setThinkingLevel("high"); // clampado às capacidades do modelo
+pi.setThinkingLevel("high"); // clamped to model capabilities
 
-// Event bus compartilhado entre extensions:
+// Shared event bus between extensions:
 pi.events.on("my:event", (data) => { ... });
 ```
 
-
-### 6.3 ExtensionContext (ctx) — Disponível nos handlers
-
+### 6.3 ExtensionContext (ctx) — Available in Handlers
 
 ```typescript
-ctx.sessionManager.getEntries()  // todos os entries
-ctx.sessionManager.getBranch()   // branch atual
-ctx.sessionManager.getLeafId()   // ID do leaf entry atual
+ctx.sessionManager.getEntries()  // all entries
+ctx.sessionManager.getBranch()   // current branch
+ctx.sessionManager.getLeafId()   // current leaf entry ID
 ```
 
+`ctx.signal` — Current agent AbortSignal, or `undefined` when no active turn. Defined during active turn events (`tool_call`, `tool_result`, `message_update`, `turn_end`). Usually `undefined` in idle contexts (`session events`, `extension commands`, `shortcuts` fired while pi is idle).
 
-`ctx.signal` — AbortSignal atual do agente, ou `undefined` quando nenhum turn ativo. Definido durante eventos de turn ativo (`tool_call`, `tool_result`, `message_update`, `turn_end`). Geralmente `undefined` em contextos idle (`session events`, `extension commands`, `shortcuts` disparados enquanto pi está idle).
-
-`ctx.getContextUsage()` — retorna uso de contexto atual para o model ativo. Usa último `assistant usage` quando disponível, depois estima tokens para mensagens trailing:
+`ctx.getContextUsage()` — returns current context usage for the active model. Uses last `assistant usage` when available, then estimates tokens for trailing messages:
 ```typescript
 const usage = ctx.getContextUsage();
 if (usage && usage.tokens > 100_000) { ... }
 ```
 
-
-### 6.4 Lifecycle Events — Sequência completa
-
+### 6.4 Lifecycle Events — Complete Sequence
 
 ```
 startup
   └─► session_start { reason: "startup" }
       └─► resources_discover { reason: "startup" }
 
-/fork ou /clone
-  ├─► session_before_fork   (pode cancelar)
+/fork or /clone
+  ├─► session_before_fork   (can cancel)
   ├─► session_shutdown
   ├─► session_start { reason: "fork", previousSessionFile }
   └─► resources_discover { reason: "startup" }
 
-/compact ou auto-compaction
-  ├─► session_before_compact  (pode cancelar ou customizar)
+/compact or auto-compaction
+  ├─► session_before_compact  (can cancel or customize)
   └─► session_compact
 
 /tree navigation
-  ├─► session_before_tree   (pode cancelar ou customizar)
+  ├─► session_before_tree   (can cancel or customize)
   └─► session_tree
 
-/model ou Ctrl+P
-  ├─► thinking_level_select  (se troca de model altera thinking level)
+/model or Ctrl+P
+  ├─► thinking_level_select  (if model change alters thinking level)
   └─► model_select
 
 exit (Ctrl+C, Ctrl+D, SIGHUP, SIGTERM)
   └─► session_shutdown
 ```
 
+### 6.5 State Persistence Across Branches
 
-### 6.5 State Persistence entre branches
+Extensions with state should store it in `tool result details` for proper branching support — reconstructing it on `session_start` by iterating over the current branch.
 
-Extensions com estado devem armazená-lo em `tool result details` para suporte correto a branching — reconstruindo-o em `session_start` iterando sobre o branch atual.
+### 6.6 UI — Available Primitives
 
-### 6.6 UI — Primitivas disponíveis
+- `ctx.ui.custom()` — full TUI components with keyboard input for complex interactions
+- `pi.registerCommand()` — registers commands like `/mycommand`
+- `pi.appendEntry()` — session persistence, survives restarts
+- Control over how tool calls/results and messages appear in the TUI
 
-
-- `ctx.ui.custom()` — full TUI components com keyboard input para interações complexas
-- `pi.registerCommand()` — registra comandos como `/mycommand`
-- `pi.appendEntry()` — session persistence, sobrevive a restarts
-- Controle de como tool calls/results e mensagens aparecem na TUI
-
-
-No UI Phase, extensions podem requisitar user input ou exibir status via `ctx.ui`. No **interactive mode** renderiza componentes TUI; no **RPC mode** traduz essas requisições em JSON messages para o client remoto.
+In the UI Phase, extensions can request user input or display status via `ctx.ui`. In **interactive mode** it renders TUI components; in **RPC mode** it translates these requests into JSON messages for the remote client.
 
 ---
 
 ## 7. Skills
 
-Skills são pacotes de capability on-demand — **progressive disclosure sem bustar o prompt cache**.
+Skills are on-demand capability packages — **progressive disclosure without busting the prompt cache**.
 
-Skills são extensions especializadas definidas via arquivos `SKILL.md`. O `ResourceLoader` descobre essas skills e as injeta no system prompt via YAML frontmatter.
+Skills are specialized extensions defined via `SKILL.md` files. The `ResourceLoader` discovers these skills and injects them into the system prompt via YAML frontmatter.
 
-Extensions podem registrar custom commands; skills ficam disponíveis como `/skill:name`; prompt templates expandem via `/templatename`.
+Extensions can register custom commands; skills are available as `/skill:name`; prompt templates expand via `/templatename`.
 
-Sessions seguem o **Agent Skills standard** (`agentskills.io`) para definições de skill.
+Sessions follow the **Agent Skills standard** (`agentskills.io`) for skill definitions.
 
 ---
 
 ## 8. Prompt Templates
 
-Prompts reutilizáveis como arquivos Markdown. Tipo `/name` para expandir.
+Reusable prompts as Markdown files. Type `/name` to expand.
 
 ```markdown
 <!-- ~/.pi/agent/prompts/review.md -->
 Review this code for bugs, security issues, and performance problems.
 ```
 
-Substitua o default system prompt com `.pi/SYSTEM.md` (project) ou `~/.pi/agent/SYSTEM.md` (global). Anexe sem substituir via `APPEND_SYSTEM.md`.
+Replace the default system prompt with `.pi/SYSTEM.md` (project) or `~/.pi/agent/SYSTEM.md` (global). Append without replacing via `APPEND_SYSTEM.md`.
 
-Pi carrega `AGENTS.md` (ou `CLAUDE.md`) ao startup de múltiplos locais. Todos os arquivos encontrados são concatenados.
+Pi loads `AGENTS.md` (or `CLAUDE.md`) at startup from multiple locations. All found files are concatenated.
 
 ---
 
-## 9. Context Engineering — Camadas de Controle
+## 9. Context Engineering — Control Layers
 
-Pi adota abordagem de **"context engineering"** com system prompt deliberadamente mínimo e múltiplas camadas de controle:
-- `AGENTS.md / CLAUDE.md` — project instructions carregadas ao startup
-- `SYSTEM.md` — substitui ou anexa ao default system prompt por projeto
-- **Skills** — capability packages on-demand
-- **Prompt Templates** — prompts Markdown reutilizáveis expandidos via `/name`
-- **Dynamic context via extensions** — injeta mensagens antes de cada turn, filtra histórico, implementa RAG ou long-term memory
-- **Customizable compaction** — auto-sumariza mensagens antigas; totalmente overridable
-
+Pi adopts a **"context engineering"** approach with a deliberately minimal system prompt and multiple control layers:
+- `AGENTS.md / CLAUDE.md` — project instructions loaded at startup
+- `SYSTEM.md` — replaces or appends to the default system prompt per project
+- **Skills** — on-demand capability packages
+- **Prompt Templates** — reusable Markdown prompts expanded via `/name`
+- **Dynamic context via extensions** — injects messages before each turn, filters history, implements RAG or long-term memory
+- **Customizable compaction** — auto-summarizes old messages; fully overridable
 
 ---
 
 ## 10. Packages
 
-Estrutura de um Pi Package (`package.json`):
+Pi Package structure (`package.json`):
 ```json
 {
   "name": "my-pi-package",
@@ -338,31 +317,30 @@ Estrutura de um Pi Package (`package.json`):
   }
 }
 ```
-Sem manifest `pi`, pi auto-descobre a partir de diretórios convencionais (`extensions/`, `skills/`, `prompts/`, `themes/`).
+Without a `pi` manifest, pi auto-discovers from conventional directories (`extensions/`, `skills/`, `prompts/`, `themes/`).
 
-Git packages instalam dependências com `npm install --omit=dev` por padrão, portanto runtime deps devem estar listadas em `dependencies`. Se usar Node version manager, configure `npmCommand` em `settings.json`.
+Git packages install dependencies with `npm install --omit=dev` by default, so runtime deps must be listed in `dependencies`. If using a Node version manager, configure `npmCommand` in `settings.json`.
 
 ---
 
 ## 11. RPC Mode
 
-Quando executado com `--rpc`, pi opera como serviço headless JSON-over-stdio. Lê JSON commands do stdin, escreve JSON events/responses no stdout.
+When run with `--rpc`, pi operates as a headless JSON-over-stdio service. Reads JSON commands from stdin, writes JSON events/responses to stdout.
 
-RPC mode usa semântica JSONL estrita com LF (`\n`) como único delimitador de records.
+RPC mode uses strict JSONL semantics with LF (`\n`) as the only record delimiter.
 
-Clientes devem splittar records em `\n` apenas. **Não use** readers genéricos como Node `readline`, que também splitta em Unicode separators (`U+2028`, `U+2029`) presentes dentro de JSON payloads.
+Clients should split records on `\n` only. **Do not** use generic readers like Node `readline`, which also splits on Unicode separators (`U+2028`, `U+2029`) present within JSON payloads.
 
-### 11.1 Comandos RPC disponíveis
+### 11.1 Available RPC Commands
 
-**`prompt`** — envia um user prompt ao agente. A resposta do comando é emitida após o prompt ser aceito, enfileirado ou tratado. Events continuam streamando assincronamente após a aceitação:
+**`prompt`** — sends a user prompt to the agent. The command response is emitted after the prompt is accepted, queued, or handled. Events continue streaming asynchronously after acceptance:
 ```json
 {"id": "req-1", "type": "prompt", "message": "Hello, world!"}
 ```
 
+All commands support an optional `id` field for request/response correlation. If provided, the corresponding response will include the same `id`.
 
-Todos os comandos suportam campo `id` opcional para correlação request/response. Se provido, a resposta correspondente incluirá o mesmo `id`.
-
-**`get_state`** — retorna estado atual da session:
+**`get_state`** — returns the current session state:
 ```json
 {
   "type": "response", "command": "get_state", "success": true,
@@ -377,29 +355,26 @@ Todos os comandos suportam campo `id` opcional para correlação request/respons
 }
 ```
 
+**`get_commands`** — returns available commands (extension commands, prompt templates, and skills). They can be invoked via `prompt` command by prefixing with `/`.
 
-**`get_commands`** — retorna commands disponíveis (extension commands, prompt templates e skills). Podem ser invocados via command `prompt` prefixando com `/`.
+Skill commands and prompt templates are expanded in RPC. Extension commands **are not allowed** (use `prompt` instead).
 
-Skill commands e prompt templates são expandidos no RPC. Extension commands **não são permitidos** (use `prompt` em vez disso).
-
-Events são streamados para stdout como JSON lines durante a operação do agente.
+Events are streamed to stdout as JSON lines during agent operation.
 
 ### 11.2 Steering & Follow-up
 
+- **Enter** — queues a steering message, delivered after the assistant turn finishes its tool calls
+- **Alt+Enter** — queues a follow-up, delivered only after the agent finishes all work
 
-- **Enter** — enfileira steering message, entregue após o assistant turn terminar seus tool calls
-- **Alt+Enter** — enfileira follow-up, entregue apenas após o agente finalizar todo o trabalho
-
-
-`steeringMode` e `followUpMode` podem ser `"one-at-a-time"` (default, aguarda resposta) ou `"all"` (entrega todos de uma vez).
+`steeringMode` and `followUpMode` can be `"one-at-a-time"` (default, waits for response) or `"all"` (delivers all at once).
 
 ---
 
 ## 12. SDK
 
-Para Node.js/TypeScript: use `AgentSession` diretamente de `@earendil-works/pi-coding-agent` em vez de spawnar subprocesso. Veja `src/core/agent-session.ts` para a API.
+For Node.js/TypeScript: use `AgentSession` directly from `@earendil-works/pi-coding-agent` instead of spawning a subprocess. See `src/core/agent-session.ts` for the API.
 
-Uso básico do SDK:
+Basic SDK usage:
 ```typescript
 import { AuthStorage, createAgentSession, ModelRegistry, SessionManager }
   from "@earendil-works/pi-coding-agent";
@@ -416,11 +391,9 @@ const { session } = await createAgentSession({
 await session.prompt("What files are in the current directory?");
 ```
 
+Use the runtime API when you need to replace the active session and rebuild runtime state bound to cwd. It's the same layer used by the built-in modes: interactive, print, and RPC. `createAgentSessionRuntime()` takes a runtime factory plus the initial cwd/session target. The factory closes over fixed global-process inputs, recreates services bound to cwd, resolves session options against those services, and returns a complete runtime result.
 
-Use a runtime API quando precisar substituir a session ativa e reconstruir runtime state bound a cwd. É a mesma camada usada pelos modos built-in: interactive, print e RPC. `createAgentSessionRuntime()` recebe uma runtime factory mais o cwd/session target inicial. A factory fecha sobre inputs fixos global-process, recria serviços bound a cwd, resolve session options contra esses serviços e retorna um runtime result completo.
-
-### 12.1 Exports do SDK
-
+### 12.1 SDK Exports
 
 ```typescript
 // Factories
@@ -428,7 +401,7 @@ createAgentSession
 createAgentSessionRuntime
 AgentSessionRuntime
 
-// Auth e Models
+// Auth and Models
 AuthStorage
 ModelRegistry
 
@@ -444,12 +417,12 @@ defineTool
 SessionManager
 SettingsManager
 
-// Built-in tools (usam process.cwd())
+// Built-in tools (use process.cwd())
 codingTools, readOnlyTools
 readTool, bashTool, editTool, writeTool
 grepTool, findTool, lsTool
 
-// Tool factories (para custom cwd)
+// Tool factories (for custom cwd)
 createCodingTools, createReadOnlyTools
 createReadTool, createBashTool, createEditTool, createWriteTool
 createGrepTool, createFindTool, createLsTool
@@ -465,21 +438,18 @@ type PromptTemplate
 type Tool
 ```
 
-
-### 12.2 Steering e Follow-up via SDK
-
+### 12.2 Steering and Follow-up via SDK
 
 ```typescript
-// Steering: entregue após o turn atual finalizar seus tool calls
+// Steering: delivered after the current turn finishes its tool calls
 await session.steer("New instruction");
 
-// Follow-up: entregue apenas quando o agente parar
+// Follow-up: delivered only when the agent stops
 await session.followUp("After you're done, also do this");
 ```
-Ambos expandem prompt templates file-based mas erram em extension commands (não podem ser enfileirados).
+Both expand file-based prompt templates but error on extension commands (they cannot be queued).
 
-
-A classe `Agent` (de `@earendil-works/pi-agent-core`) cuida da interação core com o LLM. Acesse via `session.agent`.
+The `Agent` class (from `@earendil-works/pi-agent-core`) handles core LLM interaction. Access via `session.agent`.
 
 ---
 
@@ -487,48 +457,48 @@ A classe `Agent` (de `@earendil-works/pi-agent-core`) cuida da interação core 
 
 `--mode json` — newline-delimited JSON events. `--mode rpc` — JSONL over stdin/stdout.
 
-No JSON mode, todos os eventos do agente são emitidos como JSON lines para stdout — adequado para pipelines de CI/CD ou processos que consomem output do agente sem controle bidirecional (ao contrário do RPC, que é full-duplex).
+In JSON mode, all agent events are emitted as JSON lines to stdout — suitable for CI/CD pipelines or processes that consume agent output without bidirectional control (unlike RPC, which is full-duplex).
 
 ---
 
-## 14. Telemetria & Rede
+## 14. Telemetry & Network
 
-Telemetria de install/update: após primeiro install ou update detectado via changelog, envia um ping anônimo de versão para `https://pi.dev/api/report-install`. Opt-out: `enableInstallTelemetry: false` em `settings.json` ou `PI_TELEMETRY=0`. Isso **não** desabilita update checks; pi ainda pode contatar `pi.dev` pela versão mais recente, a menos que update checks sejam desabilitados ou offline mode habilitado.
+Install/update telemetry: after first install or update detected via changelog, sends an anonymous version ping to `https://pi.dev/api/report-install`. Opt-out: `enableInstallTelemetry: false` in `settings.json` or `PI_TELEMETRY=0`. This **does not** disable update checks; pi may still contact `pi.dev` for the latest version unless update checks are disabled or offline mode is enabled.
 
-Pi respeita `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, `https_proxy`, `no_proxy`, `NO_PROXY` via `undici`'s `EnvHttpProxyAgent`.
+Pi respects `HTTP_PROXY`, `HTTPS_PROXY`, `http_proxy`, `https_proxy`, `no_proxy`, `NO_PROXY` via `undici`'s `EnvHttpProxyAgent`.
 
 ---
 
-## 15. Configuração — Hierarquia de Arquivos
+## 15. Configuration — File Hierarchy
 
-| Arquivo | Escopo | Função |
+| File | Scope | Function |
 |---|---|---|
-| `~/.pi/agent/settings.json` | Global | Settings gerais |
-| `.pi/settings.json` | Project | Override local |
-| `~/.pi/agent/models.json` | Global | Providers/models customizados |
-| `~/.pi/agent/auth.json` | Global | Credenciais (`0o600`) |
-| `~/.pi/agent/SYSTEM.md` | Global | System prompt global |
-| `.pi/SYSTEM.md` | Project | System prompt de projeto (substitui) |
-| `APPEND_SYSTEM.md` | Project | Anexa ao system prompt |
-| `AGENTS.md` / `CLAUDE.md` | Project | Instruções de projeto (concatenadas) |
-| `~/.pi/agent/keybindings.json` | Global | Keybindings customizados |
+| `~/.pi/agent/settings.json` | Global | General settings |
+| `.pi/settings.json` | Project | Local override |
+| `~/.pi/agent/models.json` | Global | Custom providers/models |
+| `~/.pi/agent/auth.json` | Global | Credentials (`0o600`) |
+| `~/.pi/agent/SYSTEM.md` | Global | Global system prompt |
+| `.pi/SYSTEM.md` | Project | Project system prompt (replaces) |
+| `APPEND_SYSTEM.md` | Project | Appends to system prompt |
+| `AGENTS.md` / `CLAUDE.md` | Project | Project instructions (concatenated) |
+| `~/.pi/agent/keybindings.json` | Global | Custom keybindings |
 
-Project-level override: `.pi/settings.json`, `.pi/extensions/`, `.pi/skills/` permitem comportamento de agente específico por projeto.
+Project-level override: `.pi/settings.json`, `.pi/extensions/`, `.pi/skills/` enable project-specific agent behavior.
 
 ---
 
-## Sumário da Arquitetura em Camadas
+## Layered Architecture Summary
 
 ```
 ┌─────────────────────────────────────────────┐
-│           Interactive / Print / JSON / RPC  │  ← Modos de execução
+│           Interactive / Print / JSON / RPC  │  ← Execution modes
 ├─────────────────────────────────────────────┤
-│     pi-coding-agent  (harness principal)    │
+│     pi-coding-agent  (main harness)         │
 │  ┌────────────┐  ┌──────────┐  ┌─────────┐ │
-│  │ Extensions │  │  Skills  │  │Prompts  │ │  ← Camada de extensibilidade
+│  │ Extensions │  │  Skills  │  │Prompts  │ │  ← Extensibility layer
 │  └────────────┘  └──────────┘  └─────────┘ │
 │  ┌─────────────────────────────────────────┐│
-│  │  SessionManager  (JSONL tree, branches) ││  ← Persistência
+│  │  SessionManager  (JSONL tree, branches) ││  ← Persistence
 │  └─────────────────────────────────────────┘│
 │  ┌─────────────────────────────────────────┐│
 │  │  Compaction  (context budget control)   ││  ← Context engineering

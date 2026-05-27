@@ -1,32 +1,32 @@
-# A Anatomia de um Harness de Agente
+# The Anatomy of an Agent Harness
 
-**TLDR:** Agente = Modelo + Harness. A engenharia de harness é como construímos sistemas em torno dos modelos para transformá-los em motores de trabalho. O modelo contém a inteligência e o harness torna essa inteligência útil. Hoje, definimos o que é um harness e derivamos os componentes centrais que os agentes de hoje e do futuro precisam.
+**TLDR:** Agent = Model + Harness. Harness engineering is how we build systems around models to turn them into work engines. The model contains the intelligence and the harness makes that intelligence useful. Today, we define what a harness is and derive the core components that today's and tomorrow's agents need.
 
 > [!NOTE]
-> **Nota do Tradutor (Adição):** O termo "Harness" (que pode ser traduzido como "arreio" ou "cinto de segurança") neste contexto de software refere-se à infraestrutura de suporte, ferramentas, *scaffolding* e controle de execução que envolvem o modelo base. Optamos por manter o termo "Harness" no original, pois já é amplamente utilizado na área de engenharia de IA.
+> **Translator's Note (Addition):** The term "Harness" in this software context refers to the support infrastructure, tools, scaffolding, and execution control that wrap around the base model. We keep the original term "Harness" as it is widely used in AI engineering.
 
-## Alguém pode, por favor, definir um "Harness"?
+## Can Someone Please Define a "Harness"?
 
-**Agente = Modelo + Harness**
+**Agent = Model + Harness**
 
-Se você não é o modelo, você é o harness.
+If you're not the model, you're the harness.
 
-Um harness é cada pedaço de código, configuração e lógica de execução que não é o modelo em si. Um modelo bruto não é um agente. Mas ele se torna um quando um harness lhe fornece coisas como estado, execução de ferramentas, ciclos de feedback (feedback loops) e restrições aplicáveis.
+A harness is every piece of code, configuration, and execution logic that isn't the model itself. A raw model is not an agent. But it becomes one when a harness provides it with things like state, tool execution, feedback loops, and enforceable constraints.
 
-Concretamente, um harness inclui coisas como:
-* System Prompts (Prompts de Sistema)
-* Tools (Ferramentas), Skills (Habilidades), MCPs e suas descrições
-* Infraestrutura empacotada (sistema de arquivos, sandbox, navegador)
-* Lógica de Orquestração (criação de subagentes, repasses/handoffs, roteamento de modelo)
-* Hooks/Middleware para execução determinística (compactação, continuação, verificações de lint)
+Concretely, a harness includes things like:
+* System Prompts
+* Tools, Skills, MCPs and their descriptions
+* Packaged infrastructure (filesystem, sandbox, browser)
+* Orchestration logic (sub-agent spawning, handoffs, model routing)
+* Hooks/Middleware for deterministic execution (compaction, continuation, lint checks)
 
-Existem muitas maneiras confusas de dividir as fronteiras de um sistema de agente entre o modelo e o harness. Mas, na minha opinião, esta é a definição mais limpa porque nos força a pensar em projetar sistemas em torno da inteligência do modelo.
+There are many confusing ways to slice the boundaries of an agent system between model and harness. But in my opinion, this is the cleanest definition because it forces us to think about designing systems around the model's intelligence.
 
-O resto desta postagem percorre os componentes centrais do harness e deriva por que cada peça existe, trabalhando de trás para frente a partir da primitiva central de um modelo.
+The rest of this post walks through the core harness components and derives why each piece exists, working backwards from the central primitive of a model.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ HARNESS (Agente operacional)                                                │
+│ HARNESS (Operational Agent)                                                  │
 │                                                                             │
 │                        Context Injection                                    │
 │                 (prompts, memory, skills, conv.)                            │
@@ -48,27 +48,27 @@ O resto desta postagem percorre os componentes centrais do harness e deriva por 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Por que precisamos de Harnesses… Da perspectiva de um modelo
+## Why We Need Harnesses… From a Model's Perspective
 
-Existem coisas que queremos que um agente faça que um modelo não pode fazer logo de cara (*out of the box*). É aqui que entra um harness.
+There are things we want an agent to do that a model cannot do out of the box. This is where a harness comes in.
 
-Modelos (em sua maioria) recebem dados como texto, imagens, áudio, vídeo e produzem texto. É isso. Logo de cara, eles não podem:
-* Manter um estado durável ao longo das interações
-* Executar código
-* Acessar conhecimento em tempo real
-* Configurar ambientes e instalar pacotes para concluir o trabalho
+Models (for the most part) take data as text, images, audio, video and produce text. That's it. Out of the box, they cannot:
+* Maintain durable state across interactions
+* Execute code
+* Access real-time knowledge
+* Set up environments and install packages to complete work
 
-Esses são todos recursos em nível de harness. A estrutura dos LLMs exige algum tipo de maquinário que os envolva para realizar trabalho útil.
+These are all harness-level capabilities. The structure of LLMs demands some kind of machinery wrapped around them to perform useful work.
 
-Por exemplo, para obter uma UX (Experiência do Usuário) de produto como "bate-papo" (chatting), envolvemos o modelo em um loop *while* para rastrear mensagens anteriores e anexar novas mensagens do usuário. Todo mundo que está lendo isso já usou esse tipo de harness. A ideia principal é que queremos converter o comportamento desejado de um agente em um recurso real no harness.
+For example, to get a product UX like "chatting", we wrap the model in a *while* loop to track previous messages and append new user messages. Everyone reading this has used this kind of harness. The main idea is that we want to convert desired agent behavior into an actual harness feature.
 
-## Trabalhando de trás para frente: do comportamento desejado do agente para a engenharia de harness
+## Working Backwards: From Desired Agent Behavior to Harness Engineering
 
-A Engenharia de Harness ajuda os humanos a injetar *priors* (conhecimentos prévios) úteis para orientar o comportamento do agente. E conforme os modelos se tornaram mais capazes, os harnesses têm sido usados para estender e corrigir cirurgicamente os modelos a fim de completar tarefas anteriormente impossíveis.
+Harness Engineering helps humans inject useful *priors* to guide agent behavior. And as models have become more capable, harnesses have been used to extend and surgically fix models to complete previously impossible tasks.
 
-Não revisaremos uma lista exaustiva de cada recurso de harness. O objetivo é derivar um conjunto de recursos a partir do ponto de partida de ajudar os modelos a fazer um trabalho útil. Seguiremos um padrão como este:
+We won't review an exhaustive list of every harness feature. The goal is to derive a set of features from the starting point of helping models do useful work. We'll follow a pattern like this:
 
-**Comportamento que queremos (ou queremos consertar) → Design do Harness para ajudar o modelo a alcançar isso.**
+**Behavior we want (or want to fix) → Harness Design to help the model achieve it.**
 
 ```text
 Desired Agent Behavior                      What the Harness Adds
@@ -92,97 +92,97 @@ Desired Agent Behavior                      What the Harness Adds
 └──────────────────────────────────┘        └──────────────────────────────────┘
 ```
 
-*"Cada recurso do harness deriva de um comportamento que o modelo não consegue entregar sozinho"*
+*"Every harness feature derives from a behavior the model cannot deliver on its own"*
 
-### Sistemas de Arquivos para Armazenamento Durável e Gerenciamento de Contexto
+### Filesystems for Durable Storage and Context Management
 
-Queremos que os agentes tenham armazenamento durável para interagir com dados reais, descarregar informações que não cabem no contexto e persistir o trabalho entre sessões.
+We want agents to have durable storage for interacting with real data, offloading information that doesn't fit in context, and persisting work across sessions.
 
-Os modelos só podem operar diretamente no conhecimento dentro de sua janela de contexto. Antes dos sistemas de arquivos, os usuários tinham que copiar/colar o conteúdo diretamente para o modelo, o que é uma UX desajeitada e não funciona para agentes autônomos. O mundo já estava usando sistemas de arquivos para trabalhar, então os modelos foram naturalmente treinados em bilhões de tokens de como usá-los. A solução natural se tornou:
+Models can only operate directly on knowledge within their context window. Before filesystems, users had to copy/paste content directly to the model, which is a clunky UX and doesn't work for autonomous agents. The world was already using filesystems for work, so models were naturally trained on billions of tokens of how to use them. The natural solution became:
 
-**Harnesses são fornecidos com abstrações de sistema de arquivos e ferramentas para operações no sistema de arquivos (fs-ops).**
+**Harnesses are shipped with filesystem abstractions and tools for filesystem operations (fs-ops).**
 
-O sistema de arquivos é indiscutivelmente a primitiva de harness mais fundamental por causa do que ele desbloqueia:
-1. Os agentes ganham um espaço de trabalho (workspace) para ler dados, código e documentação.
-2. O trabalho pode ser adicionado e descarregado (offloaded) incrementalmente em vez de manter tudo no contexto. Os agentes podem armazenar saídas intermediárias e manter um estado que sobrevive a uma única sessão.
-3. O sistema de arquivos é uma superfície de colaboração natural. Múltiplos agentes e humanos podem se coordenar através de arquivos compartilhados. Arquiteturas como *Agent Teams* (Equipes de Agentes) dependem disso.
-4. O Git adiciona versionamento ao sistema de arquivos para que os agentes possam rastrear o trabalho, reverter erros e criar *branches* para experimentos. Revisitaremos o sistema de arquivos mais adiante, pois ele se mostra uma primitiva chave de harness para outros recursos que precisamos.
+The filesystem is arguably the most fundamental harness primitive because of what it unlocks:
+1. Agents gain a workspace to read data, code, and documentation.
+2. Work can be incrementally added and offloaded instead of keeping everything in context. Agents can store intermediate outputs and maintain state that survives a single session.
+3. The filesystem is a natural collaboration surface. Multiple agents and humans can coordinate through shared files. Architectures like *Agent Teams* rely on this.
+4. Git adds versioning to the filesystem so agents can track work, revert mistakes, and create *branches* for experiments. We'll revisit the filesystem later as it proves to be a key harness primitive for other features we need.
 
-### Bash + Código como uma Ferramenta de Propósito Geral
+### Bash + Code as a General-Purpose Tool
 
-Queremos que os agentes resolvam problemas autonomamente, sem que os humanos precisem pré-projetar todas as ferramentas.
+We want agents to solve problems autonomously, without humans needing to pre-design every tool.
 
-O principal padrão de execução de agentes hoje é um loop ReAct, onde um modelo raciocina (reasons), executa uma ação por meio de uma chamada de ferramenta, observa o resultado e repete isso em um loop `while`. Mas os harnesses só podem executar as ferramentas para as quais possuem lógica. Em vez de forçar os usuários a criar ferramentas para cada ação possível, uma solução melhor é dar aos agentes uma ferramenta de uso geral como o bash.
+The main agent execution pattern today is a ReAct loop, where a model reasons, executes an action through a tool call, observes the result, and repeats this in a `while` loop. But harnesses can only execute the tools for which they have logic. Instead of forcing users to create tools for every possible action, a better solution is to give agents a general-purpose tool like bash.
 
-**Harnesses vêm com uma ferramenta bash para que os modelos possam resolver problemas autonomamente escrevendo e executando código.**
+**Harnesses come with a bash tool so models can solve problems autonomously by writing and executing code.**
 
-A execução de código + bash é um grande passo para dar aos modelos um computador e deixá-los descobrir o resto autonomamente. O modelo pode projetar suas próprias ferramentas instantaneamente através de código em vez de ficar restrito a um conjunto fixo de ferramentas pré-configuradas.
+Code + bash execution is a major step toward giving models a computer and letting them figure out the rest autonomously. The model can design its own tools instantly through code instead of being restricted to a fixed set of pre-configured tools.
 
-Harnesses ainda vêm com outras ferramentas, mas a execução de código tornou-se a estratégia de uso geral padrão para resolução autônoma de problemas.
+Harnesses still come with other tools, but code execution has become the default general-purpose strategy for autonomous problem solving.
 
-### Sandboxes e Ferramentas para Executar e Verificar o Trabalho
+### Sandboxes and Tools for Running and Verifying Work
 
-Os agentes precisam de um ambiente com os padrões (defaults) corretos para que possam agir com segurança, observar resultados e progredir.
+Agents need an environment with the right defaults so they can act safely, observe results, and make progress.
 
-Demos aos modelos armazenamento e a capacidade de executar código, mas tudo isso precisa acontecer em algum lugar. Executar código gerado por agente localmente é arriscado e um único ambiente local não escala para grandes cargas de trabalho de agentes.
+We gave models storage and the ability to execute code, but all of this needs to happen somewhere. Running agent-generated code locally is risky and a single local environment doesn't scale to large agent workloads.
 
-**Sandboxes dão aos agentes ambientes operacionais seguros.** Em vez de executar localmente, o harness pode se conectar a um sandbox para executar código, inspecionar arquivos, instalar dependências e concluir tarefas. Isso cria uma execução de código isolada e segura. Para maior segurança, os harnesses podem criar listas de permissões (allow-lists) de comandos e impor isolamento de rede. Sandboxes também desbloqueiam escala, porque os ambientes podem ser criados sob demanda, distribuídos por muitas tarefas e destruídos quando o trabalho é concluído.
+**Sandboxes give agents safe operational environments.** Instead of running locally, the harness can connect to a sandbox to run code, inspect files, install dependencies, and complete tasks. This creates isolated, safe code execution. For greater security, harnesses can create command allow-lists and enforce network isolation. Sandboxes also unlock scale, because environments can be created on demand, distributed across many tasks, and destroyed when work is complete.
 
-Bons ambientes vêm com boas ferramentas padrão. Os harnesses são responsáveis ​​por configurar as ferramentas para que os agentes possam realizar trabalho útil. Isso inclui a pré-instalação de runtimes de linguagens e pacotes, CLIs para git e testes, e navegadores para interação na web e verificação.
+Good environments come with good default tools. Harnesses are responsible for setting up tools so agents can do useful work. This includes pre-installing language runtimes and packages, CLIs for git and testing, and browsers for web interaction and verification.
 
-Ferramentas como navegadores, logs, capturas de tela (screenshots) e executores de testes dão aos agentes uma maneira de observar e analisar seu trabalho. Isso os ajuda a criar loops de autoverificação onde eles podem escrever código de aplicativo, executar testes, inspecionar logs e corrigir erros.
+Tools like browsers, logs, screenshots, and test runners give agents a way to observe and analyze their work. This helps them create self-verification loops where they can write application code, run tests, inspect logs, and fix errors.
 
-O modelo não configura seu próprio ambiente de execução de imediato. Decidir onde o agente é executado, quais ferramentas estão disponíveis, o que ele pode acessar e como verifica seu trabalho são todas decisões de design em nível de harness.
+The model doesn't set up its own execution environment out of the box. Deciding where the agent runs, what tools are available, what it can access, and how it verifies its work are all harness-level design decisions.
 
-### Memória e Pesquisa para Aprendizado Contínuo
+### Memory and Search for Continuous Learning
 
-Os agentes devem lembrar o que viram e acessar informações que não existiam quando foram treinados.
+Agents should remember what they've seen and access information that didn't exist when they were trained.
 
-Os modelos não têm conhecimento adicional além de seus pesos e do que está em seu contexto atual. Sem acesso para editar os pesos do modelo, a única maneira de "adicionar conhecimento" é através da injeção de contexto.
+Models have no additional knowledge beyond their weights and what's in their current context. Without access to edit model weights, the only way to "add knowledge" is through context injection.
 
-**Para memória, o sistema de arquivos é novamente uma primitiva central.** Harnesses suportam padrões de arquivo de memória como `AGENTS.md` que são injetados no contexto ao iniciar o agente. Conforme os agentes adicionam e editam este arquivo, os harnesses carregam o arquivo atualizado no contexto. Esta é uma forma de aprendizado contínuo onde os agentes armazenam conhecimento de forma durável de uma sessão e injetam esse conhecimento em sessões futuras.
+**For memory, the filesystem is again a central primitive.** Harnesses support memory file patterns like `AGENTS.md` that are injected into context when the agent starts. As agents add to and edit this file, harnesses load the updated file into context. This is a form of continuous learning where agents durably store knowledge from one session and inject that knowledge into future sessions.
 
-Os cortes de conhecimento (knowledge cutoffs) significam que os modelos não podem acessar diretamente novos dados, como versões de bibliotecas atualizadas, sem que o usuário os forneça diretamente. Para conhecimento atualizado, ferramentas de **Pesquisa na Web** e **MCP** (Model Context Protocol) como o Context7 ajudam os agentes a acessar informações além da data de corte do conhecimento, como novas versões de bibliotecas ou dados atuais que não existiam quando o treinamento parou.
+Knowledge cutoffs mean models cannot directly access new data, like updated library versions, without the user providing it directly. For up-to-date knowledge, **Web Search** and **MCP** (Model Context Protocol) tools like Context7 help agents access information beyond the knowledge cutoff date, like new library versions or current data that didn't exist when training stopped.
 
-A Pesquisa na Web e ferramentas para consultar contexto atualizado são primitivas úteis para integrar a um harness.
+Web Search and tools for querying up-to-date context are useful primitives to integrate into a harness.
 
-### Batalhando contra a "Podridão do Contexto" (Context Rot)
+### Battling "Context Rot"
 
-O desempenho do agente não deve degradar ao longo do trabalho.
+Agent performance should not degrade over the course of work.
 
-A **Podridão do Contexto (Context Rot)** descreve como os modelos se tornam piores em raciocinar e concluir tarefas à medida que sua janela de contexto se enche. O contexto é um recurso precioso e escasso, então os harnesses precisam de estratégias para gerenciá-lo.
+**Context Rot** describes how models become worse at reasoning and completing tasks as their context window fills up. Context is a precious and scarce resource, so harnesses need strategies to manage it.
 
-Harnesses hoje são, em grande parte, mecanismos de entrega para uma boa engenharia de contexto.
+Harnesses today are, to a large extent, delivery mechanisms for good context engineering.
 
-**Compactação** aborda o que fazer quando a janela de contexto está perto de encher. Sem compactação, o que acontece quando uma conversa excede a janela de contexto? Uma opção é que a API dê erro, e isso não é bom. O harness tem que usar alguma estratégia para este caso. Portanto, a compactação descarrega e resume de forma inteligente a janela de contexto existente para que o agente possa continuar trabalhando.
+**Compaction** addresses what to do when the context window is near full. Without compaction, what happens when a conversation exceeds the context window? One option is that the API errors out, and that's not good. The harness has to use some strategy for this case. Therefore, compaction intelligently offloads and summarizes the existing context window so the agent can keep working.
 
-**Descarregamento de chamadas de ferramenta (Tool call offloading)** ajuda a reduzir o impacto de grandes saídas de ferramentas que podem poluir barulhentamente a janela de contexto sem fornecer informações úteis. O harness mantém os tokens de cabeçalho e cauda das saídas de ferramenta acima de um número limite de tokens e descarrega a saída completa para o sistema de arquivos, para que o modelo possa acessá-la se necessário.
+**Tool call offloading** helps reduce the impact of large tool outputs that can noisily pollute the context window without providing useful information. The harness keeps the header and tail tokens of tool outputs above a threshold token count and offloads the full output to the filesystem, so the model can access it if needed.
 
-**Skills (Habilidades)** abordam o problema de ter muitas ferramentas ou servidores MCP carregados no contexto ao iniciar o agente, o que degrada o desempenho antes que o agente possa começar a trabalhar. Skills são uma primitiva de nível de harness que resolvem isso por meio de **divulgação progressiva** (progressive disclosure). O modelo não escolheu ter as definições front-matter de Skills carregadas no contexto no início, mas o harness pode suportar isso para proteger o modelo contra a podridão do contexto.
+**Skills** address the problem of having too many tools or MCP servers loaded into context at agent startup, which degrades performance before the agent can begin working. Skills are a harness-level primitive that solves this through **progressive disclosure**. The model didn't choose to have Skill front-matter definitions loaded into context at startup, but the harness can support this to protect the model from context rot.
 
-### Execução Autônoma de Longo Horizonte
+### Autonomous Long-Horizon Execution
 
-Queremos que agentes completem trabalhos complexos, de forma autônoma, corretamente e em horizontes de tempo longos.
+We want agents to complete complex work, autonomously, correctly, and across long time horizons.
 
-A criação de software autônomo é o Santo Graal para agentes de programação. Mas os modelos de hoje sofrem com paradas precoces (early stopping), problemas na decomposição de problemas complexos e incoerência à medida que o trabalho se estende por múltiplas janelas de contexto. Um bom harness tem que ser projetado em torno de tudo isso.
+Autonomous software creation is the Holy Grail for coding agents. But today's models suffer from early stopping, problems decomposing complex problems, and incoherence as work spans multiple context windows. A good harness has to be designed around all of this.
 
-É aqui que as primitivas de harness mencionadas anteriormente começam a se compor. O trabalho de longo horizonte requer estado durável, planejamento, observação e verificação para continuar funcionando em múltiplas janelas de contexto.
+This is where the previously mentioned harness primitives start to compose. Long-horizon work requires durable state, planning, observation, and verification to keep going across multiple context windows.
 
-*   **Sistemas de arquivos e git para rastrear trabalho entre sessões.** Agentes produzem milhões de tokens durante uma tarefa longa, então o sistema de arquivos captura duravelmente o trabalho para rastrear o progresso ao longo do tempo. Adicionar o git permite que novos agentes se atualizem rapidamente com os últimos trabalhos e o histórico do projeto. Para vários agentes trabalhando juntos, o sistema de arquivos também atua como um livro-razão (ledger) compartilhado de trabalho onde os agentes podem colaborar.
-*   **Ralph Loops para continuar o trabalho.** O *Ralph Loop* é um padrão de harness que intercepta a tentativa de saída do modelo por meio de um hook (gancho) e reinjeta o prompt original em uma janela de contexto limpa, forçando o agente a continuar seu trabalho em relação a um objetivo de conclusão. O sistema de arquivos torna isso possível porque cada iteração começa com contexto fresco, mas lê o estado da iteração anterior.
-*   **Planejamento e autoverificação para permanecer no caminho certo.** Planejamento é quando um modelo decompõe um objetivo em uma série de etapas. Harnesses suportam isso através de bons prompts e injetando lembretes de como usar um arquivo de plano no sistema de arquivos. Depois de completar cada passo, os agentes se beneficiam da verificação da correção de seu trabalho através de autoverificação. Hooks em harnesses podem executar um conjunto de testes pré-definido e retornar ao modelo em caso de falha com a mensagem de erro, ou os modelos podem ser instruídos por prompt a autoavaliar seu código independentemente. A verificação fundamenta a solução em testes e cria um sinal de feedback para autoaperfeiçoamento.
+*   **Filesystems and git for tracking work across sessions.** Agents produce millions of tokens during a long task, so the filesystem durably captures work for tracking progress over time. Adding git allows new agents to quickly catch up with latest work and project history. For multiple agents working together, the filesystem also acts as a shared ledger of work where agents can collaborate.
+*   **Ralph Loops to continue work.** The *Ralph Loop* is a harness pattern that intercepts the model's exit attempt through a hook and re-injects the original prompt into a clean context window, forcing the agent to continue its work toward a completion goal. The filesystem makes this possible because each iteration starts with fresh context but reads the state from the previous iteration.
+*   **Planning and self-verification to stay on track.** Planning is when a model decomposes a goal into a series of steps. Harnesses support this through good prompts and injecting reminders of how to use a plan file on the filesystem. After completing each step, agents benefit from verifying work correctness through self-verification. Hooks in harnesses can run a predefined test suite and return to the model on failure with the error message, or models can be prompt-instructed to self-evaluate their code independently. Verification grounds the solution in tests and creates a feedback signal for self-improvement.
 
-## O Futuro dos Harnesses
+## The Future of Harnesses
 
-### O Acoplamento entre Treinamento de Modelos e Design de Harness
+### The Coupling Between Model Training and Harness Design
 
-Produtos de agentes de hoje, como Claude Code e Codex, são pós-treinados com modelos e harnesses em conjunto (no loop). Isso ajuda os modelos a melhorar em ações nas quais os designers de harness acham que eles devem ser nativamente bons, como operações no sistema de arquivos, execução em bash, planejamento ou paralelização de trabalho com subagentes.
+Today's agent products, like Claude Code and Codex, are post-trained with models and harnesses together in the loop. This helps models improve at actions that harness designers think they should be natively good at, like filesystem operations, bash execution, planning, or parallelizing work with sub-agents.
 
-Isso cria um ciclo de feedback. Primitivas úteis são descobertas, adicionadas ao harness e, em seguida, usadas ao treinar a próxima geração de modelos. Conforme esse ciclo se repete, os modelos tornam-se mais capazes dentro do harness no qual foram treinados.
+This creates a feedback cycle. Useful primitives are discovered, added to the harness, and then used when training the next generation of models. As this cycle repeats, models become more capable within the harness they were trained on.
 
-Mas essa coevolução tem efeitos colaterais interessantes para a generalização. Isso aparece em situações como quando a alteração da lógica da ferramenta leva a um pior desempenho do modelo. Um bom exemplo é descrito aqui no guia de prompts do Codex-5.3 com a lógica da ferramenta `apply_patch` para editar arquivos. Um modelo verdadeiramente inteligente deveria ter poucos problemas em alternar entre os métodos de patch, mas treinar com um harness no loop cria esse *overfitting* (sobreajuste).
+But this coevolution has interesting side effects for generalization. This shows up in situations like when changing tool logic leads to worse model performance. A good example is described here in the Codex-5.3 prompt guide with the `apply_patch` tool logic for editing files. A truly intelligent model should have little trouble switching between patch methods, but training with a harness in the loop creates this *overfitting*.
 
-Mas isso não significa que o melhor harness para sua tarefa seja aquele com o qual um modelo foi pós-treinado. O Terminal Bench 2.0 Leaderboard é um bom exemplo. Opus 4.6 no Claude Code pontua muito abaixo do Opus 4.6 em outros harnesses. Em um blog anterior, mostramos como melhoramos nosso agente de codificação do Top 30 para o Top 5 no Terminal Bench 2.0 alterando apenas o harness. Há muito suco a ser espremido da otimização do harness para sua tarefa.
+But that doesn't mean the best harness for your task is the one a model was post-trained with. The Terminal Bench 2.0 Leaderboard is a good example. Opus 4.6 in Claude Code scores far below Opus 4.6 in other harnesses. In a previous blog, we showed how we improved our coding agent from Top 30 to Top 5 on Terminal Bench 2.0 by changing only the harness. There is a lot of juice to squeeze out of harness optimization for your task.
 
 ```text
                 ┌──────────────────────────────────────┐
@@ -206,21 +206,21 @@ Mas isso não significa que o melhor harness para sua tarefa seja aquele com o q
                └──────────────────────────────────────┘
 ```
 
-### Para Onde a Engenharia de Harness Está Indo
+### Where Harness Engineering Is Heading
 
-Conforme os modelos se tornam mais capazes, parte do que vive no harness hoje será absorvido pelo modelo. Modelos se tornarão melhores em planejamento, autoverificação e coerência em longo horizonte nativamente, exigindo assim menos injeção de contexto, por exemplo.
+As models become more capable, some of what lives in the harness today will be absorbed by the model. Models will become better at planning, self-verification, and long-horizon coherence natively, thus requiring less context injection, for example.
 
-Isso sugere que os harnesses devem importar menos ao longo do tempo. Mas assim como a engenharia de prompts continua sendo valiosa hoje, é provável que a engenharia de harness continue sendo útil para construir bons agentes.
+This suggests harnesses should matter less over time. But just as prompt engineering remains valuable today, harness engineering is likely to remain useful for building good agents.
 
-É verdade que os harnesses hoje consertam (patch over) as deficiências do modelo, mas eles também projetam sistemas em torno da inteligência do modelo para torná-los mais eficazes. Um ambiente bem configurado, as ferramentas certas, estado durável e loops de verificação tornam qualquer modelo mais eficiente, independentemente de sua inteligência básica.
+It's true that harnesses today patch over model deficiencies, but they also design systems around the model's intelligence to make them more effective. A well-configured environment, the right tools, durable state, and verification loops make any model more efficient, regardless of its base intelligence.
 
-A engenharia de harness é uma área muito ativa de pesquisa que usamos para melhorar nossa biblioteca de construção de harness `deepagents` na LangChain. Aqui estão alguns problemas em aberto e interessantes que estamos explorando hoje:
-* Orquestrar centenas de agentes trabalhando em paralelo em uma base de código compartilhada.
-* Agentes que analisam seus próprios rastros (traces) para identificar e corrigir modos de falha no nível do harness.
-* Harnesses que montam dinamicamente as ferramentas e o contexto certos de forma just-in-time (na hora exata) para uma determinada tarefa, em vez de serem pré-configurados.
+Harness engineering is a very active research area that we use to improve our harness-building library `deepagents` at LangChain. Here are some open and interesting problems we're exploring today:
+* Orchestrating hundreds of agents working in parallel on a shared codebase.
+* Agents that analyze their own traces to identify and fix harness-level failure modes.
+* Harnesses that dynamically assemble the right tools and context just-in-time for a given task, rather than being pre-configured.
 
-Este blog foi um exercício de definição do que é um harness e como ele é moldado pelo trabalho que queremos que os modelos realizem.
+This blog was an exercise in defining what a harness is and how it is shaped by the work we want models to perform.
 
-O modelo contém a inteligência e o harness é o sistema que torna essa inteligência útil.
+The model contains the intelligence and the harness is the system that makes that intelligence useful.
 
-Para mais construção de harnesses, sistemas melhores e agentes melhores.
+For more harness building, better systems, and better agents.

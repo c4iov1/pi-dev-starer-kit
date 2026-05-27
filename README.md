@@ -177,7 +177,7 @@ For a detailed breakdown of the 4-layer architecture (Core, Security & Quality, 
 
 Additional implementation references:
 
-- [Akita harness ideas plan](docs/akita-harness-ideas-plan.md) / [PT-BR](docs/akita-harness-ideas-plan.pt-BR.md)
+- [Akita harness ideas plan](docs/akita-harness-ideas-plan.md)
 - [Steering profiles](docs/steering-profiles.md)
 - [Provider guidance](docs/provider-guidance.md)
 - [ai-memory integration plan](docs/ai-memory-integration-plan.md)

@@ -1,14 +1,14 @@
 # repo_init.md — Pi.dev Starter Kit
 
-> O que fazer ANTES de começar a desenvolver. Siga os passos em ordem.
+> What to do BEFORE you start developing. Follow the steps in order.
 
 ---
 
-## Passo 1: Verificar dependências (HITL — humano)
+## Step 1: Verify dependencies (HITL — human)
 
-Antes de qualquer código, verifique que os 5 pacotes do ecossistema estão acessíveis:
+Before any code, verify the 5 ecosystem packages are accessible:
 
-| # | Repositório original | Categoria |
+| # | Original repository | Category |
 |---|---|---|
 | 1 | `pi-web-access` (nicobailon/pi-web-access) | Web search/fetch |
 | 2 | `pi-subagents` (nicobailon/pi-subagents) | Sub-agents |
@@ -16,228 +16,228 @@ Antes de qualquer código, verifique que os 5 pacotes do ecossistema estão aces
 | 4 | `pi-agent-browser-native` (fitchmultz/pi-agent-browser-native) | Browser automation |
 | 5 | `context-mode` (mksglu/context-mode) | Sandbox tools + session continuity |
 
-Estes pacotes são **dependências diretas** — apontam para os repos originais, sem fork. Três pacotes da arquitetura original foram removidos e serão reimplementados como extensões internas:
-- `pi-quick-perms` → absorvido pelo `permission-gate` (issue #003)
-- `pi-contrib-gate` → nova extensão `contrib-gate` (issue #015)
-- `pi-memory` → nova extensão `auto-memory` (issue #016)
+These packages are **direct dependencies** — they point to the original repos, no fork. Three packages from the original architecture were removed and will be reimplemented as internal extensions:
+- `pi-quick-perms` → absorbed by `permission-gate` (issue #003)
+- `pi-contrib-gate` → new extension `contrib-gate` (issue #015)
+- `pi-memory` → new extension `auto-memory` (issue #016)
 
 > **Issue**: `.scratch/pi-dev-starter-kit/002-fork-dependencies.md`
 
 ---
 
-## Passo 2: Ler a especificação (agente)
+## Step 2: Read the spec (agent)
 
-Antes de codar, o agente precisa entender o que vai construir. Peça para ele ler:
+Before coding, the agent needs to understand what it will build. Ask it to read:
 
 ```
-Leia os seguintes arquivos em ordem e me explique o que entendeu:
+Read the following files in order and explain what you understood:
 
-1. CONTEXT.md — glossário do domínio
-2. docs/INDEX.md — mapa de conhecimento
-3. docs/architecture.md — especificação técnica completa (4 camadas, diagramas, comparação com Claude Code/Codex)
-4. docs/prd.md — product requirements (31 user stories, módulos, scope)
+1. CONTEXT.md — domain glossary
+2. docs/INDEX.md — knowledge map
+3. docs/architecture.md — complete technical specification (4 layers, diagrams, comparison with Claude Code/Codex)
+4. docs/prd.md — product requirements (31 user stories, modules, scope)
 
-Depois me diga: quais são as 4 camadas do kit, quais extensions já existem, quais capabilities Akita-inspired foram adicionadas, e qual a ordem de dependência entre elas?
+Then tell me: what are the 4 layers of the kit, which extensions already exist, which Akita-inspired capabilities were added, and what is the dependency order between them?
 ```
 
 ---
 
-## Passo 3: Iniciar o desenvolvimento — Fase 1 (agente, AFK)
+## Step 3: Start development — Phase 1 (agent, AFK)
 
-A primeira fase tem 2 issues independentes que podem rodar em paralelo:
+The first phase has 2 independent issues that can run in parallel:
 
-### Agente A — Package scaffold + SYSTEM.md
-
-```
-Leia .scratch/pi-dev-starter-kit/001-package-scaffold.md e implemente.
-
-O que construir:
-- package.json com manifest Pi.dev (keywords: ["pi-package"], pi: {extensions, skills, prompts})
-- SYSTEM.md com 6 tool categories, workflow canônico (Plan→Search→Edit→Test→Lint→Verify→Done), Think-in-Code routing rules, progressive disclosure
-- APPEND_SYSTEM.md com instruções de workflow
-- Diretórios vazios: extensions/, skills/, prompts/
-
-Referências:
-- docs/references/5-pi-dev-doc.md (seção 10: Packages)
-- docs/architecture.md (Camada A: Contexto & Documentação)
-```
-
-### Agente B — Copiar skills do mattpocock
+### Agent A — Package scaffold + SYSTEM.md
 
 ```
-Leia .scratch/pi-dev-starter-kit/011-integrate-mattpocock-skills.md e implemente.
+Read .scratch/pi-dev-starter-kit/001-package-scaffold.md and implement.
 
-O que fazer:
-- Clonar https://github.com/mattpocock/skills
-- Copiar 14 skills para skills/ (lista no issue)
-- Verificar que cada SKILL.md tem YAML frontmatter correto
-- NÃO incluir: migrate-to-shoehorn, scaffold-exercises, git-guardrails-claude-code, request-refactor-plan
+What to build:
+- package.json with Pi.dev manifest (keywords: ["pi-package"], pi: {extensions, skills, prompts})
+- SYSTEM.md with 6 tool categories, canonical workflow (Plan→Search→Edit→Test→Lint→Verify→Done), Think-in-Code routing rules, progressive disclosure
+- APPEND_SYSTEM.md with workflow instructions
+- Empty directories: extensions/, skills/, prompts/
 
-Referência:
-- docs/references/8-mattpocock-skills.md
+References:
+- docs/references/5-pi-dev-doc.md (section 10: Packages)
+- docs/architecture.md (Layer A: Context & Documentation)
 ```
 
-> **Rode Agente A e Agente B em paralelo.** Eles não têm dependência entre si.
+### Agent B — Copy mattpocock skills
+
+```
+Read .scratch/pi-dev-starter-kit/011-integrate-mattpocock-skills.md and implement.
+
+What to do:
+- Clone https://github.com/mattpocock/skills
+- Copy 14 skills to skills/ (list in the issue)
+- Verify each SKILL.md has correct YAML frontmatter
+- Do NOT include: migrate-to-shoehorn, scaffold-exercises, git-guardrails-claude-code, request-refactor-plan
+
+Reference:
+- docs/references/8-mattpocock-skills-doc.md
+```
+
+> **Run Agent A and Agent B in parallel.** They have no dependency between them.
 
 ---
 
-## Passo 4: Fase 2 — Extensions core (6 agentes em paralelo, AFK)
+## Step 4: Phase 2 — Core extensions (6 agents in parallel, AFK)
 
-Assim que a Fase 1 terminar, dispare estes 6 agentes simultaneamente:
+Once Phase 1 finishes, launch these 6 agents simultaneously:
 
-### Agente C — permission-gate
-
-```
-Leia .scratch/pi-dev-starter-kit/003-extension-permission-gate.md e implemente.
-
-Criar extensions/permission-gate/index.ts.
-A ExtensionAPI e as referências estão em docs/references/5-pi-dev-doc.md (seção 6: Extensions).
-```
-
-### Agente D — post-edit-lint
+### Agent C — permission-gate
 
 ```
-Leia .scratch/pi-dev-starter-kit/004-extension-post-edit-lint.md e implemente.
+Read .scratch/pi-dev-starter-kit/003-extension-permission-gate.md and implement.
 
-Criar extensions/post-edit-lint/index.ts.
+Create extensions/permission-gate/index.ts.
+ExtensionAPI and references are in docs/references/5-pi-dev-doc.md (section 6: Extensions).
 ```
 
-### Agente E — loop-protection
+### Agent D — post-edit-lint
 
 ```
-Leia .scratch/pi-dev-starter-kit/005-extension-loop-protection.md e implemente.
+Read .scratch/pi-dev-starter-kit/004-extension-post-edit-lint.md and implement.
 
-Criar extensions/loop-protection/index.ts.
+Create extensions/post-edit-lint/index.ts.
 ```
 
-### Agente F — task-tracker
+### Agent E — loop-protection
 
 ```
-Leia .scratch/pi-dev-starter-kit/006-extension-task-tracker.md e implemente.
+Read .scratch/pi-dev-starter-kit/005-extension-loop-protection.md and implement.
 
-Criar extensions/task-tracker/index.ts.
+Create extensions/loop-protection/index.ts.
 ```
 
-### Agente G — contrib-gate
+### Agent F — task-tracker
 
 ```
-Leia .scratch/pi-dev-starter-kit/015-extension-contrib-gate.md e implemente.
+Read .scratch/pi-dev-starter-kit/006-extension-task-tracker.md and implement.
 
-Criar extensions/contrib-gate/index.ts.
-Antes de implementar, revise o repo original: https://github.com/nandal/pi-ext/tree/main/contrib-gate
+Create extensions/task-tracker/index.ts.
 ```
 
-### Agente H — auto-memory
+### Agent G — contrib-gate
 
 ```
-Leia .scratch/pi-dev-starter-kit/016-extension-auto-memory.md e implemente.
+Read .scratch/pi-dev-starter-kit/015-extension-contrib-gate.md and implement.
 
-Criar extensions/auto-memory/index.ts.
-Antes de implementar, revise o repo original: https://github.com/samfoy/pi-memory
+Create extensions/contrib-gate/index.ts.
+Before implementing, review the original repo: https://github.com/nandal/pi-ext/tree/main/contrib-gate
 ```
 
-> **Rode Agentes C, D, E, F, G, H em paralelo.** Todos dependem apenas do package scaffold (#001).
+### Agent H — auto-memory
+
+```
+Read .scratch/pi-dev-starter-kit/016-extension-auto-memory.md and implement.
+
+Create extensions/auto-memory/index.ts.
+Before implementing, review the original repo: https://github.com/samfoy/pi-memory
+```
+
+> **Run Agents C, D, E, F, G, H in parallel.** They all depend only on the package scaffold (#001).
 
 ---
 
-## Passo 5: Fase 3 — Skills do kit + templates (2 agentes em paralelo, AFK)
+## Step 5: Phase 3 — Kit skills + templates (2 agents in parallel, AFK)
 
-### Agente I — plan-mode + self-verify skills
+### Agent I — plan-mode + self-verify skills
 
 ```
-Leia .scratch/pi-dev-starter-kit/009-skills-plan-verify.md e implemente.
+Read .scratch/pi-dev-starter-kit/009-skills-plan-verify.md and implement.
 
-Criar:
+Create:
 - skills/plan-mode/SKILL.md
 - skills/self-verify/SKILL.md
 
-O plan-mode depende da extension task-tracker (#006) para registrar TODOs.
+plan-mode depends on the task-tracker extension (#006) to register TODOs.
 ```
 
-### Agente J — Templates + prompt templates
+### Agent J — Templates + prompt templates
 
 ```
-Leia .scratch/pi-dev-starter-kit/012-project-templates.md e implemente.
+Read .scratch/pi-dev-starter-kit/012-project-templates.md and implement.
 
-Criar:
-- templates/AGENTS.template.md (~100 linhas, index-style)
-- templates/CONTEXT.template.md (glossário de domínio)
-- templates/settings.template.json (todas as feature flags)
+Create:
+- templates/AGENTS.template.md (~100 lines, index-style)
+- templates/CONTEXT.template.md (domain glossary)
+- templates/settings.template.json (all feature flags)
 - templates/INDEX.template.md
 - templates/ADR.template.md
 - prompts/plan.md, verify.md, review.md, handoff.md
 ```
 
-> **Rode Agentes I e J em paralelo.** Agente I depende de #006 (task-tracker). Agente J depende apenas de #001.
+> **Run Agents I and J in parallel.** Agent I depends on #006 (task-tracker). Agent J depends only on #001.
 
 ---
 
-## Passo 6: Fase 4 — Extensions avançadas + skills de capacidades (3 agentes em paralelo, AFK)
+## Step 6: Phase 4 — Advanced extensions + capability skills (4 agents in parallel, AFK)
 
-### Agente K — lsp-bridge
-
-```
-Leia .scratch/pi-dev-starter-kit/007-extension-lsp-bridge.md e implemente.
-
-Criar extensions/lsp-bridge/index.ts.
-Depende de #003 (permission-gate) porque type-check roda após edit aprovado.
-```
-
-### Agente L — monitor-bash
+### Agent K — lsp-bridge
 
 ```
-Leia .scratch/pi-dev-starter-kit/008-extension-monitor-bash.md e implemente.
+Read .scratch/pi-dev-starter-kit/007-extension-lsp-bridge.md and implement.
 
-Criar extensions/monitor-bash/index.ts.
-Depende de #003 (permission-gate) porque Monitor executa bash e deve passar pelo pipeline.
+Create extensions/lsp-bridge/index.ts.
+Depends on #003 (permission-gate) because type-check runs after approved edit.
 ```
 
-### Agente M — Skills de capacidades
+### Agent L — monitor-bash
 
 ```
-Leia .scratch/pi-dev-starter-kit/010-skills-capabilities.md e implemente.
+Read .scratch/pi-dev-starter-kit/008-extension-monitor-bash.md and implement.
 
-Criar:
+Create extensions/monitor-bash/index.ts.
+Depends on #003 (permission-gate) because Monitor runs bash and must go through the pipeline.
+```
+
+### Agent M — Capability skills
+
+```
+Read .scratch/pi-dev-starter-kit/010-skills-capabilities.md and implement.
+
+Create:
 - skills/web-research/SKILL.md
 - skills/browser-testing/SKILL.md
 - skills/subagent-delegation/SKILL.md
 - skills/mcp-orchestration/SKILL.md
 
-Estas skills ativam tools de pacotes externos (pi-web-access, pi-subagents, etc.).
-As dependências (#002) precisam estar acessíveis, mas as skills podem ser escritas
-antes da instalação — elas só não serão testáveis até lá.
+These skills activate tools from external packages (pi-web-access, pi-subagents, etc.).
+Dependencies (#002) need to be accessible, but the skills can be written
+before installation — they just won't be testable until then.
 ```
 
-### Agente N — Integração ai-memory (plano)
+### Agent N — ai-memory integration (plan)
 
 ```
-Leia docs/ai-memory-integration-plan.md e implemente a integração com ai-memory.
+Read docs/ai-memory-integration-plan.md and implement the ai-memory integration.
 
-Não fork/copie o projeto. Use o ai-memory upstream como serviço externo via MCP + hooks.
-A integração do kit deve documentar setup, routing, healthcheck e coexistência com auto-memory.
-Referência: https://github.com/akitaonrails/ai-memory
+Do not fork/copy the project. Use upstream ai-memory as an external service via MCP + hooks.
+The kit integration should document setup, routing, healthcheck, and coexistence with auto-memory.
+Reference: https://github.com/akitaonrails/ai-memory
 ```
 
-> **Rode Agentes K, L, M, N em paralelo.**
+> **Run Agents K, L, M, N in parallel.**
 
 ---
 
-## Passo 7: Fase 5 — README, smoke test, publicação (agente + humano)
+## Step 7: Phase 5 — README, smoke test, publication (agent + human)
 
-### Agente O — README + cross-model test
-
-```
-Leia .scratch/pi-dev-starter-kit/013-readme-smoke-test.md e implemente.
-
-Criar README.md completo. Rodar smoke test em 3 modelos.
-```
-
-### Humano — Publicação (HITL)
+### Agent O — README + cross-model test
 
 ```
-Leia .scratch/pi-dev-starter-kit/014-publication-release.md.
+Read .scratch/pi-dev-starter-kit/013-readme-smoke-test.md and implement.
 
-Checklist humano:
+Create complete README.md. Run smoke test on 3 models.
+```
+
+### Human — Publication (HITL)
+
+```
+Read .scratch/pi-dev-starter-kit/014-publication-release.md.
+
+Human checklist:
 - Clean-room install test
 - Git tag v1.0.0
 - GitHub release
@@ -245,80 +245,80 @@ Checklist humano:
 
 ---
 
-## Resumo de paralelismo
+## Parallelism Summary
 
 ```
-FASE 1:  ████████████████ Agente A (scaffold)  ████ Agente B (mattpocock) ████
-FASE 2:  ████ C (perm-gate) ██ D (lint) ██ E (loop) ██ F (tasks) ██ G (contrib-gate) ██ H (auto-memory) ████
-FASE 3:  ████████████ I (plan+verify) ████ J (templates+prompts) ████
-FASE 4:  ████ K (lsp) ██ L (monitor) ██ M (capabilities) ██ N (ai-memory plan) ████
-FASE 5:  ████████████ Agente O (README+test) ████ Humano (release) ████
+PHASE 1:  ████████████████ Agent A (scaffold)  ████ Agent B (mattpocock) ████
+PHASE 2:  ████ C (perm-gate) ██ D (lint) ██ E (loop) ██ F (tasks) ██ G (contrib-gate) ██ H (auto-memory) ████
+PHASE 3:  ████████████ I (plan+verify) ████ J (templates+prompts) ████
+PHASE 4:  ████ K (lsp) ██ L (monitor) ██ M (capabilities) ██ N (ai-memory plan) ████
+PHASE 5:  ████████████ Agent O (README+test) ████ Human (release) ████
 
-Total de agentes paralelos por fase:
-  Fase 1: 2 agentes
-  Fase 2: 6 agentes
-  Fase 3: 2 agentes
-  Fase 4: 4 agentes
-  Fase 5: 1 agente + 1 humano
+Total parallel agents per phase:
+  Phase 1: 2 agents
+  Phase 2: 6 agents
+  Phase 3: 2 agents
+  Phase 4: 4 agents
+  Phase 5: 1 agent + 1 human
 ```
 
 ---
 
-## ⚡ Prompt inicial — Use este para começar
+## ⚡ Initial Prompt — Use this to get started
 
-Copie e cole isto no primeiro agente:
+Copy and paste this into the first agent:
 
 ```
-Você é um agente de desenvolvimento trabalhando no projeto pi-dev-starter-kit.
+You are a development agent working on the pi-dev-starter-kit project.
 
-## Contexto do projeto
+## Project Context
 
-Estamos construindo um pacote Pi.dev instalável que transforma o harness
-minimalista do Pi.dev em um ambiente de codificação produtivo e completo —
-comparável ao Claude Code e Codex, mas com autonomia total de modelo.
+We are building an installable Pi.dev package that transforms the
+minimalist Pi.dev harness into a complete, production-ready coding environment —
+comparable to Claude Code and Codex, but with full model autonomy.
 
-O kit contém:
-- 14 extensions TypeScript (core security/quality, ai-memory setup, init-starter-kit, and Akita-inspired tools: starter-kit-doctor, artifact-read, ast-tools, source-navigation)
+The kit contains:
+- 14 TypeScript extensions (core security/quality, ai-memory setup, init-starter-kit, and Akita-inspired tools: starter-kit-doctor, artifact-read, ast-tools, source-navigation)
 - 24 skills (starter-kit workflows, Akita-inspired workflows, ai-memory, and mattpocock/skills)
 - 5 prompt templates
 - 6 project templates
-- SYSTEM.md global com tool categories, workflow canônico e Think-in-Code routing
-- 5 dependências diretas do ecossistema Pi.dev
+- Global SYSTEM.md with tool categories, canonical workflow, and Think-in-Code routing
+- 5 direct dependencies from the Pi.dev ecosystem
 
-## Sua tarefa
+## Your Task
 
-Leia os arquivos na seguinte ordem:
+Read the files in the following order:
 
-1. CONTEXT.md — entenda o vocabulário do projeto
-2. docs/INDEX.md — entenda onde está cada coisa
-3. docs/architecture.md — leia a especificação completa (é longa, ~400 linhas,
-   mas contém TODOS os detalhes de design: 4 camadas, diagramas, comparação
-   com Claude Code/Codex, progressive disclosure, permission pipeline)
-4. docs/prd.md — leia as 31 user stories, os módulos, e o scope
+1. CONTEXT.md — understand the project vocabulary
+2. docs/INDEX.md — understand where everything is
+3. docs/architecture.md — read the complete specification (it's long, ~400 lines,
+   but contains ALL design details: 4 layers, diagrams, comparison
+   with Claude Code/Codex, progressive disclosure, permission pipeline)
+4. docs/prd.md — read the 31 user stories, modules, and scope
 
-Depois de ler, me diga:
+After reading, tell me:
 
-- Quais são as 4 camadas do kit e o que cada uma contém?
-- Quais são as extensions principais e qual a função de cada uma?
-- Qual é a ordem de dependência entre as issues em `.scratch/pi-dev-starter-kit/` e `.scratch/ai-harness-akita/`?
-- Quais issues podem rodar em paralelo?
+- What are the 4 layers of the kit and what does each contain?
+- What are the core extensions and what does each do?
+- What is the dependency order between issues in `.scratch/pi-dev-starter-kit/` and `.scratch/ai-harness-akita/`?
+- Which issues can run in parallel?
 
-Quando eu confirmar que você entendeu, começamos a implementar pela
+Once I confirm you understand, we'll start implementing from
 issue #001 (package scaffold + SYSTEM.md).
 
-IMPORTANTE: Não invente nada. Se algo não estiver claro, pergunte.
-Todas as decisões de design estão documentadas nos arquivos acima.
-Use docs/references/5-pi-dev-doc.md como referência da API do Pi.dev
-quando for escrever extensions.
+IMPORTANT: Don't invent anything. If something is unclear, ask.
+All design decisions are documented in the files above.
+Use docs/references/5-pi-dev-doc.md as the Pi.dev API reference
+when writing extensions.
 ```
 
 ---
 
-## Notas finais
+## Final Notes
 
-- O `repo_init.md` é seu guia. Quando terminar uma fase, volte aqui para ver a próxima.
-- Issues em `.scratch/pi-dev-starter-kit/` contêm os acceptance criteria detalhados.
-- `docs/architecture.md` é a fonte canônica de design. Em caso de dúvida, ele vence.
-- `docs/references/5-pi-dev-doc.md` é a referência da API do Pi.dev (ExtensionAPI, tools, hooks).
-- Após cada fase concluída, marque a issue como `Status: done` e continue.
-- Não esqueça de commitar após cada issue concluída (commits atômicos, um por issue).
+- `repo_init.md` is your guide. When you finish a phase, come back here to see the next one.
+- Issues in `.scratch/pi-dev-starter-kit/` contain detailed acceptance criteria.
+- `docs/architecture.md` is the canonical design source. In case of doubt, it wins.
+- `docs/references/5-pi-dev-doc.md` is the Pi.dev API reference (ExtensionAPI, tools, hooks).
+- After each phase is complete, mark the issue as `Status: done` and continue.
+- Don't forget to commit after each completed issue (atomic commits, one per issue).

@@ -1,23 +1,23 @@
 # Pi.dev Starter Kit — APPEND_SYSTEM.md
 
-> Instruções de workflow anexadas ao system prompt de toda sessão Pi.dev.
-> Complementa SYSTEM.md sem substituí-lo. Mantenha enxuto — no máximo 30 linhas.
+> Workflow instructions appended to the system prompt of every Pi.dev session.
+> Complements SYSTEM.md without replacing it. Keep it lean — max 30 lines.
 
-## Workflow Mandatório
+## Mandatory Workflow
 
-1. **Antes de qualquer edição**: `grep` para localizar definições. `read` para entender o contexto.
-2. **Durante a edição**: Faça mudanças mínimas e cirúrgicas. Prefira `edit` (substituição exata) a `write`.
-3. **Após cada change set**: Rode testes + lint. Não acumule mudanças.
-4. **Antes de declarar concluído**: Build limpo, tests passando, lint zerado. Evidência, não alegação.
-5. **Ao iniciar uma tarefa**: Crie uma task via `task_create`. Atualize progresso com `task_update`.
-6. **Ao encontrar comportamento inesperado**: `diagnose` skill — reproduza, minimize, crie hipótese, instrumentalize, corrija.
-7. **Para tarefas longas ou complexas**: Ative `plan-mode`. Planeje antes de codificar.
+1. **Before any edit**: `grep` to locate definitions. `read` to understand context.
+2. **During editing**: Make minimal, surgical changes. Prefer `edit` (exact replacement) over `write`.
+3. **After each change set**: Run tests + lint. Don't accumulate changes.
+4. **Before declaring done**: Clean build, passing tests, zero lint. Evidence, not claims.
+5. **When starting a task**: Create a task via `task_create`. Update progress with `task_update`.
+6. **When encountering unexpected behavior**: `diagnose` skill — reproduce, minimize, hypothesize, instrument, fix.
+7. **For long or complex tasks**: Activate `plan-mode`. Plan before coding.
 
-## Anti-padrões que deve evitar
+## Anti-patterns to avoid
 
-- Editar sem ler (write constraint)
-- Acumular mudanças sem rodar testes entre elas
-- Ler arquivos inteiros quando `grep` resolve
-- Pular verificação e declarar "done" sem evidência
-- Usar `write` para modificar arquivos existentes (use `edit`)
-- Carregar skills "por precaução" — ative apenas quando necessário
+- Editing without reading (write constraint)
+- Accumulating changes without running tests in between
+- Reading entire files when `grep` suffices
+- Skipping verification and declaring "done" without evidence
+- Using `write` to modify existing files (use `edit`)
+- Loading skills "just in case" — activate only when needed
