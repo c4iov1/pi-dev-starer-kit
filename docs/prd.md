@@ -90,6 +90,14 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 27. As a developer, I want the agent to remember what files it was editing, what tasks are in progress, and what decisions were made — even after context compaction — so that long sessions don't lose their bearings.
 
+28. As a developer, I want the agent to inspect SQLite databases, CSV/JSON/JSONL files, archives, and directory structures through a read-only structured tool, so that it does not invent fragile shell commands or flood context.
+
+29. As a developer, I want the agent to use AST-based search and dry-run codemod previews for structural refactors, so that code changes avoid false positives in strings, comments, or formatting differences.
+
+30. As a developer, I want LSP symbol operations (definition, references, rename preview, workspace symbols), so that source navigation and refactors use semantic information rather than only text search.
+
+31. As a developer, I want a multi-pass review workflow with independent correctness, security, and maintainability passes, so that important changes get broader review coverage.
+
 ## Implementation Decisions
 
 ### Architecture
@@ -104,7 +112,7 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 ### Modules
 
-**Extensions (8 modules, built in-house):**
+**Extensions (13 modules, built in-house):**
 
 1. **permission-gate**: PreToolUse hook. Blocks destructive commands, enforces write constraint (must read file before overwriting), confines paths to workspace root. Approval modes: `default` / `acceptEdits`.
 
@@ -114,7 +122,7 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 4. **task-tracker**: Registers `TaskCreate` and `TaskUpdate` tools. Tasks persist in `.pi/tasks.jsonl` and survive compaction. The model can track progress across turns.
 
-5. **lsp-bridge**: PostToolUse hook. After edits, runs incremental type-check via the project's LSP or compiler (`tsc --noEmit`, `pyright`, `cargo check`) and reports type errors in context.
+5. **lsp-bridge**: PostToolUse hook. After edits, runs incremental type-check via the project's LSP or compiler (`tsc --noEmit`, `pyright`, `cargo check`) and reports type errors in context. Also registers TypeScript symbol tools: `lsp_definition`, `lsp_references`, `lsp_rename` (preview), and `lsp_workspace_symbols`.
 
 6. **monitor-bash**: Registers `Monitor` tool. Runs a shell command in background, streams each output line as a tool result, supports timeout and cancellation.
 
@@ -124,7 +132,15 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 
 9. **setup-ai-memory**: Registers `/setup-ai-memory` plus ai-memory admin commands. Orchestrates upstream wrapper install, Docker server startup, Pi-native lifecycle hook posting, AGENTS.md routing, upgrade, bootstrap, backup, lint, forget-sweep, and status. Explicit opt-in because it mutates global machine state.
 
-**Skills (7 modules, built in-house):**
+10. **starter-kit-doctor**: Registers `starter_kit_doctor`. Reports installed/enabled extensions, skills, optional binaries, missing dependencies, and harness profile settings.
+
+11. **artifact-read**: Registers `artifact_read`. Provides read-only, path-confined inspection for directories, CSV/JSON/JSONL, SQLite, and archives with pagination and safe preview.
+
+12. **ast-tools**: Registers `ast_grep` and preview-only `ast_edit`. Uses `ast-grep` for structural search/codemod previews without direct writes.
+
+13. **source-navigation**: Registers `read_ranges` and preview-only `edit_at_anchor`. Supports multi-range source reads and stale-context detection via line-content hashes.
+
+**Skills (10 modules, built in-house):**
 
 10. **plan-mode**: Structured planning skill. Creates `plan.md` with checklist, registers TODOs via task-tracker, updates progress at each milestone.
 
@@ -139,6 +155,12 @@ O kit não impõe stack, domínio ou produto. O desenvolvedor adiciona especiali
 15. **mcp-orchestration**: Teaches MCP server usage patterns. Database queries, API integration, external tool interaction.
 
 16. **ai-memory**: Teaches the agent to use Akita's external ai-memory service for always-on long-term memory, cross-agent handoffs, wiki search, and session continuity. Optional service installed explicitly via `/setup-ai-memory`; falls back to auto-memory when unavailable.
+
+17. **artifact-analysis**: Teaches structured data/document investigation using `artifact_read`: inspect schema/shape first, sample before summarizing, paginate, avoid raw dumps.
+
+18. **structural-refactor**: Teaches AST/LSP refactor workflow: use `ast_grep` for structural search, preview codemods with `ast_edit`, prefer LSP rename for semantic symbol changes, verify with tests/lint.
+
+19. **review-matrix**: Teaches independent multi-pass review: correctness/regression, security/data-loss, maintainability/API/design, then consolidated findings.
 
 **Skills (14 modules, integrated from mattpocock/skills):**
 

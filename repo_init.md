@@ -35,9 +35,9 @@ Leia os seguintes arquivos em ordem e me explique o que entendeu:
 1. CONTEXT.md — glossário do domínio
 2. docs/INDEX.md — mapa de conhecimento
 3. docs/architecture.md — especificação técnica completa (4 camadas, diagramas, comparação com Claude Code/Codex)
-4. docs/prd.md — product requirements (27 user stories, módulos, scope)
+4. docs/prd.md — product requirements (31 user stories, módulos, scope)
 
-Depois me diga: quais são as 4 camadas do kit, quais são as 9 extensions que vamos construir, e qual a ordem de dependência entre elas?
+Depois me diga: quais são as 4 camadas do kit, quais extensions já existem, quais capabilities Akita-inspired foram adicionadas, e qual a ordem de dependência entre elas?
 ```
 
 ---
@@ -278,10 +278,9 @@ minimalista do Pi.dev em um ambiente de codificação produtivo e completo —
 comparável ao Claude Code e Codex, mas com autonomia total de modelo.
 
 O kit contém:
-- 9 extensions TypeScript (permission-gate, post-edit-lint, loop-protection,
-  task-tracker, lsp-bridge, monitor-bash, contrib-gate, auto-memory, setup-ai-memory)
-- 21 skills (7 autorais + 14 do mattpocock/skills)
-- 4 prompt templates
+- 14 extensions TypeScript (core security/quality, ai-memory setup, init-starter-kit, and Akita-inspired tools: starter-kit-doctor, artifact-read, ast-tools, source-navigation)
+- 24 skills (starter-kit workflows, Akita-inspired workflows, ai-memory, and mattpocock/skills)
+- 5 prompt templates
 - 6 project templates
 - SYSTEM.md global com tool categories, workflow canônico e Think-in-Code routing
 - 5 dependências diretas do ecossistema Pi.dev
@@ -295,13 +294,13 @@ Leia os arquivos na seguinte ordem:
 3. docs/architecture.md — leia a especificação completa (é longa, ~400 linhas,
    mas contém TODOS os detalhes de design: 4 camadas, diagramas, comparação
    com Claude Code/Codex, progressive disclosure, permission pipeline)
-4. docs/prd.md — leia as 27 user stories, os 12 módulos, e o scope
+4. docs/prd.md — leia as 31 user stories, os módulos, e o scope
 
 Depois de ler, me diga:
 
 - Quais são as 4 camadas do kit e o que cada uma contém?
-- Quais são as 9 extensions e qual a função de cada uma?
-- Qual é a ordem de dependência entre as 17 issues em .scratch/pi-dev-starter-kit/?
+- Quais são as extensions principais e qual a função de cada uma?
+- Qual é a ordem de dependência entre as issues em `.scratch/pi-dev-starter-kit/` e `.scratch/ai-harness-akita/`?
 - Quais issues podem rodar em paralelo?
 
 Quando eu confirmar que você entendeu, começamos a implementar pela

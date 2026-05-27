@@ -173,4 +173,11 @@ The doctor checks for `.pi/settings.json`, verifies extension/skill directories,
 
 ## 9. Architecture Overview
 
-For a detailed breakdown of the 4-layer architecture (Core, Security & Quality, Skills Workflow, Ecosystem Dependencies), context saving metrics, and design decisions, please refer to the technical specification in [docs/architecture.md](file:///c:/main/workspace/pi-dev-starer-kit/docs/architecture.md).
+For a detailed breakdown of the 4-layer architecture (Core, Security & Quality, Skills Workflow, Ecosystem Dependencies), context saving metrics, and design decisions, see [docs/architecture.md](docs/architecture.md).
+
+Additional implementation references:
+
+- [Akita harness ideas plan](docs/akita-harness-ideas-plan.md) / [PT-BR](docs/akita-harness-ideas-plan.pt-BR.md)
+- [Steering profiles](docs/steering-profiles.md)
+- [Provider guidance](docs/provider-guidance.md)
+- [ai-memory integration plan](docs/ai-memory-integration-plan.md)

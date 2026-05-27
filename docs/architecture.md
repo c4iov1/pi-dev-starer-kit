@@ -80,7 +80,7 @@ pi-dev-starter-kit/                    # Repositório git
 │   ├── post-edit-lint/index.ts        #   Lint automático pós-edição
 │   ├── loop-protection/index.ts       #   Doom-loop + diminishing returns
 │   ├── task-tracker/index.ts          #   Tools TaskCreate/TaskUpdate
-│   ├── lsp-bridge/index.ts            #   LSP: type errors pós-edição
+│   ├── lsp-bridge/index.ts            #   LSP: type errors + symbol ops
 │   ├── monitor-bash/index.ts          #   Tool Monitor: background bash
 │   ├── contrib-gate/index.ts          #   Git workflow: branches + commits
 │   ├── auto-memory/index.ts           #   MEMORY.md persistence leve
@@ -100,6 +100,9 @@ pi-dev-starter-kit/                    # Repositório git
 │   ├── subagent-delegation/SKILL.md   #   Padrões de delegação
 │   ├── mcp-orchestration/SKILL.md     #   Uso de MCP servers
 │   ├── ai-memory/SKILL.md             #   Uso do serviço externo ai-memory
+│   ├── artifact-analysis/SKILL.md     #   Investigação de dados/documentos
+│   ├── structural-refactor/SKILL.md   #   Refactor estrutural com AST/LSP
+│   ├── review-matrix/SKILL.md         #   Review multi-pass independente
 │   │
 │   │  # Skills integradas (mattpocock/skills — Reference Doc 8)
 │   │  # Copiadas do repo original, mantidas in-tree
@@ -122,7 +125,8 @@ pi-dev-starter-kit/                    # Repositório git
 │   ├── plan.md
 │   ├── verify.md
 │   ├── review.md
-│   └── handoff.md
+│   ├── handoff.md
+│   └── review-matrix.md
 │
 └── templates/                         # → Copiar manualmente por projeto
     ├── AGENTS.template.md             #   → ./AGENTS.md
@@ -346,12 +350,16 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │                        loop-protection, task-tracker,   │
 │                        lsp-bridge, monitor-bash,        │
 │                        contrib-gate, auto-memory,       │
-│                        starter-kit-doctor               │
+│                        setup-ai-memory, doctor,         │
+│                        artifact-read, ast-tools,        │
+│                        source-navigation                │
 │  skills/            ← plan-mode, self-verify,           │
-│                        web-research, browser-testing,   │
-│                        subagent-delegation,             │
-│                        mcp-orchestration                │
-│  prompts/           ← plan, verify, review, handoff     │
+│                        web/browser/subagent/MCP,        │
+│                        ai-memory, artifact-analysis,    │
+│                        structural-refactor,             │
+│                        review-matrix                    │
+│  prompts/           ← plan, verify, review, handoff,    │
+│                        review-matrix                    │
 │  packages/          ← Dependências do ecossistema       │
 └─────────────────────────────────────────────────────────┘
 
@@ -491,9 +499,13 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 - Extension `post-edit-lint` — PostToolUse hook: lint pós-edição
 - Extension `loop-protection` — doom-loop detection + diminishing returns
 - Extension `task-tracker` — tools TaskCreate/TaskUpdate
-- Extension `lsp-bridge` — type errors pós-edição via LSP
+- Extension `lsp-bridge` — type errors pós-edição + `lsp_definition`, `lsp_references`, `lsp_rename`, `lsp_workspace_symbols`
 - Extension `monitor-bash` — background bash com streaming
+- Extension `setup-ai-memory` — comandos/admin + hooks Pi para serviço externo ai-memory
 - Extension `starter-kit-doctor` — diagnósticos de ambiente e capacidades
+- Extension `artifact-read` — `artifact_read` read-only para SQLite, CSV/JSON/JSONL, archives e diretórios
+- Extension `ast-tools` — `ast_grep` e `ast_edit` preview-only para busca/codemods estruturais
+- Extension `source-navigation` — `read_ranges` e `edit_at_anchor` preview-only com anchors hash
 - Curadoria de 5 pacotes do ecossistema (dependências diretas dos repos originais)
 - Extension `contrib-gate` — git workflow: branch naming + conventional commits
 - Extension `auto-memory` — MEMORY.md persistence leve entre sessões
@@ -581,9 +593,12 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
   - `subagent-delegation` — quando e como delegar para sub-agents
   - `mcp-orchestration` — uso de MCP servers
   - `ai-memory` — uso do serviço externo ai-memory quando instalado
+  - `artifact-analysis` — investigação estruturada de SQLite/CSV/JSON/archives com `artifact_read`
+  - `structural-refactor` — refactor/codemod com AST + LSP
+  - `review-matrix` — review multi-pass independente (corretude, segurança, design)
 - Skills integradas (mattpocock/skills — Reference Doc 8):
   - `setup-matt-pocock-skills`, `grill-with-docs`, `grill-me`, `to-prd`, `to-issues`, `tdd`, `diagnose`, `triage`, `improve-codebase-architecture`, `design-an-interface`, `zoom-out`, `qa`, `handoff`, `write-a-skill`
-- Prompt templates — `plan.md`, `verify.md`, `review.md`, `handoff.md`
+- Prompt templates — `plan.md`, `verify.md`, `review.md`, `handoff.md`, `review-matrix.md`
 - Hook de compaction — `session_before_compact`: preserva SYSTEM.md verbatim, re-injeta pós-compactação
 
 ---

@@ -8,8 +8,12 @@
 
 ## Especificação
 
-- **`docs/architecture.md`**: Arquitetura completa do kit. 4 camadas (Contexto, Ferramentas, Workflow, Extensibilidade), diagramas, comparação com Claude Code/Codex.
-- **`docs/prd.md`**: Product requirements. 27 user stories, módulos, testing decisions, out of scope.
+- **`docs/architecture.md`**: Arquitetura completa do kit. 4 camadas (Contexto, Ferramentas, Workflow, Extensibilidade), diagramas, comparação com Claude Code/Codex/OpenCode/Oh-My-Pi.
+- **`docs/prd.md`**: Product requirements. User stories, módulos, testing decisions, out of scope.
+- **`docs/akita-harness-ideas-plan.md`** / **`docs/akita-harness-ideas-plan.pt-BR.md`**: Plano Akita com gaps, decisões técnicas, discoverability e sequência de implementação.
+- **`docs/steering-profiles.md`**: Perfis `steeringMode`, `interruptMode`, `compactionStrategy`.
+- **`docs/provider-guidance.md`**: Guidance seguro de providers/subscriptions sem hacks de OAuth.
+- **`docs/ai-memory-integration-plan.md`**: Plano de integração do serviço externo `akitaonrails/ai-memory`.
 
 ## Decisões
 
@@ -25,7 +29,8 @@
 
 ## Issue Tracker
 
-- **`.scratch/pi-dev-starter-kit/`**: 17 issues ordenadas por dependência. Fase 2 (#003–#006, #015, #016) roda em paralelo. Fase 3–4 (#007–#010, #017) roda em paralelo.
+- **`.scratch/pi-dev-starter-kit/`**: Issues originais do starter kit.
+- **`.scratch/ai-harness-akita/`**: Tasks detalhadas da implementação inspirada no post do Akita (doctor, artifact-read, AST tools, LSP symbol ops, source navigation, steering profiles, review-matrix, provider guidance).
 
 ## Estrutura do Repositório
 
@@ -34,10 +39,10 @@ pi-dev-starter-kit/
 ├── AGENTS.md, CONTEXT.md, repo_init.md    # Root docs
 ├── package.json                            # Pi.dev manifest (output)
 ├── SYSTEM.md, APPEND_SYSTEM.md             # System prompt (output)
-├── extensions/                             # 9 extensions (output)
-├── skills/                                 # 21 skills (output: 7 autorais + 14 mattpocock)
-├── prompts/                                # 4 prompt templates (output)
-├── templates/                              # 6 project templates (output)
+├── extensions/                             # Extensions core + Akita tools + ai-memory setup
+├── skills/                                 # Skills autorais + Akita workflows + mattpocock
+├── prompts/                                # Prompt templates, incluindo review-matrix
+├── templates/                              # Project templates + ai-memory config
 ├── docs/                                   # Specs + references
 └── .scratch/                               # Issues
 ```

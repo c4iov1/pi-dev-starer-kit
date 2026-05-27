@@ -136,9 +136,9 @@ a tool certa quando múltiplas opções existirem.
 | Edições sensíveis a stale context | `edit_at_anchor` | `edit` com oldText solto | Âncora com hash de linha detecta mudanças concorrentes |
 | Reviews importantes / auditoria | `review-matrix` | um único review rápido | Passes independentes encontram problemas diferentes |
 
-> **Nota**: As tools `artifact_read`, `ast_grep`, `ast_edit`, `lsp_*`, `read_ranges`,
-> `edit_at_anchor` e `review-matrix` fazem parte do plano Akita de melhorias e podem
-> ainda não estar disponíveis. Use `starter_kit_doctor` para verificar.
+> **Nota**: Estas capabilities são instaladas pelo kit, mas podem estar desabilitadas por projeto
+> via `.pi/settings.json` ou depender de binários opcionais (ex: `ast-grep`, `sqlite3`).
+> Use `starter_kit_doctor` para verificar o estado real.
 
 ---
 
@@ -159,7 +159,7 @@ Capacidades complexas são carregadas **sob demanda** via skills.
 - `subagent-delegation` — Quando e como delegar para sub-agents
 - `mcp-orchestration` — Uso de MCP servers (database, APIs, etc.)
 
-**Akita Plan (futuro / em construção):**
+**Akita-inspired advanced workflows:**
 - `artifact-analysis` — Investigação de dados/documentos com `artifact_read`
 - `structural-refactor` — Workflow de refactor com AST e LSP
 - `review-matrix` — Revisão multi-pass independente (corretude, segurança, design)
