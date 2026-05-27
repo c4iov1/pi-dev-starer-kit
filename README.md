@@ -110,7 +110,7 @@ The starter kit bundles standard workflows based on the open Agent Skills format
 
 ## 6. Permission Modes
 
-The `permission-gate` extension controls access to file writes, file edits, and shell command executions via two modes configured in `.pi/settings.json`:
+The `permission-gate` extension controls access to file reads/writes, edits, and shell command executions via three modes configured in `.pi/settings.json` or toggled per session:
 
 ### `default` Mode
 
@@ -134,6 +134,12 @@ Automatically approves safe file additions and edits but continues to gate termi
 [permission-gate] Shell command requested: "npm run migrate"
 Approve command execution? (y/N):
 ```
+
+### `featureWork` Mode
+
+Project-scoped implementation mode. It auto-approves read/write/edit tool calls and common bash commands only when they are scoped to the active session project directory. It still asks for `git commit`, `git push`, network commands (`curl`, `wget`, `ssh`, etc.), and any command path outside the project; hard-deny rules such as `sudo`, `git push --force`, `npm publish`, and `curl | sh` remain blocked.
+
+Toggle for the current session with `/feature-mode on|off|status`, or let the agent call `feature_mode_toggle`.
 
 ---
 

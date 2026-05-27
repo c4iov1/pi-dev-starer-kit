@@ -1,6 +1,6 @@
 # 003 — Extension: permission-gate
 
-**Status**: ready-for-agent
+**Status**: implemented
 **Type**: AFK
 
 ## Parent
@@ -16,14 +16,15 @@ The permission pipeline processes tool calls through these layers, exiting when 
 1. **Deny rules**: Instant rejection for destructive patterns — `rm -rf`, `git push --force`, `git reset --hard`, `DROP TABLE`, `TRUNCATE`, `sudo`, `chmod 777`, `curl ... | sh`, `npm publish`, `.env` writes
 2. **Write constraint**: Reject `write` tool calls where the file already exists and was NOT read in the current session (prevents blind overwrites)
 3. **Path confinement**: Reject tool calls targeting paths outside the workspace root
-4. **Interactive prompt**: If permission mode is `default`, show a diff and ask `[y/N]` before edits. If `acceptEdits`, auto-approve edits but still gate bash commands through the deny/allow layers
+4. **Interactive prompt**: If permission mode is `default`, show a diff and ask `[y/N]` before edits. If `acceptEdits`, auto-approve edits but still gate bash commands through the deny/allow layers. If `featureWork`, auto-approve project-scoped read/write/edit and bash commands while still asking/blocking for git commit/push, network commands, protected paths, and outside-project paths.
 
 The extension must:
 - Register via `pi.on("session_start", ...)` to read configuration from `.pi/settings.json`
 - Use `pi.on("tool_call", ...)` or equivalent PreToolUse mechanism
-- Support two permission modes: `default` (approve each edit) and `acceptEdits` (auto-approve edits, gate bash)
+- Support three permission modes: `default` (approve each edit), `acceptEdits` (auto-approve edits, gate bash), and `featureWork` (auto-approve project-scoped implementation work)
+- Register `/feature-mode on|off|status` and `feature_mode_toggle` for session-scoped mode switching
 - Read `.pi/settings.json` for the `starterKit.permissionMode` setting
-- Block destructive commands even in `acceptEdits` mode
+- Block destructive commands even in `acceptEdits` mode; in `featureWork`, allow recursive `rm` only when all targets resolve inside the active project workspace
 
 ### Absorbing pi-quick-perms functionality
 
@@ -33,16 +34,18 @@ Reference: https://github.com/cmptr/pi-quick-perms
 
 ## Acceptance criteria
 
-- [ ] `rm -rf /` is blocked with error message
-- [ ] `git push --force` is blocked with error message
-- [ ] `sudo ...` is blocked with error message
-- [ ] Writing to `.env` without prior read is blocked
-- [ ] Attempting to write outside workspace root is blocked
-- [ ] In `default` mode, user is prompted with diff before edits
-- [ ] In `acceptEdits` mode, edits auto-approve but bash is still gated
-- [ ] Destructive commands are blocked regardless of mode
-- [ ] pi-quick-perms functionality reviewed and relevant patterns absorbed
-- [ ] Quick policy commands (if applicable) integrated into the permission pipeline
+- [x] `rm -rf /` is blocked with error message
+- [x] `git push --force` is blocked with error message
+- [x] `sudo ...` is blocked with error message
+- [x] Writing to `.env` without prior read is blocked
+- [x] Attempting to write outside workspace root is blocked
+- [x] In `default` mode, user is prompted with diff before edits
+- [x] In `acceptEdits` mode, edits auto-approve but bash is still gated
+- [x] In `featureWork` mode, read/write/edit tools are auto-approved only inside the active project
+- [x] In `featureWork` mode, project-scoped bash commands are auto-approved
+- [x] In `featureWork` mode, `git commit`, `git push`, network commands, and outside-project bash paths ask for permission
+- [x] Destructive commands are blocked regardless of mode, with a narrow project-scoped recursive-rm exception in `featureWork`
+- [x] Quick policy commands integrated as `/feature-mode` and `feature_mode_toggle`
 
 ## Blocked by
 

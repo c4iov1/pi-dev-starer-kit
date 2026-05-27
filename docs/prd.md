@@ -108,13 +108,13 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 - **Deterministic quality**: Lint, type-check, and loop protection are enforced by hooks — not by prompt. The model can't skip them.
 
-- **Permission pipeline**: PreToolUse hook with deny rules → allow rules → interactive prompt. Two modes: `default` (approve each edit with visible diff) and `acceptEdits` (auto-approve edits, gate bash).
+- **Permission pipeline**: PreToolUse hook with deny rules → allow rules → interactive prompt. Three modes: `default` (approve each edit with visible diff), `acceptEdits` (auto-approve edits, gate bash), and `featureWork` (auto-approve project-scoped read/write/edit and bash for implementation work; `git commit`, `git push`, network commands, protected paths, and outside-project paths still ask/block).
 
 ### Modules
 
 **Extensions (13 modules, built in-house):**
 
-1. **permission-gate**: PreToolUse hook. Blocks destructive commands, enforces write constraint (must read file before overwriting), confines paths to workspace root. Approval modes: `default` / `acceptEdits`.
+1. **permission-gate**: PreToolUse hook. Blocks destructive commands, enforces write constraint (must read file before overwriting except in explicit `featureWork` mode), confines paths to workspace root. Approval modes: `default` / `acceptEdits` / `featureWork`, with `/feature-mode` and `feature_mode_toggle` for session-scoped project implementation permissions.
 
 2. **post-edit-lint**: PostToolUse hook. After every `edit` or `write` tool call, runs the project's linter/formatter (`--fix`) and injects results into context. Auto-detects ESLint, Biome, Prettier, or language-native formatters.
 

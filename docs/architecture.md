@@ -491,11 +491,17 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │ [y/N] per edit  │ │ edits, bash     │             │
 │  │                 │ │ still gated     │             │
 │  └─────────────────┘ └─────────────────┘             │
+│  ┌─ featureWork ─────────────────────────────────┐   │
+│  │ session/project-scoped implementation mode:   │   │
+│  │ auto-allows read/write/edit + bash only inside│   │
+│  │ active project; git commit/push, network, and │   │
+│  │ outside-project paths still ask/block         │   │
+│  └───────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Deliverables (all global, loaded in every session):**
-- Extension `permission-gate` — PreToolUse hook, write constraint, path confinement
+- Extension `permission-gate` — PreToolUse hook, write constraint, path confinement, and `/feature-mode` project-scoped implementation permissions
 - Extension `post-edit-lint` — PostToolUse hook: post-edit lint
 - Extension `loop-protection` — doom-loop detection + diminishing returns
 - Extension `task-tracker` — TaskCreate/TaskUpdate tools
@@ -614,7 +620,8 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │ {                                            │   │
 │  │   "starterKit": {                            │   │
 │  │     "permissionMode": "default", // or       │   │
-│  │                           // "acceptEdits"   │   │
+│  │                           // "acceptEdits" / │   │
+│  │                           // "featureWork"   │   │
 │  │     "activeExtensions": [                    │   │
 │  │       "permission-gate",                     │   │
 │  │       "post-edit-lint",                      │   │
@@ -695,7 +702,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 | **3 tiers of tool activation** | Claude Code (Ref 7) | Skills with embedded tools + dynamic `setActiveTools` | Ref 7: "avoids system prompt overload" |
 | **Prompt caching** (stable prefix) | Codex (Ref 6), Claude Code | Lean SYSTEM.md, skills via progressive disclosure | Ref 6: "every turn gets cache hit" |
 | **Layered permission pipeline** | Claude Code (Ref 7) | PreToolUse hook with deny→allow→interactive | Ref 7: "98.4% deterministic infrastructure" |
-| **Sandbox modes** (workspace-write / danger-full-access) | Codex (Ref 6) | Permission modes: default / acceptEdits | Ref 6: "3 axes of autonomy control" |
+| **Sandbox modes** (workspace-write / danger-full-access) | Codex (Ref 6) | Permission modes: default / acceptEdits / featureWork | Ref 6: "3 axes of autonomy control" |
 | **PostToolUse lint hook** | Cursor (Ref 4) | Extension `post-edit-lint` | Ref 4: "surface lint errors after every edit" |
 | **PreCompletionChecklistMiddleware** | LangChain (Ref 2) | Skill `self-verify` + prompt template `verify.md` | Ref 2: "most common failure pattern: not verifying" |
 | **LoopDetectionMiddleware** | LangChain (Ref 2) | Extension `loop-protection` | Ref 2: "doom loops: 10+ edits on same file" |
