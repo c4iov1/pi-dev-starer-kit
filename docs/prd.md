@@ -144,7 +144,9 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 14. **source-navigation**: Registers `read_ranges` and preview-only `edit_at_anchor`. Supports multi-range source reads and stale-context detection via line-content hashes.
 
-**Skills (10 modules, built in-house):**
+15. **graphify**: Bundled from `pi-graphify`. Registers `/graphify`, injects graph-first guidance when `graphify-out/` exists, routes agents to graph artifacts before broad raw search, and warns when graphs are stale after source edits.
+
+**Skills (11 modules, built in-house + bundled kit capability):**
 
 10. **plan-mode**: Structured planning skill. Creates `plan.md` with checklist, registers TODOs via task-tracker, updates progress at each milestone.
 
@@ -166,6 +168,8 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 19. **review-matrix**: Teaches independent multi-pass review: correctness/regression, security/data-loss, maintainability/API/design, then consolidated findings.
 
+20. **graphify**: Teaches build/update/query/path/explain workflows for `graphify` knowledge graphs, including artifact priority, staleness handling, and cost warnings for headless extraction.
+
 **Skills (14 modules, integrated from mattpocock/skills):**
 
 `setup-matt-pocock-skills`, `grill-with-docs`, `grill-me`, `to-prd`, `to-issues`, `tdd`, `diagnose`, `triage`, `improve-codebase-architecture`, `design-an-interface`, `zoom-out`, `qa`, `handoff`, `write-a-skill`.
@@ -176,9 +180,9 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 - `APPEND_SYSTEM.md`: Workflow instructions appended to the system prompt.
 - `AGENTS.template.md`: Project index (~100 lines), pointers to docs/, stack conventions.
 
-**Dependencies (5 packages, direct from original repos):**
+**Dependencies (6 packages, direct from original repos):**
 
-`pi-web-access` (nicobailon), `pi-subagents` (nicobailon), `pi-mcp-adapter` (nicobailon), `pi-agent-browser-native` (fitchmultz), `context-mode` (mksglu). Referenced directly from original repositories — no forks needed. Three packages from the original architecture (`pi-quick-perms`, `pi-contrib-gate`, `pi-memory`) were removed as external dependencies and reimplemented as internal extensions (`permission-gate`, `contrib-gate`, `auto-memory`).
+`pi-web-access` (nicobailon), `pi-subagents` (nicobailon), `pi-mcp-adapter` (nicobailon), `pi-agent-browser-native` (fitchmultz), `context-mode` (mksglu), and `pi-graphify` (c4iov1). `pi-graphify` is bundled and referenced with SSH git syntax (`git+ssh://git@github.com/c4iov1/pi-graphify.git`) because maintainer access uses SSH. Referenced directly from original repositories — no forks needed. Three packages from the original architecture (`pi-quick-perms`, `pi-contrib-gate`, `pi-memory`) were removed as external dependencies and reimplemented as internal extensions (`permission-gate`, `contrib-gate`, `auto-memory`).
 
 `context-mode` is the highest-impact dependency. It fundamentally changes the agent's data processing paradigm via sandbox tools (`ctx_execute`, `ctx_batch_execute`, `ctx_search`) and provides SQLite+FTS5 session continuity so the agent never loses state between compactions. The SYSTEM.md integrates context-mode's routing rules ("Think in Code") so there are no competing instruction sources.
 
@@ -234,7 +238,7 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 - The architecture document at `docs/architecture.md` contains the full technical specification, layer diagrams, and comparison with Claude Code/Codex.
 - The `setup-matt-pocock-skills` skill must run once per project before other engineering skills can resolve issue tracker, triage labels, and domain docs.
-- All 5 third-party dependencies reference original repos directly. The `package.json` points to the original repositories — no forks needed.
+- All 6 third-party dependencies reference original repos directly. The `package.json` points to the original repositories — no forks needed. `pi-graphify` uses an SSH git dependency because maintainer Git access is SSH-based.
 - **context-mode requirements**: Node.js >= 22.5 (or Bun). Requires `mcp.json` configuration at `~/.pi/agent/mcp.json`. The extension registers hooks (`tool_call`, `tool_result`, `session_start`, `session_before_compact`) automatically via the Pi.dev extension system. Session continuity data is stored in SQLite at `~/.context-mode/`.
 - Cross-model testing (Opus, GPT-5, GLM-5) should be performed on at least 3 diverse tasks before declaring the kit production-ready.
 - context-mode's "Think in Code" paradigm is a fundamental shift — the model must learn to write code scripts for data processing instead of reading raw data into context. The SYSTEM.md must be explicit about this routing.

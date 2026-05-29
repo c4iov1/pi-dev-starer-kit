@@ -90,6 +90,7 @@ const ALL_KNOWN_EXTENSIONS = [
   "ast-tools",
   "source-navigation",
   "starter-kit-doctor",
+  "graphify",
 ];
 
 const ALL_KNOWN_SKILLS = [
@@ -105,6 +106,7 @@ const ALL_KNOWN_SKILLS = [
   "artifact-analysis",
   "structural-refactor",
   "review-matrix",
+  "graphify",
   // Matt Pocock skills
   "grill-with-docs",
   "grill-me",
@@ -138,6 +140,7 @@ const OPTIONAL_BINARIES = [
   { name: "ast-grep (ast-grep)", cmd: "ast-grep", args: ["--version"] },
   { name: "docker", cmd: "docker", args: ["--version"] },
   { name: "rtk", cmd: "rtk", args: ["--version"] },
+  { name: "graphify", cmd: "graphify", args: ["--version"] },
   { name: "typescript (tsc)", cmd: "tsc", args: ["--version"] },
   { name: "biome", cmd: "biome", args: ["--version"] },
   { name: "eslint", cmd: "eslint", args: ["--version"] },
@@ -193,12 +196,20 @@ function getExtensionDirs(packageRoot: string): Set<string> {
   if (!existsSync(extensionsDir)) return new Set();
   try {
     const entries = readdirSync(extensionsDir);
-    return new Set(
+    const dirs = new Set(
       entries.filter((e) => {
         const p = join(extensionsDir, e);
         return statSync(p).isDirectory();
       }),
     );
+
+    // Bundled Pi packages may expose extension files directly rather than as
+    // extension/<name>/ directories. pi-graphify is bundled under node_modules.
+    if (existsSync(join(packageRoot, "node_modules", "pi-graphify", "extensions", "graphify.ts"))) {
+      dirs.add("graphify");
+    }
+
+    return dirs;
   } catch {
     return new Set();
   }
@@ -209,12 +220,18 @@ function getSkillDirs(packageRoot: string): Set<string> {
   if (!existsSync(skillsDir)) return new Set();
   try {
     const entries = readdirSync(skillsDir);
-    return new Set(
+    const dirs = new Set(
       entries.filter((e) => {
         const p = join(skillsDir, e);
         return statSync(p).isDirectory();
       }),
     );
+
+    if (existsSync(join(packageRoot, "node_modules", "pi-graphify", "skills", "graphify", "SKILL.md"))) {
+      dirs.add("graphify");
+    }
+
+    return dirs;
   } catch {
     return new Set();
   }

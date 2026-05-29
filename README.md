@@ -19,13 +19,14 @@ Before installing the starter kit, ensure you have the following installed on yo
 
 ## 2. Dependencies
 
-The starter kit leverages five core packages from the Pi.dev ecosystem to provide advanced capabilities. They are referenced directly from upstream sources to receive automatic improvements:
+The starter kit leverages six core packages from the Pi.dev ecosystem to provide advanced capabilities. They are referenced directly from upstream sources to receive automatic improvements. `pi-graphify` is declared with an SSH git URL (`git+ssh://git@github.com/c4iov1/pi-graphify.git`) to match maintainer access:
 
 | Dependency | Repository URL | Purpose |
 |------------|----------------|---------|
 | `context-mode` | [mksglu/context-mode](https://github.com/mksglu/context-mode) | Sandboxed runtimes, SQLite+FTS5 session index, 98% context savings. |
 | `pi-agent-browser-native` | [fitchmultz/pi-agent-browser-native](https://github.com/fitchmultz/pi-agent-browser-native) | Native browser automation and screenshot verification. |
 | `pi-mcp-adapter` | [nicobailon/pi-mcp-adapter](https://github.com/nicobailon/pi-mcp-adapter) | Adapter to mount and invoke external Model Context Protocol (MCP) servers. |
+| `pi-graphify` | [c4iov1/pi-graphify](https://github.com/c4iov1/pi-graphify) | Knowledge-graph-first reasoning, `/graphify`, graph freshness reminders, and graphify skill workflows. |
 | `pi-subagents` | [nicobailon/pi-subagents](https://github.com/nicobailon/pi-subagents) | Background sub-agent orchestration with parallel execution support. |
 | `pi-web-access` | [nicobailon/pi-web-access](https://github.com/nicobailon/pi-web-access) | Web searching, URL content fetching, GitHub cloning, and media parsing. |
 
@@ -91,6 +92,7 @@ To initialize a new project with the starter kit templates, follow these steps:
 | `artifact-read` | Universal artifact reader | Registers `artifact_read` to inspect SQLite databases, CSV/JSON/JSONL files, archives (zip/tar/tar.gz), and directories with pagination and read-only safety. |
 | `ast-tools` | AST-based code search & codemods | Registers `ast_grep` and `ast_edit` for structural pattern matching and safe, dry-run-first rewrite. |
 | `source-navigation` | Multi-range reads & anchor-pinned edits | Registers `read_ranges` for batch reading scattered sections and `edit_at_anchor` for stale-safe content-hash-pinned edits. |
+| `graphify` | Knowledge-graph-first codebase navigation | Bundled from `pi-graphify`; registers `/graphify`, graph-first prompt injection when `graphify-out/` exists, staleness reminders, and graph artifact routing. |
 
 ### Global Skills
 
@@ -106,6 +108,7 @@ The starter kit bundles standard workflows based on the open Agent Skills format
 - **`artifact-analysis`**: Structured inspection of data artifacts (SQLite, CSV, archives) with `artifact_read`.
 - **`structural-refactor`**: Workflow for structural refactoring using AST and LSP tools.
 - **`review-matrix`**: Independent multi-pass code review (correctness, security, design).
+- **`graphify`**: Build, update, query, and explore graphify knowledge graphs from Pi sessions.
 - **14 Matt Pocock engineering skills** (`/grill-with-docs`, `/tdd`, `/diagnose`, `/triage`, `/handoff`, etc.).
 
 ---

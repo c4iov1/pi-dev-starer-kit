@@ -26,10 +26,12 @@
       "./extensions/artifact-read",
       "./extensions/ast-tools",
       "./extensions/source-navigation",
-      "./extensions/init-starter-kit"
+      "./extensions/init-starter-kit",
+      "./node_modules/pi-graphify/extensions"
     ],
     "skills": [
-      "./skills"
+      "./skills",
+      "./node_modules/pi-graphify/skills"
     ],
     "prompts": [
       "./prompts"
@@ -39,9 +41,13 @@
     "context-mode": "git+https://github.com/mksglu/context-mode.git",
     "pi-agent-browser-native": "git+https://github.com/fitchmultz/pi-agent-browser-native.git",
     "pi-mcp-adapter": "git+https://github.com/nicobailon/pi-mcp-adapter.git",
+    "pi-graphify": "git+ssh://git@github.com/c4iov1/pi-graphify.git",
     "pi-subagents": "git+https://github.com/nicobailon/pi-subagents.git",
     "pi-web-access": "git+https://github.com/nicobailon/pi-web-access.git"
   },
+  "bundledDependencies": [
+    "pi-graphify"
+  ],
   "devDependencies": {
     "@sinclair/typebox": "^0.34.49",
     "@types/node": "^25.9.1",

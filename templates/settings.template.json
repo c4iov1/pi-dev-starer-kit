@@ -22,9 +22,10 @@
       "task-tracker",
       "contrib-gate",
       "auto-memory",
-      "starter-kit-doctor"
+      "starter-kit-doctor",
+      "graphify"
     ],
-    "_activeExtensions_comment": "Extensions to load. Keep 'permission-gate' before 'rtk-rewrite' so security decisions happen before optimization. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash', 'artifact-read', 'ast-tools', 'source-navigation'. Add custom extensions placed in .pi/extensions/. starter-kit-doctor reports available capabilities.",
+    "_activeExtensions_comment": "Extensions to load. Keep 'permission-gate' before 'rtk-rewrite' so security decisions happen before optimization. 'graphify' is passive unless graphify-out/ exists. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash', 'artifact-read', 'ast-tools', 'source-navigation'. Add custom extensions placed in .pi/extensions/. starter-kit-doctor reports available capabilities.",
 
     "rtkRewrite": {
       "_comment": "RTK rewrites agent bash commands for token/context savings. Requires rtk in PATH. The starter-kit extension means you do not need to run `rtk init --agent pi`; set enabled=false to disable permanently.",
@@ -65,7 +66,7 @@
       "web-research",
       "subagent-delegation"
     ],
-    "_activeSkills_comment": "Skills available to the agent. Optional extras: 'browser-testing', 'mcp-orchestration', 'ai-memory'. Skills register tools on activation and deregister on completion (progressive disclosure).",
+    "_activeSkills_comment": "Skills available to the agent. Optional extras: 'browser-testing', 'mcp-orchestration', 'ai-memory', 'graphify'. Skills register tools on activation and deregister on completion (progressive disclosure).",
 
     "_comment_harness": "--- Harness Behavior Profiles (Akita plan) ---",
 

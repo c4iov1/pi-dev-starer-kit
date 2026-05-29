@@ -9,7 +9,7 @@ PRD: `docs/prd.md`
 
 ## What to do
 
-Install and verify the 5 third-party Pi.dev packages that the starter kit depends on. These are used as **direct dependencies** pointing to the original repositories — no forks needed. The kit's `package.json` references them directly.
+Install and verify the 6 third-party Pi.dev packages that the starter kit depends on. These are used as **direct dependencies** pointing to the original repositories — no forks needed. The kit's `package.json` references them directly.
 
 Packages to verify:
 1. `pi-web-access` (nicobailon/pi-web-access) — Web search, fetch, GitHub clone, PDF, YouTube
@@ -17,6 +17,7 @@ Packages to verify:
 3. `pi-mcp-adapter` (nicobailon/pi-mcp-adapter) — MCP server integration
 4. `pi-agent-browser-native` (fitchmultz/pi-agent-browser-native) — Browser automation
 5. `context-mode` (mksglu/context-mode) — Sandbox tools, FTS5 session continuity, Think-in-Code paradigm
+6. `pi-graphify` (c4iov1/pi-graphify) — Graph-first codebase navigation, `/graphify`, and graph freshness reminders. Uses SSH git dependency syntax (`git+ssh://git@github.com/c4iov1/pi-graphify.git`).
 
 Three packages from the original architecture were **removed** as external dependencies and will be reimplemented as internal extensions:
 - `pi-quick-perms` → absorbed into `extensions/permission-gate/` (issue #003)
@@ -29,7 +30,7 @@ context-mode is the most impactful dependency. After install, it requires adding
 
 ## Acceptance criteria
 
-- [ ] All 5 packages installable via `pi install git:github.com/<author>/<package>`
+- [ ] All 6 packages installable via `pi install git:github.com/<author>/<package>`; `pi-graphify` should also be verified via SSH git access.
 - [ ] Each package's tools are registered and callable by the LLM after install
 - [ ] context-mode's MCP configuration verified at `~/.pi/agent/mcp.json`
 - [ ] Dependencies documented in the kit's README.md with original repo URLs

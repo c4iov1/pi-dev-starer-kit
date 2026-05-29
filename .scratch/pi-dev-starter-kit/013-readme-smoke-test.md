@@ -16,7 +16,7 @@ Comprehensive installation and usage guide for the starter kit. Must cover:
 
 1. **What this is**: 2-sentence description with comparison to Claude Code/Codex
 2. **Prerequisites**: Pi.dev installed, git, Node.js
-3. **Dependencies**: List of 5 direct dependencies with links to original repos
+3. **Dependencies**: List of 6 direct dependencies with links to original repos
 4. **Installation**: `pi install git:github.com/caioo/pi-dev-starter-kit`
 5. **New project setup**:
    - Run `/init-starter-kit`

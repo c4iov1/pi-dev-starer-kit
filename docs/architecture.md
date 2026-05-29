@@ -89,7 +89,8 @@ pi-dev-starter-kit/                    # Git repository
 │   ├── starter-kit-doctor/index.ts    #   Tool starter_kit_doctor: environment diagnostics
 │   ├── artifact-read/index.ts         #   Tool artifact_read: SQLite, CSV/JSON, archives, dirs
 │   ├── ast-tools/index.ts             #   Tools ast_grep/ast_edit: structural search and editing
-│   └── source-navigation/index.ts     #   Tools read_ranges/edit_at_anchor
+│   ├── source-navigation/index.ts     #   Tools read_ranges/edit_at_anchor
+│   └── node_modules/pi-graphify/      #   Bundled graphify extension (/graphify + graph-first hooks)
 │
 ├── skills/                            # → ~/.pi/agent/skills/ (global)
 │   │
@@ -104,6 +105,7 @@ pi-dev-starter-kit/                    # Git repository
 │   ├── artifact-analysis/SKILL.md     #   Data/document investigation
 │   ├── structural-refactor/SKILL.md   #   Structural refactor with AST/LSP
 │   ├── review-matrix/SKILL.md         #   Independent multi-pass review
+│   ├── node_modules/pi-graphify/skills/graphify/SKILL.md # Graph knowledge workflows
 │   │
 │   │  # Integrated skills (mattpocock/skills — Reference Doc 8)
 │   │  # Copied from original repo, kept in-tree
@@ -161,9 +163,10 @@ pi-dev-starter-kit/                    # Git repository
       "./extensions/artifact-read",
       "./extensions/ast-tools",
       "./extensions/source-navigation",
-      "./extensions/init-starter-kit"
+      "./extensions/init-starter-kit",
+      "./node_modules/pi-graphify/extensions"
     ],
-    "skills": ["./skills"],
+    "skills": ["./skills", "./node_modules/pi-graphify/skills"],
     "prompts": ["./prompts"]
   },
   "dependencies": {
@@ -171,8 +174,10 @@ pi-dev-starter-kit/                    # Git repository
     "pi-subagents": "git:github.com/nicobailon/pi-subagents",
     "pi-mcp-adapter": "git:github.com/nicobailon/pi-mcp-adapter",
     "pi-agent-browser-native": "git:github.com/fitchmultz/pi-agent-browser-native",
-    "context-mode": "git:github.com/mksglu/context-mode"
+    "context-mode": "git:github.com/mksglu/context-mode",
+    "pi-graphify": "git+ssh://git@github.com/c4iov1/pi-graphify.git"
   },
+  "bundledDependencies": ["pi-graphify"],
   "peerDependencies": {
     "@anthropic-ai/claude-code": "*",
     "@anthropic-ai/claude-code-core": "*"
@@ -191,6 +196,7 @@ pi-dev-starter-kit/                    # Git repository
 | `pi-mcp-adapter` | nicobailon | Integration | MCP servers (database, external APIs) |
 | `pi-agent-browser-native` | fitchmultz | Browser | Browser automation |
 | `context-mode` | mksglu | Context | Sandbox tools, FTS5 session continuity, 98% context savings, Think-in-Code paradigm |
+| `pi-graphify` | c4iov1 | Graph navigation | Graph-first codebase orientation, `/graphify`, freshness reminders, and graph query workflows |
 
 **Packages removed as external dependencies (reimplemented as internal extensions):**
 
@@ -811,7 +817,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 ### Phase 1: Package setup + verify dependencies (Agents A, B)
 
 1. Package scaffold, `package.json` + global `SYSTEM.md` (#001)
-2. Verify installation of 5 direct dependencies (#002)
+2. Verify installation of 6 direct dependencies (#002, plus bundled `pi-graphify`)
 
 ### Phase 2: Core extensions (Agents C, D, E, F, G, H)
 

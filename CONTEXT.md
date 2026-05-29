@@ -23,7 +23,7 @@ and themes. Installable via `pi install npm:...` or `pi install git:...`.
 
 **Direct Dependency**
 Third-party package referenced directly from the original repository — no fork.
-The kit uses 5 direct dependencies from the Pi.dev ecosystem. If an upstream repo
+The kit uses 6 direct dependencies from the Pi.dev ecosystem. If an upstream repo
 breaks or is discontinued, the fallback is to fork at that point (reactive, not proactive).
 
 **Progressive Disclosure**
