@@ -16,6 +16,7 @@
 
     "activeExtensions": [
       "permission-gate",
+      "rtk-rewrite",
       "post-edit-lint",
       "loop-protection",
       "task-tracker",
@@ -23,7 +24,15 @@
       "auto-memory",
       "starter-kit-doctor"
     ],
-    "_activeExtensions_comment": "Extensions to load. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash', 'artifact-read', 'ast-tools', 'source-navigation'. Add custom extensions placed in .pi/extensions/. starter-kit-doctor reports available capabilities.",
+    "_activeExtensions_comment": "Extensions to load. Keep 'permission-gate' before 'rtk-rewrite' so security decisions happen before optimization. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash', 'artifact-read', 'ast-tools', 'source-navigation'. Add custom extensions placed in .pi/extensions/. starter-kit-doctor reports available capabilities.",
+
+    "rtkRewrite": {
+      "_comment": "RTK rewrites agent bash commands for token/context savings. Requires rtk in PATH. The starter-kit extension means you do not need to run `rtk init --agent pi`; set enabled=false to disable permanently.",
+      "enabled": true,
+      "timeoutMs": 2000,
+      "debug": false,
+      "interceptUserBash": false
+    },
 
     "contribGate": {
       "mode": "default",

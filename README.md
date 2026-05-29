@@ -13,6 +13,7 @@ Before installing the starter kit, ensure you have the following installed on yo
 - **Pi.dev CLI** (version `0.75.0` or higher recommended).
 - **Git** (for version control and package installation).
 - **Node.js** (LTS version recommended, minimum Node 18+).
+- **RTK** (optional but recommended) available as `rtk` on `PATH` for automatic shell-command rewrites and token savings. The starter-kit extension uses the executable directly; it does not vendor RTK and does **not** require `rtk init --agent pi`.
 
 ---
 
@@ -76,7 +77,8 @@ To initialize a new project with the starter kit templates, follow these steps:
 
 | Extension | Purpose | Tools Registered / Hooks Handled |
 |-----------|---------|----------------------------------|
-| `permission-gate` | Security gates & pipelines | Intercepts `PreToolUse` for write/edit/shell actions. |
+| `permission-gate` | Security gates & pipelines | Intercepts `PreToolUse` for write/edit/shell actions. Must run before optimization hooks. |
+| `rtk-rewrite` | Context-efficiency bash rewrite | After permission-gate approval, mutates agent `bash` tool calls through `pi.exec("rtk", ["rewrite", command])`; fail-open and optimization-only. Commands: `/rtk-status`, `/rtk-gain`, `/rtk-toggle`. |
 | `post-edit-lint` | Deterministic linter triggers | Auto-runs linter/formatter (with `--fix`) after file edits. |
 | `loop-protection` | Aborts doom-loops and repeated queries | Intercepts execution if model loops on the same error/action. |
 | `task-tracker` | Local task management | Registers `TaskCreate`, `TaskUpdate` to track progress. |
@@ -143,7 +145,46 @@ Enable it for a project with `/feature-mode on` or `feature_mode_toggle({ mode: 
 
 ---
 
-## 7. Extending Per Project
+## 7. RTK Rewrite (Context Efficiency)
+
+`rtk-rewrite` reduces context consumed by verbose shell commands by asking RTK to rewrite supported agent `bash` calls, for example `git status` → `rtk git status` or `ls -la` → `rtk ls -la`. It is active by default when the starter kit is installed globally and RTK is on `PATH`.
+
+Important rules:
+- `permission-gate` runs first; RTK is **not** a security or permission layer.
+- Missing RTK, timeouts, unsupported exit codes, empty output, identical output, and exceptions all fail open and run the original command unchanged.
+- RTK exit codes `0` and `3` with non-empty changed stdout are accepted as successful rewrites; exit code `1` means no rewrite/pass-through.
+- Starter-kit users do **not** need to run `rtk init --agent pi`; this package-level Pi extension handles the integration.
+
+Controls:
+```json
+{
+  "starterKit": {
+    "rtkRewrite": { "enabled": false }
+  }
+}
+```
+Per-process or per-command opt out:
+```bash
+RTK_DISABLE_REWRITE=1
+RTK_DISABLED=1
+RTK_DISABLE_REWRITE=1 git status
+```
+Slash commands:
+- `/rtk-status` — show effective config, hook state, and RTK version.
+- `/rtk-gain` — run `rtk gain` for token-savings output; pass args such as `/rtk-gain --history` explicitly.
+- `/rtk-toggle` — toggle rewrites for the current session only.
+
+Smoke checks:
+```bash
+rtk --version
+rtk rewrite "git status"
+pi -e ./extensions/rtk-rewrite/index.ts
+rtk gain --history
+```
+
+---
+
+## 8. Extending Per Project
 
 You can customize or add project-specific functionality without modifying the global package. Place custom extensions and skills inside your project's `.pi` directory:
 
@@ -153,7 +194,7 @@ You can customize or add project-specific functionality without modifying the gl
 
 ---
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 ### TS compilation errors in extensions
 Ensure you run compiler checks using the specific NodeNext module resolution. For example:
@@ -167,6 +208,9 @@ The `post-edit-lint` extension expects a working linter (e.g., Biome, ESLint, Pr
 ### Tool loops / Diminishing returns warnings
 If the agent triggers `loop-protection`, review the error it is trying to resolve. Usually, the model is missing context. Break the task down, modify `AGENTS.md`, or use `/grill-me` to clarify requirements.
 
+### RTK missing or no rewrites
+If `/rtk-status` says RTK is missing, install RTK and ensure `rtk --version` works in the same shell that launches Pi. You do not need `rtk init --agent pi`. If you want to disable the integration permanently, set `starterKit.rtkRewrite.enabled=false`; for a one-off command use `RTK_DISABLE_REWRITE=1 <command>`.
+
 ### Diagnosing missing capabilities
 Run the `starter_kit_doctor` tool to get a full report of installed extensions, active skills, available binaries, and recommended fixes:
 ```bash
@@ -177,7 +221,7 @@ The doctor checks for `.pi/settings.json`, verifies extension/skill directories,
 
 ---
 
-## 9. Architecture Overview
+## 10. Architecture Overview
 
 For a detailed breakdown of the 4-layer architecture (Core, Security & Quality, Skills Workflow, Ecosystem Dependencies), context saving metrics, and design decisions, see [docs/architecture.md](docs/architecture.md).
 

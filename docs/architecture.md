@@ -77,6 +77,7 @@ pi-dev-starter-kit/                    # Git repository
 │
 ├── extensions/                        # → ~/.pi/agent/extensions/ (global)
 │   ├── permission-gate/index.ts       #   PreToolUse hook
+│   ├── rtk-rewrite/index.ts           #   RTK bash rewrite for context-efficient output
 │   ├── post-edit-lint/index.ts        #   Auto lint post-edit
 │   ├── loop-protection/index.ts       #   Doom-loop + diminishing returns
 │   ├── task-tracker/index.ts          #   Tools TaskCreate/TaskUpdate
@@ -145,7 +146,23 @@ pi-dev-starter-kit/                    # Git repository
   "description": "Pi.dev harness foundation — security, quality, workflow, and tools for any project",
   "keywords": ["pi-package"],
   "pi": {
-    "extensions": ["./extensions"],
+    "extensions": [
+      "./extensions/permission-gate",
+      "./extensions/rtk-rewrite",
+      "./extensions/post-edit-lint",
+      "./extensions/loop-protection",
+      "./extensions/task-tracker",
+      "./extensions/lsp-bridge",
+      "./extensions/monitor-bash",
+      "./extensions/contrib-gate",
+      "./extensions/auto-memory",
+      "./extensions/setup-ai-memory",
+      "./extensions/starter-kit-doctor",
+      "./extensions/artifact-read",
+      "./extensions/ast-tools",
+      "./extensions/source-navigation",
+      "./extensions/init-starter-kit"
+    ],
     "skills": ["./skills"],
     "prompts": ["./prompts"]
   },
@@ -384,6 +401,8 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 
 ### Layer A: Context & Documentation
 
+`rtk-rewrite` complements context-mode by reducing noisy shell output at the source. After a command passes the security pipeline, the extension delegates supported agent `bash` commands to the external `rtk` executable (`rtk rewrite <command>`). This is optimization-only: RTK is not a permission layer, is not vendored by the starter kit, and fails open to the original command if unavailable. Starter-kit users do not need to run `rtk init --agent pi`; the package-level extension activates globally by default when installed.
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │                 CONTEXT INJECTION                    │
@@ -502,6 +521,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 
 **Deliverables (all global, loaded in every session):**
 - Extension `permission-gate` — PreToolUse hook, write constraint, path confinement, and `/feature-mode` project-scoped implementation permissions persisted to `.pi/settings.json`
+- Extension `rtk-rewrite` — `tool_call` mutation for agent `bash` commands after permission-gate; uses `pi.exec("rtk", ["rewrite", command])`, accepts RTK exit codes `0` and `3` as rewrite success, and fails open on missing RTK/timeouts/errors. Commands: `/rtk-status`, `/rtk-gain`, `/rtk-toggle`.
 - Extension `post-edit-lint` — PostToolUse hook: post-edit lint
 - Extension `loop-protection` — doom-loop detection + diminishing returns
 - Extension `task-tracker` — TaskCreate/TaskUpdate tools
@@ -624,6 +644,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │  │                           // "featureWork"   │   │
 │  │     "activeExtensions": [                    │   │
 │  │       "permission-gate",                     │   │
+│  │       "rtk-rewrite",                         │   │
 │  │       "post-edit-lint",                      │   │
 │  │       "loop-protection",                     │   │
 │  │       "task-tracker",                        │   │
@@ -795,12 +816,13 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 ### Phase 2: Core extensions (Agents C, D, E, F, G, H)
 
 3. `permission-gate` — PreToolUse hook + write constraint (#003)
-4. `post-edit-lint` — automatic post-edit lint (#004)
-5. `loop-protection` — doom-loop + diminishing returns detection (#005)
-6. `task-tracker` — TaskCreate/TaskUpdate tools (#006)
-7. `contrib-gate` — Git workflow (#015)
-8. `auto-memory` — lightweight MEMORY.md persistence (#016)
-9. `setup-ai-memory` — Pi-native hooks + opt-in commands to install/configure/administer the upstream ai-memory service (#017)
+4. `rtk-rewrite` — context-efficiency bash rewrite; ordered after permission-gate and before execution
+5. `post-edit-lint` — automatic post-edit lint (#004)
+6. `loop-protection` — doom-loop + diminishing returns detection (#005)
+7. `task-tracker` — TaskCreate/TaskUpdate tools (#006)
+8. `contrib-gate` — Git workflow (#015)
+9. `auto-memory` — lightweight MEMORY.md persistence (#016)
+10. `setup-ai-memory` — Pi-native hooks + opt-in commands to install/configure/administer the upstream ai-memory service (#017)
 
 ### Phase 3: Core Skills & Templates (Agents I, J)
 

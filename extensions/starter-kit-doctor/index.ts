@@ -42,6 +42,7 @@ interface StarterKitSettings {
     lspBridge?: { enableSymbolOps?: boolean };
     contribGate?: { mode?: string };
     monitorBash?: { maxTimeout?: number };
+    rtkRewrite?: { enabled?: boolean; timeoutMs?: number; debug?: boolean; interceptUserBash?: boolean };
   };
 }
 
@@ -75,6 +76,7 @@ type Status = "ok" | "warn" | "error";
 
 const ALL_KNOWN_EXTENSIONS = [
   "permission-gate",
+  "rtk-rewrite",
   "post-edit-lint",
   "loop-protection",
   "task-tracker",
@@ -135,6 +137,7 @@ const OPTIONAL_BINARIES = [
   { name: "ast-grep (sg)", cmd: "sg", args: ["--version"] },
   { name: "ast-grep (ast-grep)", cmd: "ast-grep", args: ["--version"] },
   { name: "docker", cmd: "docker", args: ["--version"] },
+  { name: "rtk", cmd: "rtk", args: ["--version"] },
   { name: "typescript (tsc)", cmd: "tsc", args: ["--version"] },
   { name: "biome", cmd: "biome", args: ["--version"] },
   { name: "eslint", cmd: "eslint", args: ["--version"] },
@@ -239,6 +242,16 @@ function checkBinary(bin: { cmd: string; args: string[] }): boolean {
   }
 }
 
+function checkCommandOutput(bin: { cmd: string; args: string[] }, timeout = 5000): { ok: boolean; output: string } {
+  try {
+    const r = spawnSync(bin.cmd, bin.args, { timeout, encoding: "utf-8" });
+    const output = `${r.stdout ?? ""}${r.stderr ?? ""}`.trim();
+    return { ok: r.status === 0 && !r.error, output };
+  } catch {
+    return { ok: false, output: "" };
+  }
+}
+
 function statusLabel(status: Status): string {
   const map: Record<Status, string> = { ok: "✅", warn: "⚠️", error: "❌" };
   return map[status];
@@ -319,6 +332,27 @@ function generateDoctorReport(cwd: string, packageRoot: string): DoctorReport {
     });
   }
 
+  const rtkConfig = settings?.starterKit?.rtkRewrite;
+  const rtkEnabled = rtkConfig?.enabled ?? true;
+  const rtkTimeout = rtkConfig?.timeoutMs ?? 2000;
+  const rtkVersion = checkCommandOutput({ cmd: "rtk", args: ["--version"] }, rtkTimeout);
+  const rtkGain = checkCommandOutput({ cmd: "rtk", args: ["gain"] }, Math.max(rtkTimeout, 5000));
+  binaries.push({
+    capability: "rtk-rewrite config",
+    status: rtkEnabled ? "ok" : "warn",
+    notes: `effective enabled=${rtkEnabled}; timeoutMs=${rtkTimeout}; debug=${rtkConfig?.debug ?? false}; interceptUserBash=${rtkConfig?.interceptUserBash ?? false}`,
+  });
+  binaries.push({
+    capability: "rtk version",
+    status: rtkVersion.ok ? "ok" : "warn",
+    notes: rtkVersion.ok ? rtkVersion.output : "rtk missing/unavailable; rewrite hook will fail open",
+  });
+  binaries.push({
+    capability: "rtk gain",
+    status: rtkGain.ok ? "ok" : "warn",
+    notes: rtkGain.ok ? "callable" : "not callable or no RTK history yet",
+  });
+
   for (const ls of LANGUAGE_SERVERS) {
     const ok = checkBinary(ls);
     binaries.push({
@@ -344,6 +378,13 @@ function generateDoctorReport(cwd: string, packageRoot: string): DoctorReport {
       description: "No .pi/settings.json found in project.",
       command:
         "Run /init-starter-kit or copy templates/settings.template.json to .pi/settings.json",
+    });
+  }
+
+  if (!rtkVersion.ok) {
+    fixes.push({
+      description: "RTK is not available on PATH. RTK rewrite is optional and fails open, but token-saving rewrites will not run.",
+      command: "Install rtk and ensure `rtk --version` works. You do not need `rtk init --agent pi` for starter-kit integration.",
     });
   }
 

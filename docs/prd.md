@@ -98,6 +98,8 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 31. As a developer, I want a multi-pass review workflow with independent correctness, security, and maintainability passes, so that important changes get broader review coverage.
 
+32. As a developer, I want verbose shell commands to be automatically rewritten through RTK before execution, so that repository inspection, git, test, and build output consumes far less model context without changing my workflow.
+
 ## Implementation Decisions
 
 ### Architecture
@@ -112,33 +114,35 @@ The kit imposes no stack, domain, or product. The developer adds project-specifi
 
 ### Modules
 
-**Extensions (13 modules, built in-house):**
+**Extensions (14 modules, built in-house):**
 
 1. **permission-gate**: PreToolUse hook. Blocks destructive commands, enforces write constraint (must read file before overwriting except in explicit `featureWork` mode), confines paths to workspace root. Approval modes: `default` / `acceptEdits` / `featureWork`, with `/feature-mode` and `feature_mode_toggle` to persist project implementation permissions into `.pi/settings.json` for future sessions.
 
-2. **post-edit-lint**: PostToolUse hook. After every `edit` or `write` tool call, runs the project's linter/formatter (`--fix`) and injects results into context. Auto-detects ESLint, Biome, Prettier, or language-native formatters.
+2. **rtk-rewrite**: Tool-call mutation hook for Pi agent `bash` calls. Runs after permission-gate and before command execution, delegates to the external `rtk` executable via `pi.exec("rtk", ["rewrite", command])`, accepts RTK exit codes `0` and `3` as successful rewrites, and fails open for missing RTK, timeouts, empty output, unsupported codes, or exceptions. Enabled globally by default unless `starterKit.rtkRewrite.enabled=false`; starter-kit users do not need `rtk init --agent pi`. Commands: `/rtk-status`, `/rtk-gain`, `/rtk-toggle`.
 
-3. **loop-protection**: Monitors tool calls for doom-loops (N edits on same file → "reconsider approach") and diminishing returns (3 iterations <500 tokens → force stop). Warns at >85% context usage.
+3. **post-edit-lint**: PostToolUse hook. After every `edit` or `write` tool call, runs the project's linter/formatter (`--fix`) and injects results into context. Auto-detects ESLint, Biome, Prettier, or language-native formatters.
 
-4. **task-tracker**: Registers `TaskCreate` and `TaskUpdate` tools. Tasks persist in `.pi/tasks.jsonl` and survive compaction. The model can track progress across turns.
+4. **loop-protection**: Monitors tool calls for doom-loops (N edits on same file → "reconsider approach") and diminishing returns (3 iterations <500 tokens → force stop). Warns at >85% context usage.
 
-5. **lsp-bridge**: PostToolUse hook. After edits, runs incremental type-check via the project's LSP or compiler (`tsc --noEmit`, `pyright`, `cargo check`) and reports type errors in context. Also registers TypeScript symbol tools: `lsp_definition`, `lsp_references`, `lsp_rename` (preview), and `lsp_workspace_symbols`.
+5. **task-tracker**: Registers `TaskCreate` and `TaskUpdate` tools. Tasks persist in `.pi/tasks.jsonl` and survive compaction. The model can track progress across turns.
 
-6. **monitor-bash**: Registers `Monitor` tool. Runs a shell command in background, streams each output line as a tool result, supports timeout and cancellation.
+6. **lsp-bridge**: PostToolUse hook. After edits, runs incremental type-check via the project's LSP or compiler (`tsc --noEmit`, `pyright`, `cargo check`) and reports type errors in context. Also registers TypeScript symbol tools: `lsp_definition`, `lsp_references`, `lsp_rename` (preview), and `lsp_workspace_symbols`.
 
-7. **contrib-gate**: PreToolUse hook. Validates branch naming (feature/*, fix/*, etc.) and conventional commit messages. Configurable modes: `default` (warn) / `strict` (block).
+7. **monitor-bash**: Registers `Monitor` tool. Runs a shell command in background, streams each output line as a tool result, supports timeout and cancellation.
 
-8. **auto-memory**: Session hooks + custom tools. Persists agent learnings to `MEMORY.md` as a lightweight index. Tools: `memory_save`, `memory_search`. Limits context injection to last N entries.
+8. **contrib-gate**: PreToolUse hook. Validates branch naming (feature/*, fix/*, etc.) and conventional commit messages. Configurable modes: `default` (warn) / `strict` (block).
 
-9. **setup-ai-memory**: Registers `/setup-ai-memory` plus ai-memory admin commands. Orchestrates upstream wrapper install, Docker server startup, Pi-native lifecycle hook posting, AGENTS.md routing, upgrade, bootstrap, backup, lint, forget-sweep, and status. Explicit opt-in because it mutates global machine state.
+9. **auto-memory**: Session hooks + custom tools. Persists agent learnings to `MEMORY.md` as a lightweight index. Tools: `memory_save`, `memory_search`. Limits context injection to last N entries.
 
-10. **starter-kit-doctor**: Registers `starter_kit_doctor`. Reports installed/enabled extensions, skills, optional binaries, missing dependencies, and harness profile settings.
+10. **setup-ai-memory**: Registers `/setup-ai-memory` plus ai-memory admin commands. Orchestrates upstream wrapper install, Docker server startup, Pi-native lifecycle hook posting, AGENTS.md routing, upgrade, bootstrap, backup, lint, forget-sweep, and status. Explicit opt-in because it mutates global machine state.
 
-11. **artifact-read**: Registers `artifact_read`. Provides read-only, path-confined inspection for directories, CSV/JSON/JSONL, SQLite, and archives with pagination and safe preview.
+11. **starter-kit-doctor**: Registers `starter_kit_doctor`. Reports installed/enabled extensions, skills, optional binaries, missing dependencies, and harness profile settings.
 
-12. **ast-tools**: Registers `ast_grep` and preview-only `ast_edit`. Uses `ast-grep` for structural search/codemod previews without direct writes.
+12. **artifact-read**: Registers `artifact_read`. Provides read-only, path-confined inspection for directories, CSV/JSON/JSONL, SQLite, and archives with pagination and safe preview.
 
-13. **source-navigation**: Registers `read_ranges` and preview-only `edit_at_anchor`. Supports multi-range source reads and stale-context detection via line-content hashes.
+13. **ast-tools**: Registers `ast_grep` and preview-only `ast_edit`. Uses `ast-grep` for structural search/codemod previews without direct writes.
+
+14. **source-navigation**: Registers `read_ranges` and preview-only `edit_at_anchor`. Supports multi-range source reads and stale-context detection via line-content hashes.
 
 **Skills (10 modules, built in-house):**
 

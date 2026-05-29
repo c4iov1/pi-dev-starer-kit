@@ -4,14 +4,29 @@
   "description": "Pi.dev harness foundation — security, quality, workflow, and tools for any project",
   "scripts": {
     "test:loop-protection": "tsc extensions/loop-protection/index.ts tests/loop-protection.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && node --test /private/tmp/pi-dev-starter-kit-tests/tests/loop-protection.test.js",
-    "test:permission-gate": "tsc extensions/permission-gate/index.ts tests/permission-gate.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/permission-gate.test.js"
+    "test:permission-gate": "tsc extensions/permission-gate/index.ts tests/permission-gate.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/permission-gate.test.js",
+    "test:rtk-rewrite": "tsc extensions/rtk-rewrite/index.ts tests/rtk-rewrite.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/rtk-rewrite.test.js"
   },
   "keywords": [
     "pi-package"
   ],
   "pi": {
     "extensions": [
-      "./extensions"
+      "./extensions/permission-gate",
+      "./extensions/rtk-rewrite",
+      "./extensions/post-edit-lint",
+      "./extensions/loop-protection",
+      "./extensions/task-tracker",
+      "./extensions/lsp-bridge",
+      "./extensions/monitor-bash",
+      "./extensions/contrib-gate",
+      "./extensions/auto-memory",
+      "./extensions/setup-ai-memory",
+      "./extensions/starter-kit-doctor",
+      "./extensions/artifact-read",
+      "./extensions/ast-tools",
+      "./extensions/source-navigation",
+      "./extensions/init-starter-kit"
     ],
     "skills": [
       "./skills"
