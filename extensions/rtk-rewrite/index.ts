@@ -7,8 +7,8 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { DEFAULT_RTK_REWRITE_TIMEOUT_MS } from "../shared/constants.js";
+import { loadSettings } from "../shared/settings.js";
 
 export interface RtkRewriteSettings {
   enabled: boolean;
@@ -30,9 +30,10 @@ export interface ExecResult {
   killed?: boolean;
 }
 
+/** Default RTK rewrite settings used when `.pi/settings.json` omits configuration. */
 export const DEFAULT_RTK_REWRITE_SETTINGS: RtkRewriteSettings = {
   enabled: true,
-  timeoutMs: 2_000,
+  timeoutMs: DEFAULT_RTK_REWRITE_TIMEOUT_MS,
   debug: false,
   interceptUserBash: false,
 };
@@ -49,8 +50,14 @@ function isTruthy(value: string | undefined): boolean {
   return value !== undefined && TRUTHY.has(value.trim().toLowerCase());
 }
 
-export function getEffectiveSettings(settings?: SettingsFile | null): RtkRewriteSettings {
-  const configured = settings?.starterKit?.rtkRewrite ?? {};
+/**
+ * Merge configured RTK rewrite settings with safe defaults.
+ *
+ * @param settings - Starter Kit settings loaded from `.pi/settings.json`; may be null or undefined.
+ * @returns Fully-populated RTK rewrite settings.
+ */
+export function getEffectiveSettings(settings?: ReturnType<typeof loadSettings>): RtkRewriteSettings {
+  const configured = settings?.rtkRewrite ?? {};
   return {
     enabled: configured.enabled ?? DEFAULT_RTK_REWRITE_SETTINGS.enabled,
     timeoutMs: configured.timeoutMs ?? DEFAULT_RTK_REWRITE_SETTINGS.timeoutMs,
@@ -60,20 +67,27 @@ export function getEffectiveSettings(settings?: SettingsFile | null): RtkRewrite
   };
 }
 
-export function loadSettings(cwd: string): SettingsFile | null {
-  const path = resolve(cwd, ".pi", "settings.json");
-  if (!existsSync(path)) return null;
-  try {
-    return JSON.parse(readFileSync(path, "utf-8"));
-  } catch {
-    return null;
-  }
-}
 
+
+/**
+ * Check process-level environment variables that disable command rewriting.
+ *
+ * @param env - Environment variables to inspect; defaults to `process.env`.
+ * @returns True when rewrite should be disabled for the whole process.
+ */
 export function hasProcessOptOut(env: NodeJS.ProcessEnv = process.env): boolean {
   return isTruthy(env.RTK_DISABLE_REWRITE) || isTruthy(env.RTK_DISABLED);
 }
 
+/**
+ * Check whether a bash command opts out via inline environment assignment.
+ *
+ * Handles prefixes such as `RTK_DISABLE_REWRITE=1 npm test` and
+ * `env RTK_DISABLED=true npm test` before the actual command.
+ *
+ * @param command - Raw bash command string.
+ * @returns True when the command declares an RTK opt-out variable.
+ */
 export function hasCommandOptOut(command: string): boolean {
   const trimmed = command.trimStart();
   const envPrefixPattern = /^(?:env\s+)?(?:[A-Za-z_][A-Za-z0-9_]*=(?:'[^']*'|"[^"]*"|\S+)\s+)*/;
@@ -88,10 +102,24 @@ export function hasCommandOptOut(command: string): boolean {
   return false;
 }
 
+/**
+ * Detect commands that already invoke `rtk` directly.
+ *
+ * @param command - Raw bash command string.
+ * @returns True when the first executable after optional env prefixes is `rtk`.
+ */
 export function isAlreadyRtk(command: string): boolean {
   return /^\s*(?:env\s+)?(?:[A-Za-z_][A-Za-z0-9_]*=(?:'[^']*'|"[^"]*"|\S+)\s+)*rtk(?:\s|$)/.test(command);
 }
 
+/**
+ * Decide whether a bash command should bypass RTK rewriting.
+ *
+ * @param command - Raw bash command string.
+ * @param settings - Effective RTK rewrite settings.
+ * @param env - Environment variables used for process-level opt-out checks.
+ * @returns True when the original command must be left untouched.
+ */
 export function shouldSkipRewrite(command: string, settings: RtkRewriteSettings, env: NodeJS.ProcessEnv = process.env): boolean {
   if (!settings.enabled) return true;
   if (typeof command !== "string" || command.trim() === "") return true;
@@ -101,6 +129,17 @@ export function shouldSkipRewrite(command: string, settings: RtkRewriteSettings,
   return false;
 }
 
+/**
+ * Select a rewritten command from an RTK execution result.
+ *
+ * RTK exit code `0` means success; exit code `3` is also accepted because
+ * some RTK versions use it for successful rewrite output. Empty, identical,
+ * failed, or killed executions fail open by returning null.
+ *
+ * @param original - Original bash command.
+ * @param result - Result returned by `pi.exec("rtk", ["rewrite", ...])`.
+ * @returns Rewritten command, or null to keep the original command.
+ */
 export function selectRewrite(original: string, result: ExecResult): string | null {
   if (result.killed) return null;
   if (!SUCCESS_REWRITE_CODES.has(result.code ?? -1)) return null;
@@ -110,12 +149,24 @@ export function selectRewrite(original: string, result: ExecResult): string | nu
   return rewritten;
 }
 
+/**
+ * Parse an RTK semantic version from command output.
+ *
+ * @param stdout - Output from `rtk --version`.
+ * @returns Tuple of major/minor/patch, or null when no semantic version is found.
+ */
 export function parseRtkVersion(stdout: string): [number, number, number] | null {
   const match = stdout.trim().match(/(?:rtk\s+)?(\d+)\.(\d+)\.(\d+)/i);
   if (!match) return null;
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
+/**
+ * Check whether an RTK version supports the rewrite command integration.
+ *
+ * @param stdout - Output from `rtk --version`.
+ * @returns True when the parsed version is new enough for rewrite support.
+ */
 export function isSupportedRtkVersion(stdout: string): boolean {
   const parsed = parseRtkVersion(stdout);
   if (!parsed) return false;
@@ -123,6 +174,18 @@ export function isSupportedRtkVersion(stdout: string): boolean {
   return major > 0 || minor >= MIN_SUPPORTED_RTK_MINOR;
 }
 
+/**
+ * Ask RTK to rewrite a bash command and return the accepted rewrite.
+ *
+ * This function fails open: execution errors, timeouts, unsupported exit codes,
+ * and unchanged output all return null so the original command can continue.
+ *
+ * @param pi - Pi extension API used to execute `rtk`.
+ * @param command - Raw bash command to rewrite.
+ * @param settings - Effective RTK rewrite settings, including timeout.
+ * @param signal - Optional abort signal for cancellation.
+ * @returns Rewritten command, or null to preserve the original command.
+ */
 export async function rewriteCommand(
   pi: ExtensionAPI,
   command: string,
@@ -146,6 +209,12 @@ export interface RtkAvailability {
   version: string | null;
 }
 
+/**
+ * Decide whether detected RTK availability is sufficient for rewriting.
+ *
+ * @param availability - Cached RTK binary availability and version support state.
+ * @returns True when RTK is installed and supported.
+ */
 export function shouldUseRtkAvailability(availability: RtkAvailability): boolean {
   return availability.available && availability.supported;
 }

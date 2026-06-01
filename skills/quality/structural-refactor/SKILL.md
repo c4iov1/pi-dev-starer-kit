@@ -86,7 +86,7 @@ import $DEFAULT from '$LIB'
 ### Matching JSX
 ```
 <$TAG $ATTRS={$$$}>$$$CHILDREN</$TAG>
-<$COMP {...$$$} />
+<$CPi {...$$$} />
 ```
 
 ## LSP Tools Guide

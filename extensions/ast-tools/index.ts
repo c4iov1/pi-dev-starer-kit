@@ -9,7 +9,6 @@
  * modified directly. The agent must apply approved changes via the normal
  * `edit` tool (which goes through the permission pipeline).
  *
- * Inspired by Oh-My-Pi's AST tools, as praised by Akita.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -17,6 +16,7 @@ import { Type } from "@sinclair/typebox";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve, relative, sep } from "node:path";
+import { PathOutsideWorkspaceError } from "../shared/errors.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -122,7 +122,7 @@ function buildAstGrepArgs(params: AstGrepParams, cwd: string, binary: string): s
   if (params.paths && params.paths.length > 0) {
     for (const p of params.paths) {
       if (!isPathConfined(p, cwd)) {
-        throw new Error(`Path outside workspace: ${p}`);
+        throw new PathOutsideWorkspaceError(p, cwd);
       }
       args.push(relativePath(p, cwd));
     }
@@ -153,7 +153,7 @@ function buildAstEditArgs(
   if (params.paths && params.paths.length > 0) {
     for (const p of params.paths) {
       if (!isPathConfined(p, cwd)) {
-        throw new Error(`Path outside workspace: ${p}`);
+        throw new PathOutsideWorkspaceError(p, cwd);
       }
       args.push(relativePath(p, cwd));
     }
@@ -270,9 +270,9 @@ function handleAstGrep(params: AstGrepParams, cwd: string) {
   }
 
   const limit = clampLimit(params.limit ?? 20);
-  const args = buildAstGrepArgs(params, cwd, binary);
 
   try {
+    const args = buildAstGrepArgs(params, cwd, binary);
     const result = spawnSync(binary, args, {
       cwd,
       encoding: "utf-8",
@@ -336,10 +336,9 @@ function handleAstEdit(params: AstEditParams, cwd: string) {
     };
   }
 
-  // Always dry-run. Never enable ast-grep's write mode.
-  const args = buildAstEditArgs(params, cwd, binary);
-
   try {
+    // Always dry-run. Never enable ast-grep's write mode.
+    const args = buildAstEditArgs(params, cwd, binary);
     const result = spawnSync(binary, args, {
       cwd,
       encoding: "utf-8",

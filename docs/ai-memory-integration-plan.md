@@ -10,7 +10,7 @@ Replace the optional integration with `agentmemory` with an optional integration
 - **Do not replace `auto-memory`**: `auto-memory` remains the zero-infra local fallback via `MEMORY.md`.
 - **Add `ai-memory` skill**: instructions on when to use `memory_query`, `memory_explore`, `memory_handoff_begin`, `memory_consolidate`, etc.
 - **Add optional `.ai-memory.toml` template** for workspace/project routing.
-- **Pi-native hooks**: do not use `~/.omp` or Oh My Pi installers. The kit extension posts Pi events (`session_start`, `before_agent_start`, `tool_call`, `tool_result`, `session_before_compact`, `session_shutdown`) to the ai-memory `/hook` endpoint.
+- **Pi-native hooks**: the kit extension posts Pi events (`session_start`, `before_agent_start`, `tool_call`, `tool_result`, `session_before_compact`, `session_shutdown`) to the ai-memory `/hook` endpoint.
 
 ## Research Summary
 
@@ -38,8 +38,8 @@ Replace the optional integration with `agentmemory` with an optional integration
    - Remove issues/documents recommending `rohitg00/agentmemory`.
    - Update PRD/architecture/AGENTS to not list `agent-memory`.
 
-2. **New `ai-memory` skill** — implemented in `skills/ai-memory/SKILL.md`
-   - Create `skills/ai-memory/SKILL.md`.
+2. **New `ai-memory` skill** — implemented in `skills/memory/ai-memory/SKILL.md`
+   - Create `skills/memory/ai-memory/SKILL.md`.
    - Content:
      - Quick setup with Docker + upstream wrapper.
      - Pi-native setup:

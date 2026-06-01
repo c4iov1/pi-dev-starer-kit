@@ -7,7 +7,7 @@ description: Use Akita's ai-memory service for always-on long-term project memor
 
 `ai-memory` is an external always-on memory service from <https://github.com/akitaonrails/ai-memory>. The starter kit does **not** fork or vendor it. When installed, it runs continuously as a local/server process and captures lifecycle events through hooks.
 
-The skill does not start memory by itself. It teaches you how to use the starter-kit slash commands and any ai-memory MCP tools exposed by `pi-mcp-adapter`. Pi lifecycle capture is handled by the starter-kit extension itself; no Oh My Pi (`~/.omp`) integration is required.
+The skill does not start memory by itself. It teaches you how to use the starter-kit slash commands and any ai-memory MCP tools exposed by `pi-mcp-adapter`. Pi lifecycle capture is handled by the starter-kit extension itself.
 
 ## Setup
 
@@ -102,7 +102,7 @@ If the user asks to install ai-memory routing into this project, prefer the MCP 
 ai-memory install-instructions --target AGENTS.md
 ```
 
-The snippet belongs in project rules (`AGENTS.md` for Pi/Codex/OpenCode/Cursor/Gemini/OMP, `CLAUDE.md` for Claude Code). Re-running is idempotent.
+The snippet belongs in project rules (`AGENTS.md` for Pi/Codex/OpenCode/Cursor/Gemini, `CLAUDE.md` for Claude Code). Re-running is idempotent.
 
 ## Hygiene
 

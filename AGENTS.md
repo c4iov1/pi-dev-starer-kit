@@ -12,7 +12,7 @@ See `docs/architecture.md` for the full design. See `docs/prd.md` for user stori
 
 ### Issue tracker
 
-Local markdown — issues live under `.scratch/pi-dev-starter-kit/`. See `docs/agents/issue-tracker.md`.
+Local markdown — issues live under `.scratch/<scope>/`. Use `.scratch/INDEX.md` as the master index and refer to scoped IDs (`starter-###`, `refactor-###`, `akita-###`, `rtk-###`) to avoid duplicate-number ambiguity. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
@@ -44,15 +44,13 @@ pi-dev-starter-kit/
 │   ├── auto-memory/
 │   └── setup-ai-memory/
 │
-├── skills/                      # Skills we build + integrate
-│   ├── plan-mode/
-│   ├── self-verify/
-│   ├── web-research/
-│   ├── browser-testing/
-│   ├── subagent-delegation/
-│   ├── mcp-orchestration/
-│   └── ai-memory/
-│   # + 14 skills from mattpocock/skills
+├── skills/                      # Skills we build + integrate (recursive SKILL.md discovery)
+│   ├── planning/                # plan-mode, grill, PRD/issues, interface design
+│   ├── quality/                 # self-verify, review, TDD, diagnose, refactor
+│   ├── workflow/                # handoff, triage, QA, setup
+│   ├── research/                # web, browser, MCP, subagents
+│   ├── tools/                   # artifact-analysis, write-a-skill
+│   └── memory/                  # ai-memory
 │
 ├── prompts/                     # Prompt templates
 │   ├── plan.md
@@ -94,7 +92,7 @@ pi-dev-starter-kit/
 2. Check `docs/architecture.md` for the full spec before coding
 3. Issues live in `.scratch/pi-dev-starter-kit/` — check status before starting
 4. Extension code goes in `extensions/<name>/index.ts` — use Pi.dev's ExtensionAPI
-5. Skills go in `skills/<name>/SKILL.md` — follow the Agent Skills standard
+5. Skills go in `skills/<category>/<name>/SKILL.md` — follow the Agent Skills standard. Pi discovers nested `SKILL.md` directories recursively.
 
 ## Non-negotiable rules
 
@@ -103,6 +101,16 @@ pi-dev-starter-kit/
 - **Context efficiency**: System prompt must stay lean. Large instructions go in skills, not in SYSTEM.md
 - **Deterministic hooks**: Quality checks (lint, type-check, loop detection) are enforced via hooks — not prompt
 - **Document as you build**: ADRs for architectural decisions, inline comments for non-obvious patterns
+
+## Extension dependency rules
+
+See `docs/extension-layers.md` for the full layer map.
+
+- Layer 1 `extensions/shared/*` may be imported by any extension and must not import extension code.
+- Layer 2 core extensions (`permission-gate`, `post-edit-lint`, `loop-protection`, `task-tracker`) may import Layer 1 only.
+- Layer 3 feature extensions should import Layer 1 only; promote shared logic instead of importing sibling features.
+- Layer 4 integration extensions (`setup-ai-memory`, `starter-kit-doctor`, `init-starter-kit`) may import lower layers when needed.
+- No circular dependencies; verify with `npx madge extensions --extensions ts --circular` when available.
 
 ## Quick commands
 

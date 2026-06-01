@@ -21,6 +21,17 @@ import {
 } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
+import {
+  BINARY_CHECK_TIMEOUT_MS,
+  PACKAGE_ROOT_SEARCH_MAX_DEPTH,
+} from "../shared/constants";
+import {
+  ErrorCodes,
+  ExtensionError,
+  formatError,
+  normalizeError,
+} from "../shared/errors";
+import { loadSettingsFile as loadSharedSettingsFile } from "../shared/settings";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -66,6 +77,7 @@ interface DoctorReport {
   skills: TableRow[];
   binaries: TableRow[];
   fixes: FixItem[];
+  settingsError?: string;
 }
 
 type Status = "ok" | "warn" | "error";
@@ -157,6 +169,15 @@ const LANGUAGE_SERVERS = [
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Locate the installed starter-kit package root.
+ *
+ * Checks common Pi package locations first, then walks upward from the current
+ * directory for a matching package.json. Falling back to CWD keeps the doctor
+ * usable inside local development checkouts.
+ *
+ * @returns Absolute path to the best-known package root.
+ */
 function getPackageRoot(): string {
   // Try common Pi.dev installation paths for the starter-kit package
   const home = process.env.HOME ?? process.env.USERPROFILE ?? "";
@@ -172,14 +193,16 @@ function getPackageRoot(): string {
 
   // Fallback: walk up from CWD looking for package.json with matching name
   let dir = process.cwd();
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < PACKAGE_ROOT_SEARCH_MAX_DEPTH; i++) {
     const pkgPath = join(dir, "package.json");
     if (existsSync(pkgPath)) {
       try {
         const p = JSON.parse(readFileSync(pkgPath, "utf-8"));
         if (p.name === "pi-dev-starter-kit") return dir;
-      } catch {
-        // ignore parse errors, keep walking
+      } catch (error) {
+        // Ignore invalid package.json files while walking upward, but normalize
+        // the value so non-Error throws are still handled consistently.
+        void normalizeError(error);
       }
     }
     const parent = dirname(dir);
@@ -191,6 +214,16 @@ function getPackageRoot(): string {
   return process.cwd();
 }
 
+/**
+ * Discover extension directories available in the starter-kit package.
+ *
+ * Bundled packages such as pi-graphify may expose extension files from
+ * node_modules rather than `extensions/<name>`, so this function normalizes
+ * those into logical extension names for reporting.
+ *
+ * @param packageRoot - Starter-kit package root.
+ * @returns Set of logical extension names installed locally.
+ */
 function getExtensionDirs(packageRoot: string): Set<string> {
   const extensionsDir = join(packageRoot, "extensions");
   if (!existsSync(extensionsDir)) return new Set();
@@ -215,65 +248,125 @@ function getExtensionDirs(packageRoot: string): Set<string> {
   }
 }
 
+/**
+ * Discover skill directories available in the starter-kit package.
+ *
+ * @param packageRoot - Starter-kit package root.
+ * @returns Set of logical skill names installed locally.
+ */
 function getSkillDirs(packageRoot: string): Set<string> {
   const skillsDir = join(packageRoot, "skills");
-  if (!existsSync(skillsDir)) return new Set();
-  try {
-    const entries = readdirSync(skillsDir);
-    const dirs = new Set(
-      entries.filter((e) => {
-        const p = join(skillsDir, e);
-        return statSync(p).isDirectory();
-      }),
-    );
+  const dirs = new Set<string>();
+  if (!existsSync(skillsDir)) return dirs;
 
+  const visit = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      const p = join(dir, entry);
+      if (!statSync(p).isDirectory()) continue;
+      if (existsSync(join(p, "SKILL.md"))) dirs.add(entry);
+      visit(p);
+    }
+  };
+
+  try {
+    visit(skillsDir);
     if (existsSync(join(packageRoot, "node_modules", "pi-graphify", "skills", "graphify", "SKILL.md"))) {
       dirs.add("graphify");
     }
-
     return dirs;
   } catch {
-    return new Set();
+    return dirs;
   }
 }
 
-function loadSettings(cwd: string): { settings: StarterKitSettings | null; found: boolean } {
+/**
+ * Load project-level starter-kit settings from `.pi/settings.json`.
+ *
+ * Missing settings are not an error; invalid JSON is returned as a structured
+ * ExtensionError so the report can include an actionable fix.
+ *
+ * @param cwd - Active project root.
+ * @returns Parsed settings plus presence/error metadata.
+ */
+function loadSettings(cwd: string): {
+  settings: StarterKitSettings | null;
+  found: boolean;
+  error?: ExtensionError;
+} {
   const configPath = resolve(cwd, ".pi", "settings.json");
   if (!existsSync(configPath)) {
     return { settings: null, found: false };
   }
+  const parsed = loadSharedSettingsFile(cwd);
+  if (parsed) {
+    return { settings: parsed, found: true };
+  }
+
   try {
     const raw = readFileSync(configPath, "utf-8");
     return { settings: JSON.parse(raw), found: true };
-  } catch {
-    return { settings: null, found: true };
+  } catch (error) {
+    const normalized = normalizeError(error);
+    return {
+      settings: null,
+      found: true,
+      error: new ExtensionError(
+        ErrorCodes.SETTINGS_INVALID,
+        `Could not parse .pi/settings.json: ${normalized.message}`,
+        "Fix the JSON syntax or copy templates/settings.template.json to .pi/settings.json.",
+      ),
+    };
   }
 }
 
+/**
+ * Check whether a command is callable within a short timeout.
+ *
+ * @param bin - Command and version arguments to execute.
+ * @returns True when the command exits successfully.
+ */
 function checkBinary(bin: { cmd: string; args: string[] }): boolean {
   try {
-    const r = spawnSync(bin.cmd, bin.args, { timeout: 5000 });
+    const r = spawnSync(bin.cmd, bin.args, { timeout: BINARY_CHECK_TIMEOUT_MS });
     return r.status === 0 && !r.error;
   } catch {
     return false;
   }
 }
 
-function checkCommandOutput(bin: { cmd: string; args: string[] }, timeout = 5000): { ok: boolean; output: string } {
+/**
+ * Execute a command and capture stdout/stderr for diagnostic reporting.
+ *
+ * @param bin - Command and arguments to execute.
+ * @param timeout - Maximum runtime in milliseconds.
+ * @returns Success flag and trimmed combined output.
+ */
+function checkCommandOutput(bin: { cmd: string; args: string[] }, timeout = BINARY_CHECK_TIMEOUT_MS): { ok: boolean; output: string } {
   try {
     const r = spawnSync(bin.cmd, bin.args, { timeout, encoding: "utf-8" });
     const output = `${r.stdout ?? ""}${r.stderr ?? ""}`.trim();
     return { ok: r.status === 0 && !r.error, output };
-  } catch {
-    return { ok: false, output: "" };
+  } catch (error) {
+    return {
+      ok: false,
+      output: formatError(
+        new ExtensionError(
+          ErrorCodes.TOOL_EXECUTION_FAILED,
+          `Could not execute ${bin.cmd}: ${normalizeError(error).message}`,
+          `Install ${bin.cmd} or ensure it is on PATH.`,
+        ),
+      ),
+    };
   }
 }
 
+/** Map a status level to the emoji used in markdown tables. */
 function statusLabel(status: Status): string {
   const map: Record<Status, string> = { ok: "✅", warn: "⚠️", error: "❌" };
   return map[status];
 }
 
+/** Collapse row statuses into an overall ok/warn/error severity. */
 function overallStatus(items: TableRow[]): Status {
   if (items.some((r) => r.status === "error")) return "error";
   if (items.some((r) => r.status === "warn")) return "warn";
@@ -284,8 +377,15 @@ function overallStatus(items: TableRow[]): Status {
 // Report Generation
 // ---------------------------------------------------------------------------
 
+/**
+ * Build the structured starter-kit environment diagnostic report.
+ *
+ * @param cwd - Active project root being diagnosed.
+ * @param packageRoot - Installed starter-kit package root.
+ * @returns Machine-readable report later rendered to markdown.
+ */
 function generateDoctorReport(cwd: string, packageRoot: string): DoctorReport {
-  const { settings, found: settingsFound } = loadSettings(cwd);
+  const { settings, found: settingsFound, error: settingsError } = loadSettings(cwd);
   const activeExtensions = new Set(settings?.starterKit?.activeExtensions ?? []);
   const activeSkills = new Set(settings?.starterKit?.activeSkills ?? []);
   const existingExtDirs = getExtensionDirs(packageRoot);
@@ -353,7 +453,7 @@ function generateDoctorReport(cwd: string, packageRoot: string): DoctorReport {
   const rtkEnabled = rtkConfig?.enabled ?? true;
   const rtkTimeout = rtkConfig?.timeoutMs ?? 2000;
   const rtkVersion = checkCommandOutput({ cmd: "rtk", args: ["--version"] }, rtkTimeout);
-  const rtkGain = checkCommandOutput({ cmd: "rtk", args: ["gain"] }, Math.max(rtkTimeout, 5000));
+  const rtkGain = checkCommandOutput({ cmd: "rtk", args: ["gain"] }, Math.max(rtkTimeout, BINARY_CHECK_TIMEOUT_MS));
   binaries.push({
     capability: "rtk-rewrite config",
     status: rtkEnabled ? "ok" : "warn",
@@ -396,6 +496,11 @@ function generateDoctorReport(cwd: string, packageRoot: string): DoctorReport {
       command:
         "Run /init-starter-kit or copy templates/settings.template.json to .pi/settings.json",
     });
+  } else if (settingsError) {
+    fixes.push({
+      description: settingsError.message,
+      command: settingsError.suggestion,
+    });
   }
 
   if (!rtkVersion.ok) {
@@ -425,9 +530,16 @@ function generateDoctorReport(cwd: string, packageRoot: string): DoctorReport {
     skills,
     binaries,
     fixes,
+    settingsError: settingsError ? formatError(settingsError) : undefined,
   };
 }
 
+/**
+ * Render a structured doctor report as compact markdown for the tool result.
+ *
+ * @param report - Report produced by `generateDoctorReport`.
+ * @returns Markdown summary, tables, and recommended fixes.
+ */
 function renderMarkdown(report: DoctorReport): string {
   const extOverall = overallStatus(report.extensions);
   const skillOverall = overallStatus(report.skills);
@@ -453,6 +565,9 @@ function renderMarkdown(report: DoctorReport): string {
   lines.push(`- Overall: ${statusLabel(overall)} ${overall}`);
   lines.push(`- Project root: \`${report.projectRoot}\``);
   lines.push(`- Settings file (.pi/settings.json): ${report.settingsFound ? "found" : "NOT FOUND"}`);
+  if (report.settingsError) {
+    lines.push(`- Settings error: ${report.settingsError.replace(/\n/g, " ")}`);
+  }
   lines.push(`- Permission mode: \`${report.permissionMode}\``);
   lines.push(
     `- Critical missing: ${
@@ -555,29 +670,41 @@ export default function (pi: ExtensionAPI) {
       const cwd = ctx.cwd ?? process.cwd();
       const packageRoot = getPackageRoot();
 
-      const report = generateDoctorReport(cwd, packageRoot);
-      const markdown = renderMarkdown(report);
+      try {
+        const report = generateDoctorReport(cwd, packageRoot);
+        const markdown = renderMarkdown(report);
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: markdown,
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: markdown,
+            },
+          ],
+          details: {
+            projectRoot: report.projectRoot,
+            settingsFound: report.settingsFound,
+            permissionMode: report.permissionMode,
+            profile: report.profile,
+            criticalMissing: report.binaries
+              .filter((b) => b.status === "error")
+              .map((b) => b.capability),
+            extensionCount: report.extensions.length,
+            skillCount: report.skills.length,
+            fixCount: report.fixes.length,
           },
-        ],
-        details: {
-          projectRoot: report.projectRoot,
-          settingsFound: report.settingsFound,
-          permissionMode: report.permissionMode,
-          profile: report.profile,
-          criticalMissing: report.binaries
-            .filter((b) => b.status === "error")
-            .map((b) => b.capability),
-          extensionCount: report.extensions.length,
-          skillCount: report.skills.length,
-          fixCount: report.fixes.length,
-        },
-      };
+        };
+      } catch (error) {
+        const err = new ExtensionError(
+          ErrorCodes.TOOL_EXECUTION_FAILED,
+          `starter_kit_doctor failed: ${normalizeError(error).message}`,
+          "Re-run starter_kit_doctor after checking .pi/settings.json and package installation paths.",
+        );
+        return {
+          content: [{ type: "text" as const, text: formatError(err) }],
+          details: { error: { code: err.code, message: err.message, suggestion: err.suggestion } },
+        };
+      }
     },
   });
 }

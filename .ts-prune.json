@@ -1,0 +1,14 @@
+{
+  "ignore": [
+    "node_modules",
+    "tests",
+    ".*\\.test\\.ts"
+  ],
+  "error": false,
+  "skip": [
+    "extensions/permission-gate/stages/.*",
+    "extensions/permission-gate/helpers.ts",
+    "extensions/permission-gate/toggle.ts",
+    "extensions/permission-gate/modes/.*"
+  ]
+}

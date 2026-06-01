@@ -1,4 +1,5 @@
 node_modules/
+graphify-out/
 .pi/
 .env*
 secrets.*

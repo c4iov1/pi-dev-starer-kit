@@ -149,36 +149,15 @@ Complex capabilities are loaded **on demand** via skills.
 
 ### Available skills (invoked with `/skill:<name>`)
 
-**Workflow & Quality:**
-- `plan-mode` — Structured planning with checklist and tracking
-- `self-verify` — Build→test→fix→verify cycle
-- `web-research` — Web search + fetch + documentation synthesis
-- `browser-testing` — Browser automation for visual testing
+**Planning:** `plan-mode`, `grill-me`, `grill-with-docs`, `to-prd`, `to-issues`, `zoom-out`, `design-an-interface`.
 
-**Orchestration:**
-- `subagent-delegation` — When and how to delegate to sub-agents
-- `mcp-orchestration` — MCP server usage (database, APIs, etc.)
+**Quality:** `self-verify`, `review-matrix`, `tdd`, `diagnose`, `improve-codebase-architecture`, `structural-refactor`.
 
-**Akita-inspired advanced workflows:**
-- `artifact-analysis` — Data/document investigation with `artifact_read`
-- `structural-refactor` — Refactor workflow with AST and LSP
-- `review-matrix` — Independent multi-pass review (correctness, security, design)
+**Workflow:** `handoff`, `triage`, `qa`, `setup-matt-pocock-skills`.
 
-**Engineering (mattpocock/skills):**
-- `setup-matt-pocock-skills` — Configure project domain (run once per repo)
-- `grill-with-docs` — Design interview against the domain model
-- `grill-me` — Plan stress-test
-- `to-prd` — Synthesize discussion into PRD
-- `to-issues` — Break PRD into issues (vertical slices)
-- `tdd` — Red-green-refactor loop
-- `diagnose` — Systematic debugging (reproduce→minimise→hypothesise→instrument→fix)
-- `triage` — Issue state machine
-- `improve-codebase-architecture` — Find deepening opportunities
-- `design-an-interface` — Multiple designs for comparison
-- `zoom-out` — High-level perspective on unfamiliar code
-- `qa` — Interactive QA → file issues
-- `handoff` — Compact conversation for handoff
-- `write-a-skill` — Create new skills
+**Research:** `web-research`, `browser-testing`, `mcp-orchestration`, `subagent-delegation`.
+
+**Tools & Memory:** `artifact-analysis`, `write-a-skill`, `ai-memory`.
 
 ### How to use skills
 

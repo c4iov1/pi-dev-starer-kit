@@ -24,7 +24,7 @@ Akita reports that `agentmemory` had good ideas (Karpathy's LLM Wiki, consolidat
 - MCP tools for querying (`memory_query`, `memory_explore`, `memory_recent`, `memory_status`), handoff, and maintenance.
 - LLM/embeddings optional: without a key it still works with FTS5 and rule-based summary; with LLM it improves consolidation.
 - Per-workspace/project isolation via UUIDs and `.ai-memory.toml`.
-- Multi-agent support. For Pi.dev, the starter kit uses native extension hooks instead of `~/.omp` files.
+- Multi-agent support. For Pi.dev, the starter kit uses native extension hooks.
 
 ## Implication for the kit
 

@@ -6,7 +6,7 @@ Type: settings + docs + prompt routing; extension only if Pi supports hooks
 
 ## Why
 
-Akita considers steering/interruption mandatory for Agile Vibe Coding. Claude Code is strong here; Oh-My-Pi exposes knobs like `steeringMode`, `interruptMode`, and `compaction.strategy`. Our kit should make these policies explicit.
+Akita considers steering/interruption mandatory for Agile Vibe Coding. Claude Code is strong here; Pi.dev exposes knobs like `steeringMode`, `interruptMode`, and `compaction.strategy`. Our kit should make these policies explicit.
 
 ## Deliverable
 

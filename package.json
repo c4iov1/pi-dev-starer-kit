@@ -3,9 +3,18 @@
   "version": "1.0.0",
   "description": "Pi.dev harness foundation — security, quality, workflow, and tools for any project",
   "scripts": {
+    "test": "npm run test:permission-gate && npm run test:loop-protection && npm run test:rtk-rewrite && npm run test:contrib-gate && npm run test:shared-errors && npm run test:shared-path-utils && npm run test:shared-settings && npm run test:artifact-read && npm run test:lsp-bridge && npm run test:integration",
     "test:loop-protection": "tsc extensions/loop-protection/index.ts tests/loop-protection.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && node --test /private/tmp/pi-dev-starter-kit-tests/tests/loop-protection.test.js",
     "test:permission-gate": "tsc extensions/permission-gate/index.ts tests/permission-gate.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/permission-gate.test.js",
-    "test:rtk-rewrite": "tsc extensions/rtk-rewrite/index.ts tests/rtk-rewrite.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/rtk-rewrite.test.js"
+    "test:rtk-rewrite": "tsc extensions/rtk-rewrite/index.ts tests/rtk-rewrite.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/rtk-rewrite.test.js",
+    "test:contrib-gate": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc tests/contrib-gate.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module commonjs --target ES2020 --moduleResolution node --types node --skipLibCheck --ignoreDeprecations 6.0 && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/contrib-gate.test.js",
+    "test:shared-errors": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc extensions/shared/errors.ts tests/shared-errors.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --types node --skipLibCheck && node --test /private/tmp/pi-dev-starter-kit-tests/tests/shared-errors.test.js",
+    "test:shared-path-utils": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc extensions/shared/path-utils.ts tests/shared-path-utils.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --types node --skipLibCheck && node --test /private/tmp/pi-dev-starter-kit-tests/tests/shared-path-utils.test.js",
+    "test:shared-settings": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc extensions/shared/settings.ts tests/shared-settings.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --types node --skipLibCheck && node --test /private/tmp/pi-dev-starter-kit-tests/tests/shared-settings.test.js",
+    "test:artifact-read": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc extensions/artifact-read/index.ts tests/artifact-read.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --types node --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/artifact-read.test.js",
+    "test:lsp-bridge": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc extensions/lsp-bridge/index.ts tests/lsp-bridge.test.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --types node --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/lsp-bridge.test.js",
+    "test:integration": "rm -rf /private/tmp/pi-dev-starter-kit-tests && mkdir -p /private/tmp/pi-dev-starter-kit-tests && tsc tests/integration/*.ts extensions/permission-gate/index.ts extensions/artifact-read/index.ts --outDir /private/tmp/pi-dev-starter-kit-tests --module NodeNext --target ESNext --moduleResolution NodeNext --types node --skipLibCheck && NODE_PATH=$(pwd)/node_modules node --test /private/tmp/pi-dev-starter-kit-tests/tests/integration/*.test.js",
+    "audit:exports": "grep -R \"^export \\\\(function\\\\|async function\\\\|class\\\\|const\\\\|interface\\\\|type\\\\)\" -n extensions --include='*.ts' | sort"
   },
   "keywords": [
     "pi-package"
@@ -38,12 +47,12 @@
     ]
   },
   "dependencies": {
-    "context-mode": "git+https://github.com/mksglu/context-mode.git",
-    "pi-agent-browser-native": "git+https://github.com/fitchmultz/pi-agent-browser-native.git",
-    "pi-mcp-adapter": "git+https://github.com/nicobailon/pi-mcp-adapter.git",
-    "pi-graphify": "git+ssh://git@github.com/c4iov1/pi-graphify.git",
-    "pi-subagents": "git+https://github.com/nicobailon/pi-subagents.git",
-    "pi-web-access": "git+https://github.com/nicobailon/pi-web-access.git"
+    "context-mode": "git+https://github.com/mksglu/context-mode.git#7e360692f7568dd2158ea30198479a5263f405d0",
+    "pi-agent-browser-native": "git+https://github.com/fitchmultz/pi-agent-browser-native.git#b9bafc8ffd356ac1ec55f5b0d56c9c1fce2c2d92",
+    "pi-mcp-adapter": "git+https://github.com/nicobailon/pi-mcp-adapter.git#8c1a28e7ebb837d5fa03de3a67f217ce994782cc",
+    "pi-graphify": "git+ssh://git@github.com/c4iov1/pi-graphify.git#384a6c1da341d9cbe874ddacf4cd9b0328c5c498",
+    "pi-subagents": "git+https://github.com/nicobailon/pi-subagents.git#e99bf5b84dc543012e2e4dee2478d6f914a37b27",
+    "pi-web-access": "git+https://github.com/nicobailon/pi-web-access.git#076bf0db5e739b200286ca37486e4edd8d19123c"
   },
   "bundledDependencies": [
     "pi-graphify"

@@ -28,7 +28,7 @@
     "_activeExtensions_comment": "Extensions to load. Keep 'permission-gate' before 'rtk-rewrite' so security decisions happen before optimization. 'graphify' is passive unless graphify-out/ exists. Remove any you don't want. Optional extras: 'lsp-bridge', 'monitor-bash', 'artifact-read', 'ast-tools', 'source-navigation'. Add custom extensions placed in .pi/extensions/. starter-kit-doctor reports available capabilities.",
 
     "rtkRewrite": {
-      "_comment": "RTK rewrites agent bash commands for token/context savings. Requires rtk in PATH. The starter-kit extension means you do not need to run `rtk init --agent pi`; set enabled=false to disable permanently.",
+      "_comment": "RTK rewrites agent bash commands for token/context savings. Requires rtk in PATH. The default timeout mirrors DEFAULT_RTK_REWRITE_TIMEOUT_MS in extensions/shared/constants.ts. The starter-kit extension means you do not need to run `rtk init --agent pi`; set enabled=false to disable permanently.",
       "enabled": true,
       "timeoutMs": 2000,
       "debug": false,
@@ -53,6 +53,10 @@
     "lspBridge": {
       "enableSymbolOps": true,
       "_enableSymbolOps_comment": "Enable LSP symbol operations: go-to-definition, find-references, rename preview, workspace symbols. TypeScript only. Set false to disable."
+    },
+
+    "artifactRead": {
+      "_comment": "Pagination and helper-process limits mirror DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, and ARTIFACT_PROCESS_TIMEOUT_MS in extensions/shared/constants.ts. Override support can be added later if projects need different limits."
     },
 
     "autoVerify": true,

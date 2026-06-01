@@ -92,37 +92,14 @@ pi-dev-starter-kit/                    # Git repository
 │   ├── source-navigation/index.ts     #   Tools read_ranges/edit_at_anchor
 │   └── node_modules/pi-graphify/      #   Bundled graphify extension (/graphify + graph-first hooks)
 │
-├── skills/                            # → ~/.pi/agent/skills/ (global)
-│   │
-│   │  # Kit skills (in-house, maintained in repo)
-│   ├── plan-mode/SKILL.md             #   Structured planning
-│   ├── self-verify/SKILL.md           #   Build→test→fix cycle
-│   ├── web-research/SKILL.md          #   Web search + fetch + synthesis
-│   ├── browser-testing/SKILL.md       #   Browser automation
-│   ├── subagent-delegation/SKILL.md   #   Delegation patterns
-│   ├── mcp-orchestration/SKILL.md     #   MCP server usage
-│   ├── ai-memory/SKILL.md             #   External ai-memory service usage
-│   ├── artifact-analysis/SKILL.md     #   Data/document investigation
-│   ├── structural-refactor/SKILL.md   #   Structural refactor with AST/LSP
-│   ├── review-matrix/SKILL.md         #   Independent multi-pass review
-│   ├── node_modules/pi-graphify/skills/graphify/SKILL.md # Graph knowledge workflows
-│   │
-│   │  # Integrated skills (mattpocock/skills — Reference Doc 8)
-│   │  # Copied from original repo, kept in-tree
-│   ├── setup-matt-pocock-skills/SKILL.md
-│   ├── grill-with-docs/SKILL.md
-│   ├── grill-me/SKILL.md
-│   ├── to-prd/SKILL.md
-│   ├── to-issues/SKILL.md
-│   ├── tdd/SKILL.md
-│   ├── diagnose/SKILL.md
-│   ├── triage/SKILL.md
-│   ├── improve-codebase-architecture/SKILL.md
-│   ├── design-an-interface/SKILL.md
-│   ├── zoom-out/SKILL.md
-│   ├── qa/SKILL.md
-│   ├── handoff/SKILL.md
-│   └── write-a-skill/SKILL.md
+├── skills/                            # → ~/.pi/agent/skills/ (recursive SKILL.md discovery)
+│   ├── planning/                      #   plan-mode, grill, PRD/issues, interface design
+│   ├── quality/                       #   self-verify, review, TDD, diagnose, refactor
+│   ├── workflow/                      #   handoff, triage, QA, setup
+│   ├── research/                      #   web, browser, MCP, subagents
+│   ├── tools/                         #   artifact-analysis, write-a-skill
+│   ├── memory/                        #   ai-memory
+│   └── node_modules/pi-graphify/skills/graphify/SKILL.md # Graph workflows
 │
 ├── prompts/                           # → ~/.pi/agent/prompts/ (global)
 │   ├── plan.md
@@ -220,7 +197,7 @@ pi-dev-starter-kit/                    # Git repository
 - **Markdown in git as source of truth** (`wiki/`)
 - **SQLite + FTS5** as derived index, with single writer and WAL
 - **Fire-and-forget hooks** for automatic capture without blocking the agent
-- **Cross-agent handoff** between Claude Code, Codex, OpenCode, Cursor, Gemini CLI, and Oh My Pi/Pi
+- **Cross-agent handoff** between Claude Code, Codex, OpenCode, Cursor, Gemini CLI, and Pi
 - **LLM and embeddings optional** — FTS5 works without keys
 - **Workspace/project isolation** via `.ai-memory.toml`
 
@@ -235,7 +212,7 @@ Comparison with `auto-memory` (#016):
 | Infra | Zero | Docker/binary + local server |
 | Role in kit | Default fallback | Optional advanced memory |
 
-**Recommended Pi setup**: run `/setup-ai-memory`, which downloads the upstream wrapper, brings up the container (`--platform linux/amd64` when needed), installs routing in `AGENTS.md`, and uses native Pi extension hooks to post lifecycle events to ai-memory's `/hook`. Does not use `~/.omp`. See `docs/ai-memory-integration-plan.md` and `docs/references/9-ai-memory.md`.
+**Recommended Pi setup**: run `/setup-ai-memory`, which downloads the upstream wrapper, brings up the container (`--platform linux/amd64` when needed), installs routing in `AGENTS.md`, and uses native Pi extension hooks to post lifecycle events to ai-memory's `/hook`. See `docs/ai-memory-integration-plan.md` and `docs/references/9-ai-memory.md`.
 
 
 ### Integrated mattpocock/skills
@@ -256,6 +233,17 @@ The skills form the kit's **engineering workflow**. Canonical order of use (Refe
 9. /diagnose           ← Hard bugs and performance regressions
 10. /handoff           ← Close session / hand off to another agent
 ```
+
+**Skill taxonomy:** Skills are organized under `skills/<category>/<skill>/SKILL.md`. Pi package skill discovery is recursive, so commands remain `/skill:<name>` while the filesystem now communicates workflow stage.
+
+| Category | Purpose | Skills |
+|---|---|---|
+| Planning | Shape requirements and solution direction before coding | `plan-mode`, `grill-me`, `grill-with-docs`, `to-prd`, `to-issues`, `zoom-out`, `design-an-interface` |
+| Quality | Verify correctness and improve maintainability | `self-verify`, `review-matrix`, `tdd`, `diagnose`, `improve-codebase-architecture`, `structural-refactor` |
+| Workflow | Manage handoff, QA, issue flow, and setup | `handoff`, `triage`, `qa`, `setup-matt-pocock-skills` |
+| Research | Gather outside context or delegate exploration | `web-research`, `browser-testing`, `mcp-orchestration`, `subagent-delegation` |
+| Tools | Specialized tool workflows and skill authoring | `artifact-analysis`, `write-a-skill` |
+| Memory | Long-term project memory and handoffs | `ai-memory` |
 
 **Skills included in the kit:**
 
@@ -301,7 +289,7 @@ The mattpocock skills fit into the kit's layers:
 │                         │                               │
 │                         ▼                               │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │ DECOMPOSITION                                    │   │
+│  │ DECOMPOSITION                                   │   │
 │  │ /to-issues  →  independent issues                │   │
 │  │ (vertical slices, NOT horizontal)                │   │
 │  └──────────────────────────────────────────────────┘   │
@@ -551,7 +539,7 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 │            WORKFLOW & QUALITY                        │
 │                                                     │
 │  ┌──────────────────────────────────────────────┐   │
-│  │           THE COMPLETE CYCLE                  │   │
+│  │           THE CPiLETE CYCLE                  │   │
 │  │                                              │   │
 │  │  ┌──────────┐    ┌──────────┐    ┌────────┐  │   │
 │  │  │  PLAN    │───▶│  SEARCH  │───▶│  EDIT  │  │   │
@@ -716,6 +704,53 @@ cp ~/.pi/agent/packages/pi-dev-starter-kit/templates/INDEX.template.md ./docs/IN
 - `.pi/extensions/` — extension point for project-specific tools
 - `.pi/skills/` — extension point for domain/stack skills
 - Documentation on how to extend the kit per project (README.md)
+
+---
+
+## Extension dependency layers
+
+Extensions are organized into four one-way layers. See `docs/extension-layers.md` for the full catalog and dependency rules.
+
+```text
+Layer 4: Integration  setup-ai-memory, starter-kit-doctor, init-starter-kit
+Layer 3: Feature      artifact-read, lsp-bridge, ast-tools, source-navigation,
+                      auto-memory, contrib-gate, monitor-bash, rtk-rewrite
+Layer 2: Core         permission-gate, post-edit-lint, loop-protection, task-tracker
+Layer 1: Shared       extensions/shared/path-utils, settings, errors, constants
+```
+
+Rules:
+
+1. Shared utilities may be imported by any extension and must not import extension code.
+2. Core extensions may import from shared only.
+3. Feature extensions should import from shared only; move common code down to shared.
+4. Integration extensions may import from lower layers when needed.
+5. No circular dependencies; verify with `npx madge extensions --extensions ts --circular` when available.
+
+---
+
+## Shared constants guidelines
+
+Extensions should use `extensions/shared/constants.ts` for shared limits, defaults, and thresholds:
+
+- Pagination limits use `DEFAULT_PAGE_SIZE` and `MAX_PAGE_SIZE`.
+- Artifact helper processes use `ARTIFACT_PROCESS_TIMEOUT_MS` and `ARTIFACT_PROCESS_MAX_BUFFER_BYTES`.
+- File signatures use `MAGIC_BYTES_LENGTH` for SQLite magic byte detection.
+- Runtime defaults such as `DEFAULT_RTK_REWRITE_TIMEOUT_MS` and `DEFAULT_LOOP_PROTECTION_MIN_TOKENS` should be changed in one place.
+- Template comments in `templates/settings.template.json` should reference the matching constant when a user-facing value mirrors code defaults.
+
+---
+
+## Error handling guidelines
+
+Extensions should use `extensions/shared/errors.ts` for new error paths:
+
+- Throw `ExtensionError` subclasses for validation and invariant failures inside helper functions.
+- Return tool-shaped error payloads at extension boundaries; do not let helper exceptions escape tool handlers.
+- Use machine-readable `ErrorCodes` plus a short human message and an actionable `suggestion`.
+- Use `formatError()` for user-facing text and `errorResult()` for structured `{ ok: false }` responses.
+- Prefer `normalizeError()`, `safeExecute()`, or `safeExecuteSync()` when converting unknown thrown values.
+- Avoid empty `catch {}` blocks unless the operation is explicitly best-effort and documented by a comment.
 
 ---
 

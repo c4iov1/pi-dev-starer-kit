@@ -22,6 +22,9 @@ import { Type } from "@sinclair/typebox";
 import { spawnSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import { MAX_LSP_REFERENCES } from "../shared/constants.js";
+import { ErrorCodes, ExtensionError, formatError, normalizeError } from "../shared/errors.js";
+import { loadSettings } from "../shared/settings.js";
 
 // Cache of unsupported/missing compilers to prevent repeat execution attempts
 const unsupportedCheckers = new Set<string>();
@@ -30,43 +33,46 @@ const unsupportedCheckers = new Set<string>();
 // Phase 1: Type-check (existing — preserved)
 // ---------------------------------------------------------------------------
 
+/** Create a standardized LSP operation error. */
+function lspError(message: string, suggestion?: string): ExtensionError {
+  return new ExtensionError(ErrorCodes.LSP_OPERATION_FAILED, message, suggestion);
+}
+
+/** Convert an unknown failure into a Pi tool error response. */
+function toolError(prefix: string, error: unknown) {
+  const err = normalizeError(error);
+  return {
+    content: [{ type: "text" as const, text: `${prefix}: ${formatError(err)}` }],
+    details: { error: err.message, code: err.code, suggestion: err.suggestion },
+    isError: true,
+  };
+}
+
 interface CheckerConfig {
   command: string;
   args: string[];
 }
 
+/** Read settings to decide whether post-edit type-checking is enabled. */
 function isAutoTypeCheckEnabled(): boolean {
-  try {
-    const settingsPath = path.resolve(process.cwd(), ".pi/settings.json");
-    if (fs.existsSync(settingsPath)) {
-      const content = fs.readFileSync(settingsPath, "utf8");
-      const settings = JSON.parse(content);
-      if (settings?.starterKit?.autoTypeCheck === false) {
-        return false;
-      }
-    }
-  } catch {
-    // Default to true if config load fails
-  }
-  return true;
+  return loadSettings(process.cwd())?.autoTypeCheck !== false;
 }
 
+/** Read settings to decide whether symbol-level LSP tools are enabled. */
 function isSymbolOpsEnabled(): boolean {
-  try {
-    const settingsPath = path.resolve(process.cwd(), ".pi/settings.json");
-    if (fs.existsSync(settingsPath)) {
-      const content = fs.readFileSync(settingsPath, "utf8");
-      const settings = JSON.parse(content);
-      if (settings?.starterKit?.lspBridge?.enableSymbolOps === false) {
-        return false;
-      }
-    }
-  } catch {
-    // Default to true
-  }
-  return true;
+  return loadSettings(process.cwd())?.lspBridge?.enableSymbolOps !== false;
 }
 
+/**
+ * Select a lightweight type-check command for an edited source file.
+ *
+ * Detection is intentionally project-aware: TypeScript requires tsconfig,
+ * Rust requires Cargo.toml, and Go requires go.mod. Missing project markers
+ * return null so the post-edit hook can fail open.
+ *
+ * @param filePath - Source file path from the edit event.
+ * @returns Checker command/args, or null when no supported checker applies.
+ */
 function detectTypeChecker(filePath: string): CheckerConfig | null {
   if (!fs.existsSync(filePath)) return null;
   const ext = path.extname(filePath).toLowerCase();
@@ -93,6 +99,15 @@ function detectTypeChecker(filePath: string): CheckerConfig | null {
   return null;
 }
 
+/**
+ * Run a configured type checker with bounded execution time.
+ *
+ * Missing binaries are cached in `unsupportedCheckers` and reported as skipped
+ * rather than failures, preserving the extension's fail-open behavior.
+ *
+ * @param checker - Command and argv to execute.
+ * @returns Success/skipped status plus formatted checker output.
+ */
 function runTypeCheck(checker: CheckerConfig): {
   success: boolean;
   output: string;
@@ -115,7 +130,7 @@ function runTypeCheck(checker: CheckerConfig): {
         unsupportedCheckers.add(command);
         return { success: true, output: "", skipped: true };
       }
-      return { success: false, output: err.message || "Execution error", skipped: false };
+      return { success: false, output: formatError(lspError(err.message || "Execution error")), skipped: false };
     }
     return {
       success: result.status === 0,
@@ -125,12 +140,13 @@ function runTypeCheck(checker: CheckerConfig): {
   } catch (err: any) {
     return {
       success: false,
-      output: err.message || "Unexpected execution error",
+      output: formatError(lspError(err.message || "Unexpected execution error")),
       skipped: false,
     };
   }
 }
 
+/** Condense raw type-checker output into a short user-facing summary. */
 function formatTypeCheckOutput(success: boolean, output: string): string {
   if (success) return "Type check: OK";
   const trimmed = output.trim();
@@ -218,6 +234,15 @@ let tsService: any = null;
 let tsProgram: any = null;
 let tsProjectRoot: string = "";
 
+/**
+ * Load the TypeScript module used by symbol operations.
+ *
+ * The extension supports both local project installations and the package's own
+ * dependency tree. Returning null lets non-TypeScript projects degrade with a
+ * clear fallback message.
+ *
+ * @returns TypeScript service facade, or null when unavailable.
+ */
 function loadTypeScript(): TsService | null {
   if (tsModule) return tsModule;
 
@@ -243,15 +268,41 @@ function loadTypeScript(): TsService | null {
     }
   }
 
-  return null;
+  try {
+    tsModule = require("typescript");
+    return tsModule;
+  } catch {
+    return null;
+  }
 }
 
+/**
+ * Initialize and cache a TypeScript Language Service for the workspace.
+ *
+ * Reuses the cached service after first initialization. The service is based on
+ * the nearest tsconfig.json and includes TS/TSX/JS/JSX project files.
+ *
+ * @param cwd - Workspace root used to find tsconfig.json.
+ * @returns Initialization status and user-facing error when unavailable.
+ */
 function initTsService(cwd: string): { ok: boolean; error?: string } {
-  if (tsService) return { ok: true };
+  if (tsService && tsProjectRoot === cwd) return { ok: true };
+  if (tsService && tsProjectRoot !== cwd) {
+    tsService = null;
+    tsProgram = null;
+    tsProjectRoot = "";
+  }
 
   const ts = loadTypeScript();
   if (!ts) {
-    return { ok: false, error: "TypeScript is not available in node_modules or Pi.dev agent." };
+    return {
+      ok: false,
+      error: formatError(new ExtensionError(
+        ErrorCodes.LSP_NOT_AVAILABLE,
+        "TypeScript is not available in node_modules or Pi.dev agent.",
+        "Install TypeScript in the project or use grep/ast_grep as a fallback.",
+      )),
+    };
   }
 
   // Find tsconfig.json
@@ -259,8 +310,11 @@ function initTsService(cwd: string): { ok: boolean; error?: string } {
   if (!configFileName) {
     return {
       ok: false,
-      error:
+      error: formatError(new ExtensionError(
+        ErrorCodes.LSP_NOT_AVAILABLE,
         "No tsconfig.json found in project. LSP symbol operations require a TypeScript project configuration.",
+        "Add a tsconfig.json or use grep/ast_grep for non-TypeScript projects.",
+      )),
     };
   }
 
@@ -298,15 +352,23 @@ function initTsService(cwd: string): { ok: boolean; error?: string } {
 
     return { ok: true };
   } catch (err: any) {
-    return { ok: false, error: `Failed to initialize TS Language Service: ${err.message}` };
+    return {
+      ok: false,
+      error: formatError(lspError(
+        `Failed to initialize TS Language Service: ${err.message}`,
+        "Check tsconfig.json and TypeScript project files.",
+      )),
+    };
   }
 }
 
+/** Return true for TypeScript/JavaScript files supported by the TS language service. */
 function isTsFile(filePath: string): boolean {
   const ext = path.extname(filePath).toLowerCase();
   return ext === ".ts" || ext === ".tsx";
 }
 
+/** Convert 1-based line/character coordinates into a zero-based text offset. */
 function getPosition(filePath: string, line: number, character: number): number {
   // Convert 1-based line/character to 0-based offset
   if (!fs.existsSync(filePath)) return 0;
@@ -319,6 +381,7 @@ function getPosition(filePath: string, line: number, character: number): number 
   return pos + Math.min(character - 1, (lines[line - 1] ?? "").length);
 }
 
+/** Convert a zero-based text offset into 1-based line/character coordinates. */
 function posToLineCol(filePath: string, pos: number): { line: number; character: number } {
   if (!fs.existsSync(filePath)) return { line: 1, character: 1 };
   const content = fs.readFileSync(filePath, "utf8");
@@ -335,6 +398,7 @@ function posToLineCol(filePath: string, pos: number): { line: number; character:
   return { line, character: col };
 }
 
+/** Return a short source excerpt around a symbol location for display. */
 function sourceSnippet(filePath: string, pos: number, context: number = 40): string {
   if (!fs.existsSync(filePath)) return "";
   const content = fs.readFileSync(filePath, "utf8");
@@ -343,6 +407,7 @@ function sourceSnippet(filePath: string, pos: number, context: number = 40): str
   return content.slice(start, end).replace(/\n/g, " ").trim();
 }
 
+/** Resolve a TS/JS file path and reject paths outside the active workspace. */
 function resolveTsFilePath(filePath: string, cwd: string): string {
   if (path.isAbsolute(filePath)) return filePath;
   return path.resolve(cwd, filePath);
@@ -356,6 +421,13 @@ interface LspPosition {
   character: number;
 }
 
+/**
+ * Resolve the definition for a symbol position using TypeScript LS.
+ *
+ * @param pos - File, line, and character from the tool call.
+ * @param cwd - Active workspace root.
+ * @returns Pi tool response containing definition locations or fallback errors.
+ */
 function handleDefinition(pos: LspPosition, cwd: string) {
   const init = initTsService(cwd);
   if (!init.ok) {
@@ -432,21 +504,23 @@ function handleDefinition(pos: LspPosition, cwd: string) {
       },
     };
   } catch (err: any) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `LSP definition error: ${err.message}`,
-        },
-      ],
-      details: { error: err.message },
-      isError: true,
-    };
+    return toolError("LSP definition error", err);
   }
 }
 
 // -- lsp_references handler --------------------------------------------------
 
+/**
+ * Find references for a symbol position using TypeScript LS.
+ *
+ * Results are grouped by file and capped by `MAX_LSP_REFERENCES` to avoid
+ * excessive context. Declarations can be included or filtered by caller.
+ *
+ * @param pos - File, line, and character from the tool call.
+ * @param includeDeclaration - Whether declaration sites should be included.
+ * @param cwd - Active workspace root.
+ * @returns Pi tool response with grouped reference locations.
+ */
 function handleReferences(
   pos: LspPosition,
   includeDeclaration: boolean,
@@ -504,7 +578,7 @@ function handleReferences(
       "",
     ];
 
-    const maxShow = 50;
+    const maxShow = MAX_LSP_REFERENCES;
     let shown = 0;
     for (const [file, entries] of byFile) {
       const relPath = path.relative(cwd, file);
@@ -535,21 +609,22 @@ function handleReferences(
       },
     };
   } catch (err: any) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `LSP references error: ${err.message}`,
-        },
-      ],
-      details: { error: err.message },
-      isError: true,
-    };
+    return toolError("LSP references error", err);
   }
 }
 
 // -- lsp_rename handler ------------------------------------------------------
 
+/**
+ * Preview TypeScript Language Service rename locations.
+ *
+ * This implementation is intentionally preview-only. It returns the file/range
+ * edits the LS would apply but never writes files directly.
+ *
+ * @param params - Rename request including source position and new name.
+ * @param cwd - Active workspace root.
+ * @returns Pi tool response with dry-run rename locations.
+ */
 function handleRename(
   pos: LspPosition,
   newName: string,
@@ -644,20 +719,32 @@ function handleRename(
       },
     };
   } catch (err: any) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `LSP rename error: ${err.message}`,
-        },
-      ],
-      details: { error: err.message },
-      isError: true,
-    };
+    return toolError("LSP rename error", err);
   }
 }
 
 // -- lsp_workspace_symbols handler -------------------------------------------
+
+/**
+ * Search TypeScript workspace symbols by name.
+ *
+ * @param query - Symbol name or substring to search for.
+ * @param limit - Maximum number of symbols to return.
+ * @param cwd - Active workspace root.
+ * @returns Pi tool response with matching symbols and locations.
+ */
+function symbolOpsDisabledResponse(operation: string) {
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: `${operation} disabled by starterKit.lspBridge.enableSymbolOps=false. Use grep or ast_grep as a fallback.`,
+      },
+    ],
+    details: { error: "Symbol operations disabled" },
+    isError: true,
+  };
+}
 
 function handleWorkspaceSymbols(query: string, limit: number, cwd: string) {
   const init = initTsService(cwd);
@@ -717,16 +804,7 @@ function handleWorkspaceSymbols(query: string, limit: number, cwd: string) {
       },
     };
   } catch (err: any) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Workspace symbols error: ${err.message}`,
-        },
-      ],
-      details: { error: err.message },
-      isError: true,
-    };
+    return toolError("Workspace symbols error", err);
   }
 }
 
@@ -812,6 +890,7 @@ export default function (pi: ExtensionAPI) {
       }),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      if (!isSymbolOpsEnabled()) return symbolOpsDisabledResponse("lsp_definition");
       const cwd = ctx.cwd ?? process.cwd();
       const pos: LspPosition = {
         file: params.file,
@@ -836,7 +915,7 @@ export default function (pi: ExtensionAPI) {
     promptGuidelines: [
       "Use lsp_references to understand the blast radius before renaming or deleting a symbol.",
       "References are grouped by file for clarity.",
-      "Max 50 references shown. Use more specific queries for large results.",
+      `Max ${MAX_LSP_REFERENCES} references shown. Use more specific queries for large results.`,
     ],
     parameters: Type.Object({
       file: Type.String({
@@ -852,6 +931,7 @@ export default function (pi: ExtensionAPI) {
       ),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      if (!isSymbolOpsEnabled()) return symbolOpsDisabledResponse("lsp_references");
       const cwd = ctx.cwd ?? process.cwd();
       const pos: LspPosition = {
         file: params.file,
@@ -895,6 +975,7 @@ export default function (pi: ExtensionAPI) {
       ),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      if (!isSymbolOpsEnabled()) return symbolOpsDisabledResponse("lsp_rename");
       const cwd = ctx.cwd ?? process.cwd();
       const pos: LspPosition = {
         file: params.file,
@@ -933,6 +1014,7 @@ export default function (pi: ExtensionAPI) {
       ),
     }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      if (!isSymbolOpsEnabled()) return symbolOpsDisabledResponse("lsp_workspace_symbols");
       const cwd = ctx.cwd ?? process.cwd();
       return handleWorkspaceSymbols(params.query, params.limit ?? 20, cwd);
     },

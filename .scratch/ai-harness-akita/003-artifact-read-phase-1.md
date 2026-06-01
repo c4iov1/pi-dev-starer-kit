@@ -6,7 +6,7 @@ Type: extension + optional skill + settings/docs
 
 ## Why
 
-Akita identifies Oh-My-Pi’s universal `read` as its clearest real advantage. It lets the agent inspect SQLite, archives, documents, notebooks, and data files without inventing fragile shell commands or dumping huge outputs into context.
+Akita identifies Pi.dev’s universal `read` as its clearest real advantage. It lets the agent inspect SQLite, archives, documents, notebooks, and data files without inventing fragile shell commands or dumping huge outputs into context.
 
 ## Deliverable
 

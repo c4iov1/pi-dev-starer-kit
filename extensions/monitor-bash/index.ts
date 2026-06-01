@@ -10,6 +10,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 import { spawn, exec } from "child_process";
+import { normalizeError } from "../shared/errors";
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import readline from "readline";
@@ -42,7 +43,10 @@ function resolveMaxTimeout(): number {
     const raw = readFileSync(configPath, "utf-8");
     const settings: Settings = JSON.parse(raw);
     return settings.starterKit?.monitorBash?.maxTimeout ?? 600;
-  } catch {
+  } catch (error) {
+    // Missing or invalid settings are non-fatal; default timeout keeps the
+    // monitor usable while still normalizing unexpected thrown values.
+    void normalizeError(error);
     return 600;
   }
 }
@@ -53,10 +57,16 @@ function killProcess(pid: number): void {
   } else {
     try {
       process.kill(-pid, "SIGKILL");
-    } catch {
+    } catch (groupError) {
+      const normalizedGroupError = normalizeError(groupError);
       try {
         process.kill(pid, "SIGKILL");
-      } catch {}
+      } catch (processError) {
+        // The process may already have exited. Normalize both failures so
+        // callers do not lose non-Error throw information during debugging.
+        void normalizedGroupError;
+        void normalizeError(processError);
+      }
     }
   }
 }

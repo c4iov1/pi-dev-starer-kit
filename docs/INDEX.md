@@ -8,7 +8,7 @@
 
 ## Specification
 
-- **`docs/architecture.md`**: Complete kit architecture. 4 layers (Context, Tools, Workflow, Extensibility), diagrams, comparison with Claude Code/Codex/OpenCode/Oh-My-Pi.
+- **`docs/architecture.md`**: Complete kit architecture. 4 layers (Context, Tools, Workflow, Extensibility), diagrams, and Pi.dev Starter Kit design rationale.
 - **`docs/prd.md`**: Product requirements. User stories, modules, testing decisions, out of scope.
 - **`docs/akita-harness-ideas-plan.md`**: Akita plan with gaps, technical decisions, discoverability, and implementation sequence.
 - **`docs/steering-profiles.md`**: `steeringMode`, `interruptMode`, `compactionStrategy` profiles.

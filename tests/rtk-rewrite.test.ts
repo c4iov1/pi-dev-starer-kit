@@ -20,7 +20,7 @@ test("settings default to enabled when missing", () => {
 });
 
 test("explicit enabled:false disables rewrite", () => {
-  const settings = getEffectiveSettings({ starterKit: { rtkRewrite: { enabled: false } } });
+  const settings = getEffectiveSettings({ rtkRewrite: { enabled: false } });
   assert.equal(settings.enabled, false);
   assert.equal(shouldSkipRewrite("git status", settings, {}), true);
 });

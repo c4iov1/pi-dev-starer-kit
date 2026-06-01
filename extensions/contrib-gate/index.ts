@@ -208,7 +208,7 @@ export default function (pi: ExtensionAPI) {
         if (config.mode === "strict") {
           return { block: true, reason: result.reason };
         }
-        ctx.ui.notify("Branch name convention", result.reason.split("\n")[0] ?? result.reason);
+        ctx.ui.notify("Branch name convention", "warning");
       }
       return;
     }
@@ -223,7 +223,7 @@ export default function (pi: ExtensionAPI) {
           if (config.mode === "strict") {
             return { block: true, reason: result.reason };
           }
-          ctx.ui.notify("Conventional commit", result.reason.split("\n")[0] ?? result.reason);
+          ctx.ui.notify("Conventional commit", "warning");
         }
       }
       return;

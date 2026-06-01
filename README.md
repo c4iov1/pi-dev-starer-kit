@@ -19,7 +19,7 @@ Before installing the starter kit, ensure you have the following installed on yo
 
 ## 2. Dependencies
 
-The starter kit leverages six core packages from the Pi.dev ecosystem to provide advanced capabilities. They are referenced directly from upstream sources to receive automatic improvements. `pi-graphify` is declared with an SSH git URL (`git+ssh://git@github.com/c4iov1/pi-graphify.git`) to match maintainer access:
+The starter kit leverages six core packages from the Pi.dev ecosystem to provide advanced capabilities. Git dependencies are pinned to known-good commit hashes for reproducible installs; update pins deliberately after testing upstream changes. `pi-graphify` uses an SSH git URL (`git+ssh://git@github.com/c4iov1/pi-graphify.git`) to match maintainer access:
 
 | Dependency | Repository URL | Purpose |
 |------------|----------------|---------|
@@ -29,6 +29,8 @@ The starter kit leverages six core packages from the Pi.dev ecosystem to provide
 | `pi-graphify` | [c4iov1/pi-graphify](https://github.com/c4iov1/pi-graphify) | Knowledge-graph-first reasoning, `/graphify`, graph freshness reminders, and graphify skill workflows. |
 | `pi-subagents` | [nicobailon/pi-subagents](https://github.com/nicobailon/pi-subagents) | Background sub-agent orchestration with parallel execution support. |
 | `pi-web-access` | [nicobailon/pi-web-access](https://github.com/nicobailon/pi-web-access) | Web searching, URL content fetching, GitHub cloning, and media parsing. |
+
+**Pinning strategy:** prefer semver tags when upstream publishes them; otherwise pin to the exact commit currently validated by `npm test`. When bumping a dependency, update `package.json`, regenerate `package-lock.json`, and run the full test suite before release.
 
 ---
 
@@ -76,6 +78,13 @@ To initialize a new project with the starter kit templates, follow these steps:
 
 ### Global Extensions
 
+Extensions follow the dependency layers documented in [`docs/extension-layers.md`](docs/extension-layers.md):
+
+- **Layer 1 shared utilities**: internal helpers under `extensions/shared/*`.
+- **Layer 2 core extensions**: security and quality gates. `permission-gate` is required; `post-edit-lint`, `loop-protection`, and `task-tracker` are recommended.
+- **Layer 3 feature extensions**: optional tools such as artifact reading, LSP, AST search, monitoring, contribution checks, and RTK rewrites.
+- **Layer 4 integration extensions**: setup and diagnostics such as `setup-ai-memory`, `starter-kit-doctor`, and `init-starter-kit`.
+
 | Extension | Purpose | Tools Registered / Hooks Handled |
 |-----------|---------|----------------------------------|
 | `permission-gate` | Security gates & pipelines | Intercepts `PreToolUse` for write/edit/shell actions. Must run before optimization hooks. |
@@ -94,22 +103,22 @@ To initialize a new project with the starter kit templates, follow these steps:
 | `source-navigation` | Multi-range reads & anchor-pinned edits | Registers `read_ranges` for batch reading scattered sections and `edit_at_anchor` for stale-safe content-hash-pinned edits. |
 | `graphify` | Knowledge-graph-first codebase navigation | Bundled from `pi-graphify`; registers `/graphify`, graph-first prompt injection when `graphify-out/` exists, staleness reminders, and graph artifact routing. |
 
+Required vs optional guidance:
+
+- **Required**: `permission-gate`.
+- **Recommended defaults**: `post-edit-lint`, `loop-protection`, `task-tracker`, `starter-kit-doctor`, and `rtk-rewrite` when RTK is installed.
+- **Optional feature packs**: navigation/artifact tools (`artifact-read`, `lsp-bridge`, `ast-tools`, `source-navigation`), workflow tools (`contrib-gate`, `monitor-bash`), memory tools (`auto-memory`, `setup-ai-memory`), and project initialization (`init-starter-kit`).
+
 ### Global Skills
 
-The starter kit bundles standard workflows based on the open Agent Skills format:
+The starter kit bundles standard workflows based on the open Agent Skills format. Skills are grouped by workflow stage under `skills/<category>/<skill>/SKILL.md`; Pi discovers nested `SKILL.md` files recursively.
 
-- **`plan-mode`**: Enforces writing an implementation plan before coding.
-- **`self-verify`**: Builds and runs tests automatically to verify correctness.
-- **`web-research`**: Performs cached or live web search queries.
-- **`browser-testing`**: Automates browser verification of web UIs.
-- **`subagent-delegation`**: Outsources tasks to sub-agents.
-- **`mcp-orchestration`**: Discovers and interacts with registered MCP tools.
-- **`ai-memory`**: Uses Akita's always-on external memory service when installed; falls back to `auto-memory`.
-- **`artifact-analysis`**: Structured inspection of data artifacts (SQLite, CSV, archives) with `artifact_read`.
-- **`structural-refactor`**: Workflow for structural refactoring using AST and LSP tools.
-- **`review-matrix`**: Independent multi-pass code review (correctness, security, design).
-- **`graphify`**: Build, update, query, and explore graphify knowledge graphs from Pi sessions.
-- **14 Matt Pocock engineering skills** (`/grill-with-docs`, `/tdd`, `/diagnose`, `/triage`, `/handoff`, etc.).
+- **Planning**: `plan-mode`, `grill-me`, `grill-with-docs`, `to-prd`, `to-issues`, `zoom-out`, `design-an-interface`.
+- **Quality**: `self-verify`, `review-matrix`, `tdd`, `diagnose`, `improve-codebase-architecture`, `structural-refactor`.
+- **Workflow**: `handoff`, `triage`, `qa`, `setup-matt-pocock-skills`.
+- **Research**: `web-research`, `browser-testing`, `mcp-orchestration`, `subagent-delegation`.
+- **Tools & Memory**: `artifact-analysis`, `write-a-skill`, `ai-memory`.
+- **Bundled package skill**: `graphify` from `pi-graphify`.
 
 ---
 

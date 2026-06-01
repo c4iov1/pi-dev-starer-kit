@@ -6,7 +6,7 @@ Type: extension
 
 ## Why
 
-Akita notes Oh-My-Pi conveniences like multi-range reads and line-hash anchors. These help the agent gather scattered source context in one call and make edits safer when context may be stale.
+Akita notes Pi.dev conveniences like multi-range reads and line-hash anchors. These help the agent gather scattered source context in one call and make edits safer when context may be stale.
 
 ## Deliverable
 

@@ -148,8 +148,8 @@ Before implementing, review the original repo: https://github.com/samfoy/pi-memo
 Read .scratch/pi-dev-starter-kit/009-skills-plan-verify.md and implement.
 
 Create:
-- skills/plan-mode/SKILL.md
-- skills/self-verify/SKILL.md
+- skills/planning/plan-mode/SKILL.md
+- skills/quality/self-verify/SKILL.md
 
 plan-mode depends on the task-tracker extension (#006) to register TODOs.
 ```
@@ -198,10 +198,10 @@ Depends on #003 (permission-gate) because Monitor runs bash and must go through 
 Read .scratch/pi-dev-starter-kit/010-skills-capabilities.md and implement.
 
 Create:
-- skills/web-research/SKILL.md
-- skills/browser-testing/SKILL.md
-- skills/subagent-delegation/SKILL.md
-- skills/mcp-orchestration/SKILL.md
+- skills/research/web-research/SKILL.md
+- skills/research/browser-testing/SKILL.md
+- skills/research/subagent-delegation/SKILL.md
+- skills/research/mcp-orchestration/SKILL.md
 
 These skills activate tools from external packages (pi-web-access, pi-subagents, etc.).
 Dependencies (#002) need to be accessible, but the skills can be written

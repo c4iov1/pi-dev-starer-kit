@@ -12,7 +12,6 @@
  * edit_at_anchor returns the validated diff for the agent to apply
  * via the normal `edit` tool (which goes through the permission pipeline).
  *
- * Inspired by Oh-My-Pi's multi-range reads and line-hash anchors.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -21,8 +20,9 @@ import {
   existsSync,
   readFileSync,
 } from "node:fs";
-import { resolve, relative, dirname } from "node:path";
+import { relative } from "node:path";
 import { createHash } from "node:crypto";
+import { confineToWorkspace } from "../shared/path-utils.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,20 +51,6 @@ interface Anchor {
 const MAX_RANGES = 20;
 const MAX_TOTAL_LINES = 500;
 const ANCHOR_HASH_LEN = 12;
-
-// ---------------------------------------------------------------------------
-// Path confinement
-// ---------------------------------------------------------------------------
-
-function confinePath(filePath: string, cwd: string): { resolved: string; safe: boolean } {
-  const resolved = resolve(cwd, filePath);
-  const normalizedCwd = resolve(cwd);
-  const rel = relative(normalizedCwd, resolved);
-  if (rel.startsWith(`..${require("node:path").sep}`) || rel === "..") {
-    return { resolved, safe: false };
-  }
-  return { resolved, safe: true };
-}
 
 // ---------------------------------------------------------------------------
 // Anchor encoding / decoding
@@ -132,7 +118,7 @@ function handleReadRanges(
   cwd: string,
 ) {
   // Path confinement check
-  const { resolved, safe } = confinePath(filePath, cwd);
+  const { resolved, safe } = confineToWorkspace(filePath, cwd);
   if (!safe) {
     return {
       content: [
@@ -308,7 +294,7 @@ function handleEditAtAnchor(anchorStr: string, oldText: string, newText: string,
   }
 
   // Path confinement
-  const { resolved, safe } = confinePath(anchor.path, cwd);
+  const { resolved, safe } = confineToWorkspace(anchor.path, cwd);
   if (!safe) {
     return {
       content: [

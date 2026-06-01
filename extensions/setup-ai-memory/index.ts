@@ -386,7 +386,7 @@ export default function (pi: ExtensionAPI) {
         results.push({ name: "install routing", ok: true, skipped: true, output: "Skipped by --skip-routing" });
       }
 
-      results.push({ name: "Pi lifecycle hooks", ok: true, output: "Provided by this starter-kit extension; no ~/.omp files are used." });
+      results.push({ name: "Pi lifecycle hooks", ok: true, output: "Provided by this starter-kit extension." });
       notifyResults(ctx, "ai-memory setup complete", results);
     },
   });

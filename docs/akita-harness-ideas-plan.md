@@ -1,7 +1,7 @@
 # Akita Harness Ideas — Implementation Plan
 
-> Source: AkitaOnRails, “Primeiras Impressões usando Oh-My-Pi e OpenCode” (2026-05-25).
-> Goal: extract the positive harness traits Akita praised in Claude Code, OpenCode, Oh-My-Pi, and the few positive/neutral points around Codex/GPT; compare them with Pi.dev Starter Kit; propose implementation ideas only where the kit does not already cover them well.
+> Source: AkitaOnRails harness comparison article (2026-05-25).
+> Goal: extract positive harness traits from the article; compare them with Pi.dev Starter Kit; propose implementation ideas only where the kit does not already cover them well.
 
 ## Summary
 
@@ -63,30 +63,30 @@ Starter kit status:
 - Mostly covered by current dependencies and extensions.
 - Gaps are more about polish/defaults than raw capability: onboarding, clearer defaults, less verbosity, and a stable “works immediately” profile.
 
-### Oh-My-Pi
+### Pi.dev Starter Kit target capabilities
 
-Positive points Akita called out:
+Capabilities to implement directly in Pi.dev Starter Kit:
 
 - Batteries-included Pi distribution, useful starting point versus bare Pi.
 - Many tools and strong tool routing prompts.
-- Universal `read` is the clearest advantage: files, directories, archives, SQLite, images, PDF/DOCX/PPTX/XLSX/RTF/EPUB, Jupyter notebooks, URLs in reader mode, and internal URIs.
+- Universal artifact reading: files, directories, archives, SQLite, images, PDF/DOCX/PPTX/XLSX/RTF/EPUB, Jupyter notebooks, URLs in reader mode, and internal URIs.
 - SQLite read protocol: list tables/counts, schema/sample, row by primary key, pagination, filters/order, read-only SQL.
 - Source-code conveniences: structural summaries, multi-range reads, line-hash anchors, aggressive LSP routing, `ast_grep`, `ast_edit`.
-- Good when projects include data/document artifacts, audits, migrations, notebooks, spreadsheets, archives, PDFs, images, and web pages.
-- Exposes harness behavior as config knobs: steering mode, interrupt mode, compaction strategy.
+- Good support for projects with data/document artifacts, audits, migrations, notebooks, spreadsheets, archives, PDFs, images, and web pages.
+- Harness behavior as config knobs: steering mode, interrupt mode, compaction strategy.
 
 Starter kit status:
 
 - Covered: web, browser, MCP, subagents, memory, context-mode, basic LSP diagnostics.
-- Not covered or weak: universal artifact reader, SQLite/document/archive/notebook protocols, AST tools, line anchors, multi-range reads, symbol-level LSP operations, explicit steering/interrupt/compaction settings.
+- Previously weak but now implemented or planned: universal artifact reader, SQLite/archive protocols, AST tools, line anchors, multi-range reads, symbol-level LSP operations, explicit steering/interrupt/compaction settings.
 
 ## Implementation plan
 
 ### 1. Add a universal artifact reader extension
 
-**Idea:** Implement `artifact-read` or extend the kit with a new tool such as `artifact_read` that gives Oh-My-Pi-style structured reads for non-source artifacts.
+**Idea:** Implement `artifact-read` with a tool such as `artifact_read` that gives Pi-native structured reads for non-source artifacts.
 
-**Why it is great:** Akita identifies this as Oh-My-Pi’s clearest real advantage. It prevents the model from inventing brittle shell commands, reduces context dumps, and makes data/document-heavy projects practical.
+**Why it is great:** A structured artifact reader prevents the model from inventing brittle shell commands, reduces context dumps, and makes data/document-heavy projects practical.
 
 **Scope:**
 
@@ -151,7 +151,7 @@ Starter kit status:
 
 **Idea:** Add documented `.pi/settings.json` knobs and system routing for harness behavior profiles.
 
-**Why it is great:** Akita treats steering as mandatory for Agile Vibe Coding. Claude Code is strong here; Oh-My-Pi exposes knobs. Users need to redirect agents without losing the session.
+**Why it is great:** Akita treats steering as mandatory for Agile Vibe Coding. Claude Code is strong here; Pi.dev exposes knobs. Users need to redirect agents without losing the session.
 
 **Scope:**
 
@@ -219,12 +219,12 @@ A tool is not useful just because it exists in code. The LLM must see enough inf
 
 | Capability | Always-on agent awareness | Deep guidance | Runtime visibility |
 |---|---|---|---|
-| `artifact_read` | Add to SYSTEM Tool Categories under File/Data I/O. Routing: use for SQLite, archives, CSV/JSON, documents, notebooks, URLs/artifacts instead of ad hoc shell. | `skills/artifact-analysis/SKILL.md` with examples for SQLite queries, archive inspection, document extraction, notebook outlines. | `starter-kit-doctor` checks parsers/deps and lists supported artifact types. |
-| `ast_grep` / `ast_edit` | Add to SYSTEM Search/Refactor category. Routing: use for structural patterns/codemods, not string search. | `skills/structural-refactor/SKILL.md` with ast-grep patterns, dry-run workflow, when to prefer LSP. | Doctor checks `ast-grep` binary and language support. |
+| `artifact_read` | Add to SYSTEM Tool Categories under File/Data I/O. Routing: use for SQLite, archives, CSV/JSON, documents, notebooks, URLs/artifacts instead of ad hoc shell. | `skills/tools/artifact-analysis/SKILL.md` with examples for SQLite queries, archive inspection, document extraction, notebook outlines. | `starter-kit-doctor` checks parsers/deps and lists supported artifact types. |
+| `ast_grep` / `ast_edit` | Add to SYSTEM Search/Refactor category. Routing: use for structural patterns/codemods, not string search. | `skills/quality/structural-refactor/SKILL.md` with ast-grep patterns, dry-run workflow, when to prefer LSP. | Doctor checks `ast-grep` binary and language support. |
 | LSP symbol tools | Add to SYSTEM Quality/Navigation category. Routing: use for definitions, references, rename, workspace symbols. | `structural-refactor` includes LSP-first rename/reference workflow. | Doctor lists detected language servers and enabled LSP tools. |
 | `read_ranges` / `edit_at_anchor` | Add brief SYSTEM rule: use range reads for scattered sections and anchors for stale-safe edits. | Existing `self-verify`/`structural-refactor` can reference anchor-safe edits. | Doctor verifies extension enabled. |
 | Steering/interrupt/compaction profiles | Add compact SYSTEM note that the active profile controls interaction style. | `docs/steering-profiles.md` explains profiles; no large system prompt. | Doctor prints active profile and effective settings. |
-| `review-matrix` | Add to SYSTEM skill list with one-line trigger: important audit/review. | `skills/review-matrix/SKILL.md` contains full workflow. | Doctor lists skill availability. |
+| `review-matrix` | Add to SYSTEM skill list with one-line trigger: important audit/review. | `skills/quality/review-matrix/SKILL.md` contains full workflow. | Doctor lists skill availability. |
 
 ### SYSTEM.md additions should stay small
 
@@ -259,13 +259,13 @@ This is how each idea should be delivered in the Pi.dev Starter Kit. The default
 
 | Idea | Kit delivery | Files to add/change | Technical solution |
 |---|---|---|---|
-| Universal artifact reader | **Extension** | `extensions/artifact-read/index.ts`, `skills/artifact-analysis/SKILL.md` optional, `templates/settings.template.json`, `SYSTEM.md` routing | Register an `artifact_read` tool. It should inspect file type, enforce path confinement, return structured summaries, and use safe parsers/read-only queries. The optional skill teaches workflows for data/document investigations. |
-| AST search/edit | **Extension + skill guidance** | `extensions/ast-tools/index.ts`, `skills/structural-refactor/SKILL.md` optional, `SYSTEM.md` routing | Register `ast_grep` and `ast_edit` wrappers around `ast-grep`. `ast_edit` must default to dry-run and route real edits through the permission pipeline. Skill docs explain codemod patterns and when to prefer LSP. |
+| Universal artifact reader | **Extension** | `extensions/artifact-read/index.ts`, `skills/tools/artifact-analysis/SKILL.md` optional, `templates/settings.template.json`, `SYSTEM.md` routing | Register an `artifact_read` tool. It should inspect file type, enforce path confinement, return structured summaries, and use safe parsers/read-only queries. The optional skill teaches workflows for data/document investigations. |
+| AST search/edit | **Extension + skill guidance** | `extensions/ast-tools/index.ts`, `skills/quality/structural-refactor/SKILL.md` optional, `SYSTEM.md` routing | Register `ast_grep` and `ast_edit` wrappers around `ast-grep`. `ast_edit` must default to dry-run and route real edits through the permission pipeline. Skill docs explain codemod patterns and when to prefer LSP. |
 | Stronger LSP | **Extension upgrade** | `extensions/lsp-bridge/index.ts`, maybe `extensions/lsp-bridge/lsp-client.ts`, `templates/settings.template.json` | Expand from diagnostics/type-check commands to LSP client operations: definition, references, rename preview, workspace symbols. Use project language-server detection and degrade gracefully when no server exists. |
 | Multi-range read + anchors | **Extension** | `extensions/source-navigation/index.ts` or fold into `artifact-read`, `SYSTEM.md` routing | Register `read_ranges` and optionally `edit_at_anchor`. Anchors include path, line range, and content hash; edits fail if the target range changed. This is tool-level safety, not a prompt-only rule. |
 | Steering/interruption/compaction profiles | **Settings + prompt template + docs; extension only if Pi exposes hooks** | `templates/settings.template.json`, `SYSTEM.md`, `APPEND_SYSTEM.md`, `docs/steering-profiles.md` | Add `starterKit.steeringMode`, `interruptMode`, and `compactionStrategy`. Initially use them as documented routing/profile hints. If Pi exposes runtime hooks/events, add an extension to enforce profile behavior. |
 | Polished default + doctor | **Extension command + templates** | `extensions/starter-kit-doctor/index.ts`, `templates/settings.template.json`, `README.md` | Register `/starter-kit-doctor` or `starter_kit_doctor` tool/command that checks installed dependencies, active extensions, active skills, `.pi/settings.json`, required binaries, and prints actionable fixes. Adjust templates for a recommended default profile. |
-| Multi-pass review workflow | **Skill + prompt** | `skills/review-matrix/SKILL.md`, `prompts/review-matrix.md`, `SYSTEM.md` skill list | Add a workflow skill that runs independent review passes: correctness/regression, security/data-loss, maintainability/API. It may use subagents when available, but should also work sequentially. |
+| Multi-pass review workflow | **Skill + prompt** | `skills/quality/review-matrix/SKILL.md`, `prompts/review-matrix.md`, `SYSTEM.md` skill list | Add a workflow skill that runs independent review passes: correctness/regression, security/data-loss, maintainability/API. It may use subagents when available, but should also work sequentially. |
 | Provider/subscription guidance | **Documentation** | `docs/provider-guidance.md`, `README.md` link | Document safe provider-compliant choices. No OAuth hacks, no credential routing that violates provider terms. Explain model quality vs harness quality vs pricing. |
 
 ### Proposed package structure additions
@@ -299,7 +299,7 @@ docs/
 ## Suggested priority order
 
 1. **Polished default profile + starter-kit doctor** — fastest improvement to day-one experience.
-2. **Universal artifact reader, phase 1: SQLite + archives + CSV/JSON** — highest Oh-My-Pi-inspired capability gain.
+2. **Universal artifact reader, phase 1: SQLite + archives + CSV/JSON** — highest Pi.dev-inspired capability gain.
 3. **AST tools** — high leverage for codemods and refactors.
 4. **LSP symbol operations** — correctness improvement for real source refactors.
 5. **Multi-range read + anchors** — safety/context efficiency improvement.
@@ -309,7 +309,7 @@ docs/
 
 ## Non-goals
 
-- Do not copy Oh-My-Pi wholesale or turn the kit into a huge always-on prompt.
+- Do not copy Pi.dev wholesale or turn the kit into a huge always-on prompt.
 - Do not bypass Anthropic/OpenAI subscription restrictions.
 - Do not force subagents for normal cohesive coding work; use them only for genuinely parallel tasks.
 - Do not optimize for tiny system prompts at the expense of losing test logs, build output, or evidence.
