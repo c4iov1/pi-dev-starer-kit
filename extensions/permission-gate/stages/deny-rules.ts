@@ -8,6 +8,7 @@ import {
   extractRmTargets,
   getCommandCwd,
   resolveCommandPath,
+  stripHeredocBodies,
 } from "../helpers.js";
 import type { BlockResult, PermissionMode } from "../types.js";
 
@@ -18,7 +19,9 @@ export function checkDenyRules(
   workspaceRoot: string,
   commandCwd: string,
 ): BlockResult | null {
-  if (commandUsesRecursiveRm(command)) {
+  const shellCommand = stripHeredocBodies(command);
+
+  if (commandUsesRecursiveRm(shellCommand)) {
     if (permissionMode === "featureWork") {
       const targets = extractRmTargets(command);
       if (targets.length > 0) {
@@ -38,7 +41,7 @@ export function checkDenyRules(
   }
 
   for (const rule of STATIC_DENY_RULES) {
-    if (rule.pattern.test(command)) {
+    if (rule.pattern.test(shellCommand)) {
       return {
         blocked: true,
         reason: blockReason(

