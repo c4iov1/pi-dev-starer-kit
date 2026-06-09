@@ -1,6 +1,7 @@
 import { relative, resolve } from "node:path";
 import { ErrorCodes } from "../../shared/errors.js";
 import { isInsideWorkspace } from "../../shared/path-utils.js";
+import { sendC4MuxPermissionEvent } from "../c4mux-events.js";
 import {
   READ_TOOLS,
   SHELL_TOOLS,
@@ -45,6 +46,7 @@ export async function promptEditApproval(
   params: Record<string, unknown>,
   ctx: any,
   workspaceRoot: string,
+  toolCallId?: string,
 ): Promise<BlockResult | null> {
   if (!ctx.hasUI) {
     return {
@@ -68,12 +70,34 @@ export async function promptEditApproval(
     preview = `${toolName}: ${command}`;
   }
 
-  const choice = await ctx.ui.select(`Allow tool call?\n\n  ${preview}`, ["Yes", "No"]);
-  if (choice !== "Yes") {
-    return { blocked: true, reason: blockReason(ErrorCodes.PERMISSION_DENIED, "Blocked by user") };
-  }
+  await sendC4MuxPermissionEvent({
+    event_type: "pi_permission_prompt_start",
+    pid: process.pid,
+    cwd: workspaceRoot,
+    tool_name: toolName,
+    tool_call_id: toolCallId,
+    preview,
+  });
 
-  return null;
+  let choice: string | undefined;
+
+  try {
+    choice = await ctx.ui.select(`Allow tool call?\n\n  ${preview}`, ["Yes", "No"]);
+    if (choice !== "Yes") {
+      return { blocked: true, reason: blockReason(ErrorCodes.PERMISSION_DENIED, "Blocked by user") };
+    }
+    return null;
+  } finally {
+    await sendC4MuxPermissionEvent({
+      event_type: "pi_permission_prompt_end",
+      pid: process.pid,
+      cwd: workspaceRoot,
+      tool_name: toolName,
+      tool_call_id: toolCallId,
+      preview,
+      allowed: choice === "Yes",
+    });
+  }
 }
 
 /** Stage 5: apply mode-specific auto-allow and interactive prompt behavior. */
@@ -83,22 +107,23 @@ export async function handleInteractivePrompt(
   ctx: any,
   permissionMode: PermissionMode,
   workspaceRoot: string,
+  toolCallId?: string,
 ): Promise<BlockResult | null> {
   if (permissionMode === "featureWork") {
     if (shouldAutoAllowFeatureWork(toolName, params, ctx, workspaceRoot)) return null;
 
     if (READ_TOOLS.has(toolName) || WRITE_TOOLS.has(toolName) || SHELL_TOOLS.has(toolName)) {
-      return await promptEditApproval(toolName, params, ctx, workspaceRoot);
+      return await promptEditApproval(toolName, params, ctx, workspaceRoot, toolCallId);
     }
   }
 
   if (permissionMode === "acceptEdits") {
-    if (SHELL_TOOLS.has(toolName)) return await promptEditApproval(toolName, params, ctx, workspaceRoot);
+    if (SHELL_TOOLS.has(toolName)) return await promptEditApproval(toolName, params, ctx, workspaceRoot, toolCallId);
   }
 
   if (permissionMode === "default") {
     if (WRITE_TOOLS.has(toolName) || SHELL_TOOLS.has(toolName)) {
-      return await promptEditApproval(toolName, params, ctx, workspaceRoot);
+      return await promptEditApproval(toolName, params, ctx, workspaceRoot, toolCallId);
     }
   }
   return null;

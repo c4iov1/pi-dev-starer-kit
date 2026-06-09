@@ -60,6 +60,7 @@ function handleToolResult(event: any, ctx: any, workspaceRoot: string): void {
 async function handleToolCall(event: any, ctx: any, permissionMode: PermissionMode, workspaceRoot: string) {
   const toolName = getEventToolName(event);
   const params = getEventParams(event);
+  const toolCallId: string | undefined = event.toolCallId;
 
   const protectedBlock = handleProtectedPaths(toolName, params);
   if (protectedBlock) return { block: true, reason: protectedBlock.reason };
@@ -73,7 +74,7 @@ async function handleToolCall(event: any, ctx: any, permissionMode: PermissionMo
   const writeBlock = handleWriteConstraint(toolName, params, ctx, workspaceRoot, permissionMode, readFileRegistry);
   if (writeBlock) return { block: true, reason: writeBlock.reason };
 
-  const promptBlock = await handleInteractivePrompt(toolName, params, ctx, permissionMode, workspaceRoot);
+  const promptBlock = await handleInteractivePrompt(toolName, params, ctx, permissionMode, workspaceRoot, toolCallId);
   if (promptBlock) return { block: true, reason: promptBlock.reason };
 
   return undefined;

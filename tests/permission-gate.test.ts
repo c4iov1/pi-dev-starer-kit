@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import * as net from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -432,5 +433,180 @@ test("shell operators and pipes are handled correctly", async () => {
     }
   } finally {
     harness.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// C4Mux permission prompt event tests
+// ---------------------------------------------------------------------------
+
+/** Create a temporary Unix socket server that collects JSON lines. */
+function createC4MuxServer(): Promise<{ path: string; events: Record<string, unknown>[]; cleanup(): void }> {
+  return new Promise((resolve) => {
+    const socketPath = join(tmpdir(), `c4mux-test-${Date.now()}-${Math.random().toString(36).slice(2)}.sock`);
+    const events: Record<string, unknown>[] = [];
+    const server = net.createServer((sock) => {
+      let buf = "";
+      sock.on("data", (chunk) => {
+        buf += chunk.toString();
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            events.push(JSON.parse(line));
+          } catch {
+            // ignore malformed
+          }
+        }
+      });
+    });
+    server.listen(socketPath, () => resolve({ path: socketPath, events, cleanup: () => { server.close(); try { rmSync(socketPath, { force: true }); } catch { /* ignore */ } } }));
+  });
+}
+
+test("C4Mux: no env var keeps identical behaviour", async () => {
+  delete process.env.C4MUX_HOOK_SOCKET;
+  const harness = createHarness("No", "default");
+  try {
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+    const result = await toolCall({ toolName: "write", input: { path: "test.txt" } }, harness.ctx);
+    assert.equal(result.block, true);
+    assert.match(result.reason, /Blocked by user/);
+    assert.equal(harness.prompts.length, 1);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test("C4Mux: unreachable socket does not break approval", async () => {
+  process.env.C4MUX_HOOK_SOCKET = join(tmpdir(), `nonexistent-${Date.now()}.sock`);
+  const harness = createHarness("Yes", "default");
+  try {
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+    // Should not throw or block — unreachable socket is best-effort only
+    const result = await toolCall({ toolName: "edit", input: { path: "test.txt" } }, harness.ctx);
+    assert.equal(result, undefined); // approved by user
+    assert.equal(harness.prompts.length, 1);
+  } finally {
+    harness.cleanup();
+    delete process.env.C4MUX_HOOK_SOCKET;
+  }
+});
+
+test("C4Mux: emits start before prompt and end after approval", async () => {
+  const server = await createC4MuxServer();
+  process.env.C4MUX_HOOK_SOCKET = server.path;
+
+  const harness = createHarness("Yes", "default");
+  try {
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+    const result = await toolCall({ toolName: "write", input: { path: "test.txt" }, toolCallId: "call-abc-123" }, harness.ctx);
+    assert.equal(result, undefined);
+    assert.equal(harness.prompts.length, 1);
+
+    // Wait a tick for socket data
+    await new Promise((r) => setTimeout(r, 50));
+
+    assert.ok(server.events.length >= 2, `Expected >=2 events, got ${server.events.length}`);
+    const startEvent = server.events[0];
+    const endEvent = server.events[server.events.length - 1];
+
+    assert.equal(startEvent.event_type, "pi_permission_prompt_start");
+    assert.equal(typeof startEvent.pid, "number");
+    assert.equal(startEvent.cwd, harness.workspace);
+    assert.equal(startEvent.tool_name, "write");
+    assert.equal(startEvent.tool_call_id, "call-abc-123");
+    assert.ok(typeof startEvent.preview === "string" && startEvent.preview.length > 0);
+
+    assert.equal(endEvent.event_type, "pi_permission_prompt_end");
+    assert.equal(endEvent.allowed, true);
+    assert.equal(endEvent.tool_name, "write");
+    assert.equal(endEvent.tool_call_id, "call-abc-123");
+  } finally {
+    harness.cleanup();
+    server.cleanup();
+    delete process.env.C4MUX_HOOK_SOCKET;
+  }
+});
+
+test("C4Mux: emits end with allowed=false on user denial", async () => {
+  const server = await createC4MuxServer();
+  process.env.C4MUX_HOOK_SOCKET = server.path;
+
+  const harness = createHarness("No", "default");
+  try {
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+    const result = await toolCall({ toolName: "edit", input: { path: "test.txt" }, toolCallId: "call-def-456" }, harness.ctx);
+    assert.equal(result.block, true);
+    assert.match(result.reason, /Blocked by user/);
+    assert.equal(harness.prompts.length, 1);
+
+    // Wait a tick for socket data
+    await new Promise((r) => setTimeout(r, 50));
+
+    assert.ok(server.events.length >= 2, `Expected >=2 events, got ${server.events.length}`);
+    const startEvent = server.events[0];
+    const endEvent = server.events[server.events.length - 1];
+
+    assert.equal(startEvent.event_type, "pi_permission_prompt_start");
+    assert.equal(endEvent.event_type, "pi_permission_prompt_end");
+    assert.equal(endEvent.allowed, false);
+    assert.equal(endEvent.tool_name, "edit");
+    assert.equal(endEvent.tool_call_id, "call-def-456");
+  } finally {
+    harness.cleanup();
+    server.cleanup();
+    delete process.env.C4MUX_HOOK_SOCKET;
+  }
+});
+
+test("C4Mux: omitted toolCallId comes through as undefined/absent", async () => {
+  const server = await createC4MuxServer();
+  process.env.C4MUX_HOOK_SOCKET = server.path;
+
+  const harness = createHarness("Yes", "default");
+  try {
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+    // No toolCallId on event
+    await toolCall({ toolName: "write", input: { path: "test.txt" } }, harness.ctx);
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    assert.ok(server.events.length >= 2, `Expected >=2 events, got ${server.events.length}`);
+    const startEvent = server.events[0];
+    // tool_call_id should be undefined/absent when not provided
+    assert.equal(startEvent.tool_call_id, undefined);
+  } finally {
+    harness.cleanup();
+    server.cleanup();
+    delete process.env.C4MUX_HOOK_SOCKET;
+  }
+});
+
+test("C4Mux: socket timeout does not throw or block", async () => {
+  // Use a path that connects but never reads — simulate slow server
+  const server = await createC4MuxServer();
+  process.env.C4MUX_HOOK_SOCKET = server.path;
+
+  // Close the server so the socket connect will fail/timeout
+  server.cleanup();
+
+  const harness = createHarness("Yes", "default");
+  try {
+    const toolCall = harness.handlers.get("tool_call");
+    assert.ok(toolCall);
+    // Must still pass through without error
+    const result = await toolCall({ toolName: "write", input: { path: "test.txt" } }, harness.ctx);
+    assert.equal(result, undefined);
+    assert.equal(harness.prompts.length, 1);
+  } finally {
+    harness.cleanup();
+    delete process.env.C4MUX_HOOK_SOCKET;
   }
 });
